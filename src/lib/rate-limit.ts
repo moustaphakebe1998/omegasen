@@ -119,3 +119,10 @@ export async function checkLoginRateLimit(
   }
   return { blocked: false };
 }
+
+export async function orderLimiter(ip: string): Promise<{ success: boolean } | null> {
+  const limiter = getOrderLimiter()
+  if (!limiter) return { success: true }
+  const result = await limiter.limit(ip)
+  return { success: result.success }
+}
