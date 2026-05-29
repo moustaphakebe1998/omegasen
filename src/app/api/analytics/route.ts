@@ -41,7 +41,7 @@ export const GET = withAuth(async (req, { user }) => {
     fromDate,
     toDate,
     restaurantFilter,
-    granularity
+    granularity ?? "day"
   );
 
   // Top produits
