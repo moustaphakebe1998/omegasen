@@ -5,16 +5,16 @@ import { prisma } from '@/db/client'
 import { z } from 'zod'
 
 const updateProductSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(120).optional(),
+  slug: z.string().min(1).max(120).optional(),
   description: z.string().max(500).nullable().optional(),
-  price: z.number().int().positive().optional(),
+  price: z.number().positive().optional(),
   imageUrl: z.string().url().nullable().optional(),
   isAvailable: z.boolean().optional(),
-  isHidden: z.boolean().optional(),
+  isVisible: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
-  categoryId: z.string().cuid().optional(),
   allergens: z.array(z.string()).optional(),
-  calories: z.number().int().nullable().optional(),
+  tags: z.array(z.string()).optional(),
 })
 
 type Params = { params: Promise<{ id: string }> }
@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest, { params }: Params): Promise<NextRe
     where: { id, deletedAt: null },
     include: {
       category: true,
-      optionGroups: { include: { options: { where: { deletedAt: null } } } },
+      optionGroups: { include: { options: true } },
     },
   })
   if (!product) return err('Produit introuvable', 404)
@@ -41,12 +41,15 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
   const body = await parseBody(req, updateProductSchema)
   if ('error' in body) return body.error
 
-  const product = await prisma.product.findFirst({ where: { id, deletedAt: null } })
+  const product = await prisma.product.findFirst({
+    where: { id, deletedAt: null },
+    include: { category: true },
+  })
   if (!product) return err('Produit introuvable', 404)
 
   if (user.role !== 'CEO') {
     const access = await prisma.userRestaurant.findFirst({
-      where: { userId: user.id, restaurantId: product.restaurantId },
+      where: { userId: user.id, restaurantId: product.category.restaurantId },
     })
     if (!access) return err('Accès refusé', 403)
   }
@@ -65,19 +68,22 @@ export async function DELETE(req: NextRequest, { params }: Params): Promise<Next
   if (!['CEO', 'MANAGER'].includes(user.role)) return err('Accès refusé', 403)
 
   const { id } = await params
-  const product = await prisma.product.findFirst({ where: { id, deletedAt: null } })
+  const product = await prisma.product.findFirst({
+    where: { id, deletedAt: null },
+    include: { category: true },
+  })
   if (!product) return err('Produit introuvable', 404)
 
   if (user.role !== 'CEO') {
     const access = await prisma.userRestaurant.findFirst({
-      where: { userId: user.id, restaurantId: product.restaurantId },
+      where: { userId: user.id, restaurantId: product.category.restaurantId },
     })
     if (!access) return err('Accès refusé', 403)
   }
 
   await prisma.product.update({
     where: { id },
-    data: { deletedAt: new Date(), isAvailable: false, isHidden: true },
+    data: { deletedAt: new Date(), isAvailable: false, isVisible: false },
   })
   return ok({ deleted: true })
 }

@@ -1,3 +1,5 @@
+// src/lib/rate-limit.ts — Rate limiting via Upstash Redis (Vercel KV)
+
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
@@ -72,7 +74,9 @@ export async function rateLimit(
   if (type === "login") limiter = getLoginLimiter();
   else if (type === "order") limiter = getOrderLimiter();
   else limiter = getApiLimiter();
+
   if (!limiter) return { success: true, remaining: 999, reset: Date.now() + 60000 };
+
   const result = await limiter.limit(ip);
   return { success: result.success, remaining: result.remaining, reset: result.reset };
 }

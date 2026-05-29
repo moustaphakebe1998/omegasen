@@ -6,16 +6,16 @@ import { z } from 'zod'
 
 const createProductSchema = z.object({
   categoryId: z.string().cuid(),
-  name: z.string().min(1).max(100),
+  name: z.string().min(1).max(120).trim(),
+  slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/).trim(),
   description: z.string().max(500).optional(),
-  price: z.number().int().positive(),
+  price: z.number().positive(),
   imageUrl: z.string().url().optional(),
-  isAvailable: z.boolean().optional().default(true),
-  isHidden: z.boolean().optional().default(false),
-  sortOrder: z.number().int().optional().default(0),
-  taxRate: z.number().min(0).max(100).optional().default(20),
+  isAvailable: z.boolean().optional(),
+  isVisible: z.boolean().optional(),
+  sortOrder: z.number().int().optional(),
   allergens: z.array(z.string()).optional(),
-  calories: z.number().int().optional(),
+  tags: z.array(z.string()).optional(),
 })
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -23,10 +23,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   if (!restaurantId) return err('restaurantId requis', 400)
 
   const products = await prisma.product.findMany({
-    where: { restaurantId, deletedAt: null },
+    where: { category: { restaurantId }, deletedAt: null },
     include: {
       category: { select: { id: true, name: true, sortOrder: true } },
-      optionGroups: { include: { options: { where: { deletedAt: null } } } },
+      optionGroups: { include: { options: { orderBy: { sortOrder: 'asc' } } } },
     },
     orderBy: [{ category: { sortOrder: 'asc' } }, { sortOrder: 'asc' }],
   })
@@ -41,7 +41,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await parseBody(req, createProductSchema)
   if ('error' in body) return body.error
 
-  const { categoryId, ...data } = body.data
+  const { categoryId, name, slug, description, price, imageUrl, isAvailable, isVisible, sortOrder, allergens, tags } = body.data
+
   const category = await prisma.menuCategory.findFirst({ where: { id: categoryId, deletedAt: null } })
   if (!category) return err('Catégorie introuvable', 404)
 
@@ -53,7 +54,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const product = await prisma.product.create({
-    data: { ...data, categoryId, restaurantId: category.restaurantId },
+    data: {
+      categoryId,
+      name,
+      slug,
+      description,
+      price,
+      imageUrl,
+      isAvailable: isAvailable ?? true,
+      isVisible: isVisible ?? true,
+      sortOrder: sortOrder ?? 0,
+      allergens: allergens ?? [],
+      tags: tags ?? [],
+    },
     include: { category: true },
   })
   return ok(product, 201)

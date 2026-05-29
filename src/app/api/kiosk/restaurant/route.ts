@@ -1,8 +1,8 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { ok, err } from '@/lib/api'
 import { prisma } from '@/db/client'
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   const slug = req.nextUrl.searchParams.get('slug')
   if (!slug) return err('slug requis', 400)
 
@@ -13,7 +13,6 @@ export async function GET(req: NextRequest) {
       name: true,
       slug: true,
       logoUrl: true,
-      isOpen: true,
       maintenanceMode: true,
       currency: true,
       taxRate: true,
@@ -21,9 +20,6 @@ export async function GET(req: NextRequest) {
   })
 
   if (!restaurant) return err('Restaurant introuvable', 404)
-  if (restaurant.maintenanceMode) {
-    return ok({ ...restaurant, maintenance: true })
-  }
-
+  if (restaurant.maintenanceMode) return ok({ ...restaurant, maintenance: true })
   return ok(restaurant)
 }

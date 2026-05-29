@@ -6,11 +6,12 @@ import { z } from 'zod'
 
 const updateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  isOpen: z.boolean().optional(),
   maintenanceMode: z.boolean().optional(),
   phone: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   logoUrl: z.string().url().optional().nullable(),
+  email: z.string().email().optional().nullable(),
+  timezone: z.string().optional(),
 })
 
 type Params = { params: Promise<{ id: string }> }
@@ -31,6 +32,9 @@ export async function PATCH(req: NextRequest, { params }: Params): Promise<NextR
     if (!access) return err('Accès refusé', 403)
   }
 
-  const restaurant = await prisma.restaurant.update({ where: { id }, data: body.data })
+  const restaurant = await prisma.restaurant.update({
+    where: { id },
+    data: body.data,
+  })
   return ok(restaurant)
 }

@@ -1,9 +1,9 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { ok, err } from '@/lib/api'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/db/client'
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest): Promise<NextResponse> {
   const user = await getCurrentUser()
   if (!user) return err('Non authentifié', 401)
 
@@ -11,9 +11,11 @@ export async function GET(req: NextRequest) {
     where: { id: user.id },
     select: {
       id: true,
-      name: true,
+      firstName: true,
+      lastName: true,
       email: true,
       role: true,
+      avatarUrl: true,
       createdAt: true,
       restaurants: {
         include: {

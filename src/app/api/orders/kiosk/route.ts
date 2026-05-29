@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { ok, err, parseBody } from '@/lib/api'
 import { prisma } from '@/db/client'
 import { createOrderSchema } from '@/validations'
@@ -6,30 +6,23 @@ import { calculateOrderTotals, generateOrderNumber } from '@/server/orders'
 import { broadcast } from '@/lib/sse'
 import { orderLimiter } from '@/lib/rate-limit'
 
-export async function POST(req: NextRequest) {
-  // Rate limit by IP
+export async function POST(req: NextRequest): Promise<NextResponse> {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
   const limit = await orderLimiter(ip)
-  if (limit && !limit.success) {
-    return err('Trop de commandes, veuillez patienter', 429)
-  }
+  if (limit && !limit.success) return err('Trop de commandes, veuillez patienter', 429)
 
   const body = await parseBody(req, createOrderSchema)
-  if (!body.ok) return body.error
+  if ('error' in body) return body.error
 
   const { restaurantId, items, notes, idempotencyKey } = body.data
 
-  // Check restaurant is open
   const restaurant = await prisma.restaurant.findFirst({
     where: { id: restaurantId, deletedAt: null },
-    select: { isOpen: true, maintenanceMode: true, currency: true, taxRate: true },
+    select: { maintenanceMode: true },
   })
   if (!restaurant) return err('Restaurant introuvable', 404)
-  if (!restaurant.isOpen || restaurant.maintenanceMode) {
-    return err('Le restaurant est actuellement fermé', 422)
-  }
+  if (restaurant.maintenanceMode) return err('Le restaurant est actuellement fermé', 422)
 
-  // Anti double-submit via idempotency key
   if (idempotencyKey) {
     const existing = await prisma.order.findFirst({
       where: { idempotencyKey, restaurantId },
@@ -38,10 +31,17 @@ export async function POST(req: NextRequest) {
     if (existing) return ok(existing, 200)
   }
 
-  // Recalculate totals server-side
-  const { subtotal, tax, total, lines } = await calculateOrderTotals(items, restaurantId)
+  const validItems = (items ?? []).map(item => ({
+    productId: item.productId!,
+    quantity: item.quantity!,
+    selectedOptions: (item.selectedOptions ?? []).map(opt => ({
+      groupId: opt.groupId!,
+      optionId: opt.optionId!,
+    })),
+  }))
 
-  const orderNumber = generateOrderNumber()
+  const { subtotal, taxAmount, total, items: lines } = await calculateOrderTotals(restaurantId, validItems)
+  const orderNumber = await generateOrderNumber(restaurantId)
 
   const order = await prisma.order.create({
     data: {
@@ -49,48 +49,40 @@ export async function POST(req: NextRequest) {
       orderNumber,
       status: 'PENDING',
       subtotal,
-      tax,
+      taxAmount,
       total,
       notes,
       idempotencyKey,
-      source: 'KIOSK',
       items: {
         create: lines.map(line => ({
           productId: line.productId,
+          productName: line.productName,
           quantity: line.quantity,
           unitPrice: line.unitPrice,
-          total: line.total,
-          notes: line.notes,
+          subtotal: line.subtotal,
           options: {
-            create: line.options?.map(opt => ({
-              productOptionId: opt.optionId,
-              name: opt.name,
+            create: (line.selectedOptions ?? []).map(opt => ({
+              optionId: opt.optionId,
+              optionName: opt.optionName,
               priceModifier: opt.priceModifier,
-            })) ?? [],
+            })),
           },
         })),
       },
       statusHistory: {
-        create: {
-          status: 'PENDING',
-          note: 'Commande créée via borne',
-        },
+        create: { toStatus: 'PENDING', reason: 'Commande créée via borne' },
       },
     },
     include: {
-      items: { include: { product: { select: { name: true } }, options: true } },
+      items: { include: { product: { select: { name: true } } } },
     },
   })
 
-  // Broadcast SSE
-  broadcast(restaurantId, {
-    type: 'order:new',
-    data: {
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      total: order.total,
-      itemCount: order.items.length,
-    },
+  broadcast(restaurantId, 'order:new', {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    total: order.total,
+    itemCount: order.items.length,
   })
 
   return ok({
