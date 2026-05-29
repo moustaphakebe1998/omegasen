@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       restaurants: {
         include: {
           restaurant: {
-            select: { id: true, name: true, slug: true, logoUrl: true, isOpen: true },
+            select: { id: true, name: true, slug: true, logoUrl: true },
           },
         },
       },
