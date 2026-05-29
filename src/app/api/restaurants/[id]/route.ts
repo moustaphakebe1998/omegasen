@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server'
-import { ok, err, withAuth, parseBody } from '@/lib/api'
+import { NextRequest, NextResponse } from 'next/server'
+import { ok, err, parseBody } from '@/lib/api'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/db/client'
 import { z } from 'zod'
 
@@ -14,24 +15,22 @@ const updateSchema = z.object({
 
 type Params = { params: Promise<{ id: string }> }
 
-export async function PATCH(req: NextRequest, { params }: Params) {
-  return withAuth(req, ['CEO', 'MANAGER'], async (user) => {
-    const { id } = await params
-    const body = await parseBody(req, updateSchema)
-    if (!body.ok) return body.error
+export async function PATCH(req: NextRequest, { params }: Params): Promise<NextResponse> {
+  const user = await getCurrentUser()
+  if (!user) return err('Non authentifié', 401)
+  if (!['CEO', 'MANAGER'].includes(user.role)) return err('Accès refusé', 403)
 
-    if (user.role !== 'CEO') {
-      const access = await prisma.userRestaurant.findFirst({
-        where: { userId: user.id, restaurantId: id },
-      })
-      if (!access) return err('Accès refusé', 403)
-    }
+  const { id } = await params
+  const body = await parseBody(req, updateSchema)
+  if ('error' in body) return body.error
 
-    const restaurant = await prisma.restaurant.update({
-      where: { id },
-      data: body.data,
+  if (user.role !== 'CEO') {
+    const access = await prisma.userRestaurant.findFirst({
+      where: { userId: user.id, restaurantId: id },
     })
+    if (!access) return err('Accès refusé', 403)
+  }
 
-    return ok(restaurant)
-  })
+  const restaurant = await prisma.restaurant.update({ where: { id }, data: body.data })
+  return ok(restaurant)
 }

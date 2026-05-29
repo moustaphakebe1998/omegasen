@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server'
-import { ok, err, withAuth, parseBody } from '@/lib/api'
+import { NextRequest, NextResponse } from 'next/server'
+import { ok, err, parseBody } from '@/lib/api'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/db/client'
 import { z } from 'zod'
 
@@ -18,7 +19,7 @@ const updateProductSchema = z.object({
 
 type Params = { params: Promise<{ id: string }> }
 
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(_req: NextRequest, { params }: Params): Promise<NextResponse> {
   const { id } = await params
   const product = await prisma.product.findFirst({
     where: { id, deletedAt: null },
@@ -31,51 +32,52 @@ export async function GET(_req: NextRequest, { params }: Params) {
   return ok(product)
 }
 
-export async function PATCH(req: NextRequest, { params }: Params) {
-  return withAuth(req, ['CEO', 'MANAGER'], async (user) => {
-    const { id } = await params
-    const body = await parseBody(req, updateProductSchema)
-    if (!body.ok) return body.error
+export async function PATCH(req: NextRequest, { params }: Params): Promise<NextResponse> {
+  const user = await getCurrentUser()
+  if (!user) return err('Non authentifié', 401)
+  if (!['CEO', 'MANAGER'].includes(user.role)) return err('Accès refusé', 403)
 
-    const product = await prisma.product.findFirst({ where: { id, deletedAt: null } })
-    if (!product) return err('Produit introuvable', 404)
+  const { id } = await params
+  const body = await parseBody(req, updateProductSchema)
+  if ('error' in body) return body.error
 
-    if (user.role !== 'CEO') {
-      const access = await prisma.userRestaurant.findFirst({
-        where: { userId: user.id, restaurantId: product.restaurantId },
-      })
-      if (!access) return err('Accès refusé', 403)
-    }
+  const product = await prisma.product.findFirst({ where: { id, deletedAt: null } })
+  if (!product) return err('Produit introuvable', 404)
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: body.data,
-      include: { category: true },
+  if (user.role !== 'CEO') {
+    const access = await prisma.userRestaurant.findFirst({
+      where: { userId: user.id, restaurantId: product.restaurantId },
     })
+    if (!access) return err('Accès refusé', 403)
+  }
 
-    return ok(updated)
+  const updated = await prisma.product.update({
+    where: { id },
+    data: body.data,
+    include: { category: true },
   })
+  return ok(updated)
 }
 
-export async function DELETE(req: NextRequest, { params }: Params) {
-  return withAuth(req, ['CEO', 'MANAGER'], async (user) => {
-    const { id } = await params
-    const product = await prisma.product.findFirst({ where: { id, deletedAt: null } })
-    if (!product) return err('Produit introuvable', 404)
+export async function DELETE(req: NextRequest, { params }: Params): Promise<NextResponse> {
+  const user = await getCurrentUser()
+  if (!user) return err('Non authentifié', 401)
+  if (!['CEO', 'MANAGER'].includes(user.role)) return err('Accès refusé', 403)
 
-    if (user.role !== 'CEO') {
-      const access = await prisma.userRestaurant.findFirst({
-        where: { userId: user.id, restaurantId: product.restaurantId },
-      })
-      if (!access) return err('Accès refusé', 403)
-    }
+  const { id } = await params
+  const product = await prisma.product.findFirst({ where: { id, deletedAt: null } })
+  if (!product) return err('Produit introuvable', 404)
 
-    // Soft delete
-    await prisma.product.update({
-      where: { id },
-      data: { deletedAt: new Date(), isAvailable: false, isHidden: true },
+  if (user.role !== 'CEO') {
+    const access = await prisma.userRestaurant.findFirst({
+      where: { userId: user.id, restaurantId: product.restaurantId },
     })
+    if (!access) return err('Accès refusé', 403)
+  }
 
-    return ok({ deleted: true })
+  await prisma.product.update({
+    where: { id },
+    data: { deletedAt: new Date(), isAvailable: false, isHidden: true },
   })
+  return ok({ deleted: true })
 }

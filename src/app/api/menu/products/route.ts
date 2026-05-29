@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server'
-import { ok, err, withAuth, parseBody } from '@/lib/api'
+import { NextRequest, NextResponse } from 'next/server'
+import { ok, err, parseBody } from '@/lib/api'
+import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/db/client'
 import { z } from 'zod'
 
@@ -17,7 +18,7 @@ const createProductSchema = z.object({
   calories: z.number().int().optional(),
 })
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   const restaurantId = req.nextUrl.searchParams.get('restaurantId')
   if (!restaurantId) return err('restaurantId requis', 400)
 
@@ -29,38 +30,31 @@ export async function GET(req: NextRequest) {
     },
     orderBy: [{ category: { sortOrder: 'asc' } }, { sortOrder: 'asc' }],
   })
-
   return ok(products)
 }
 
-export async function POST(req: NextRequest) {
-  return withAuth(req, ['CEO', 'MANAGER'], async (user) => {
-    const body = await parseBody(req, createProductSchema)
-    if (!body.ok) return body.error
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const user = await getCurrentUser()
+  if (!user) return err('Non authentifié', 401)
+  if (!['CEO', 'MANAGER'].includes(user.role)) return err('Accès refusé', 403)
 
-    const { categoryId, ...data } = body.data
-    const category = await prisma.menuCategory.findFirst({
-      where: { id: categoryId, deletedAt: null },
+  const body = await parseBody(req, createProductSchema)
+  if ('error' in body) return body.error
+
+  const { categoryId, ...data } = body.data
+  const category = await prisma.menuCategory.findFirst({ where: { id: categoryId, deletedAt: null } })
+  if (!category) return err('Catégorie introuvable', 404)
+
+  if (user.role !== 'CEO') {
+    const access = await prisma.userRestaurant.findFirst({
+      where: { userId: user.id, restaurantId: category.restaurantId },
     })
-    if (!category) return err('Catégorie introuvable', 404)
+    if (!access) return err('Accès refusé', 403)
+  }
 
-    // Check user can access this restaurant
-    if (user.role !== 'CEO') {
-      const access = await prisma.userRestaurant.findFirst({
-        where: { userId: user.id, restaurantId: category.restaurantId },
-      })
-      if (!access) return err('Accès refusé', 403)
-    }
-
-    const product = await prisma.product.create({
-      data: {
-        ...data,
-        categoryId,
-        restaurantId: category.restaurantId,
-      },
-      include: { category: true },
-    })
-
-    return ok(product, 201)
+  const product = await prisma.product.create({
+    data: { ...data, categoryId, restaurantId: category.restaurantId },
+    include: { category: true },
   })
+  return ok(product, 201)
 }
