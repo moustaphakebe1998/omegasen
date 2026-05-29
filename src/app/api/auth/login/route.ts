@@ -17,7 +17,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return err('Trop de tentatives, réessayez dans 15 minutes', 429)
   }
 
-  let body: { email: string; password: string }
+  const body = { email: "", password: "" }
   try {
     body = loginSchema.parse(await req.json())
   } catch {
