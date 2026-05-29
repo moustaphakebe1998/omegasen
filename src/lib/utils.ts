@@ -13,16 +13,21 @@ export function formatPrice(cents: number, currency = 'EUR'): string {
   }).format(cents / 100)
 }
 
-export function formatDate(date: Date | string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
+export function formatDate(date: Date | string, opts?: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat('fr-FR', opts ?? {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
   }).format(new Date(date))
 }
 
 export function formatDateTime(date: Date | string): string {
   return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(new Date(date))
 }
 
@@ -40,4 +45,11 @@ export function slugify(str: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
+}
+
+export function generateOrderNumber(): string {
+  const prefix = 'OMG'
+  const ts = Date.now().toString(36).toUpperCase().slice(-4)
+  const rand = Math.random().toString(36).toUpperCase().slice(2, 5)
+  return `${prefix}-${ts}${rand}`
 }

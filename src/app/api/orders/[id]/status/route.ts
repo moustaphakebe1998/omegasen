@@ -1,36 +1,43 @@
-// src/app/api/orders/[id]/status/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { ok, err, parseBody } from '@/lib/api'
+import { getCurrentUser } from '@/lib/auth'
+import { updateOrderStatus, canTransition } from '@/server/orders'
+import { prisma } from '@/db/client'
+import { z } from 'zod'
+import type { OrderStatus } from '@prisma/client'
 
-import { NextRequest } from "next/server";
-import { withAuth, ok, err, parseBody } from "@/lib/api";
-import { updateOrderStatusSchema } from "@/validations";
-import { updateOrderStatus, canTransition } from "@/server/orders";
-import { assertCanAccessRestaurant } from "@/lib/auth";
-import { prisma } from "@/db/client";
-import type { OrderStatus } from "@prisma/client";
+const updateStatusSchema = z.object({
+  status: z.enum(['DRAFT', 'PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'SERVED', 'CANCELLED', 'ARCHIVED']),
+  reason: z.string().optional(),
+})
 
-export const PATCH = withAuth(async (req, { user, params }) => {
-  const { id } = params;
+type Params = { params: Promise<{ id: string }> }
 
-  const parsed = await parseBody(req, updateOrderStatusSchema);
-  if ("error" in parsed) return parsed.error;
-  const { status, reason } = parsed.data;
+export async function PATCH(req: NextRequest, { params }: Params): Promise<NextResponse> {
+  const user = await getCurrentUser()
+  if (!user) return err('Non authentifié', 401)
+  if (!['CEO', 'MANAGER', 'KITCHEN'].includes(user.role)) return err('Accès refusé', 403)
 
-  // Vérifier que la commande existe et appartient à un restaurant autorisé
+  const { id } = await params
+  const body = await parseBody(req, updateStatusSchema)
+  if ('error' in body) return body.error
+
+  const { status, reason } = body.data
+
   const order = await prisma.order.findFirst({
     where: { id, deletedAt: null },
-    select: { restaurantId: true, status: true },
-  });
+  })
+  if (!order) return err('Commande introuvable', 404)
 
-  if (!order) return err("Commande introuvable", 404);
-  assertCanAccessRestaurant(user, order.restaurantId);
+  if (user.role !== 'CEO') {
+    const access = await prisma.userRestaurant.findFirst({
+      where: { userId: user.id, restaurantId: order.restaurantId },
+    })
+    if (!access) return err('Accès refusé', 403)
+  }
 
-  // Vérifier la transition
   if (!canTransition(order.status, status as OrderStatus, user.role)) {
-    return err(
-      `Transition ${order.status} → ${status} non autorisée pour votre rôle`,
-      403,
-      "TRANSITION_NOT_ALLOWED"
-    );
+    return err(`Transition ${order.status} → ${status} non autorisée`, 422)
   }
 
   try {
@@ -41,10 +48,9 @@ export const PATCH = withAuth(async (req, { user, params }) => {
       user.id,
       user.role,
       reason
-    );
-    return ok({ order: updated });
+    )
+    return ok(updated)
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erreur mise à jour";
-    return err(msg, 400);
+    return err(e instanceof Error ? e.message : 'Erreur serveur', 500)
   }
-});
+}

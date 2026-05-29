@@ -1,180 +1,134 @@
-// src/app/api/orders/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { ok, err, parseBody } from '@/lib/api'
+import { getCurrentUser } from '@/lib/auth'
+import { prisma } from '@/db/client'
+import { createOrderSchema } from '@/validations'
+import { calculateOrderTotals, generateOrderNumber } from '@/server/orders'
+import { broadcast } from '@/lib/sse'
+import { z } from 'zod'
 
-import { NextRequest } from "next/server";
-import { withAuth, ok, err, parseBody, parseSearchParams, checkIdempotency } from "@/lib/api";
-import { rateLimit } from "@/lib/rate-limit";
-import { createOrderSchema, paginationSchema, updateOrderStatusSchema } from "@/validations";
-import { prisma } from "@/db/client";
-import { broadcast } from "@/lib/sse";
-import { auditLog } from "@/lib/api";
-import { generateOrderNumber, calculateOrderTotals } from "@/server/orders";
-import { assertCanAccessRestaurant } from "@/lib/auth";
-import { z } from "zod";
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  const user = await getCurrentUser()
+  if (!user) return err('Non authentifié', 401)
 
-// ── GET /api/orders ───────────────────────────
+  const restaurantId = req.nextUrl.searchParams.get('restaurantId')
+  const status = req.nextUrl.searchParams.get('status')
+  const page = Number(req.nextUrl.searchParams.get('page') ?? 1)
+  const pageSize = Number(req.nextUrl.searchParams.get('pageSize') ?? 20)
 
-export const GET = withAuth(async (req, { user, params: _ }) => {
-  const querySchema = paginationSchema.extend({
-    restaurantId: z.string().cuid(),
-    status: z.string().optional(),
-  });
+  if (!restaurantId) return err('restaurantId requis', 400)
 
-  const parsed = parseSearchParams(req, querySchema);
-  if ("error" in parsed) return parsed.error;
-  const { restaurantId, status, page, pageSize, search } = parsed.data;
-
-  assertCanAccessRestaurant(user, restaurantId);
+  if (user.role !== 'CEO') {
+    const access = await prisma.userRestaurant.findFirst({
+      where: { userId: user.id, restaurantId },
+    })
+    if (!access) return err('Accès refusé', 403)
+  }
 
   const where = {
     restaurantId,
-    deletedAt: null,
+    deletedAt: null as null,
     ...(status ? { status: status as never } : {}),
-    ...(search
-      ? {
-          OR: [
-            { orderNumber: { contains: search, mode: "insensitive" as const } },
-            { customerName: { contains: search, mode: "insensitive" as const } },
-            { tableNumber: { contains: search, mode: "insensitive" as const } },
-          ],
-        }
-      : {}),
-  };
+  }
 
-  const [total, orders] = await prisma.$transaction([
-    prisma.order.count({ where }),
+  const [items, total] = await Promise.all([
     prisma.order.findMany({
       where,
       include: {
-        items: { include: { options: true } },
-        payments: true,
+        items: { include: { product: { select: { name: true } }, options: true } },
+        statusHistory: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-  ]);
+    prisma.order.count({ where }),
+  ])
 
   return ok({
-    items: orders,
+    items,
     total,
     page,
     pageSize,
     totalPages: Math.ceil(total / pageSize),
-  });
-});
+  })
+}
 
-// ── POST /api/orders ──────────────────────────
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const user = await getCurrentUser()
+  if (!user) return err('Non authentifié', 401)
 
-export const POST = withAuth(async (req, { user }) => {
-  // Rate limiting spécifique commandes
-  const limited = await rateLimit(req, "order");
-  if (!limited.success) {
-    return err("Trop de commandes. Attendez un moment.", 429);
+  const body = await parseBody(req, createOrderSchema)
+  if ('error' in body) return body.error
+
+  const { restaurantId, items, notes, idempotencyKey } = body.data
+
+  if (user.role !== 'CEO') {
+    const access = await prisma.userRestaurant.findFirst({
+      where: { userId: user.id, restaurantId },
+    })
+    if (!access) return err('Accès refusé', 403)
   }
 
-  const parsed = await parseBody(req, createOrderSchema);
-  if ("error" in parsed) return parsed.error;
-  const input = parsed.data;
-
-  assertCanAccessRestaurant(user, input.restaurantId);
-
-  // Anti double-soumission
-  const existing = await checkIdempotency(input.idempotencyKey);
-  if (existing) {
-    return ok({ order: existing, alreadyExists: true });
+  if (idempotencyKey) {
+    const existing = await prisma.order.findFirst({
+      where: { idempotencyKey, restaurantId },
+      select: { id: true, orderNumber: true, status: true, total: true },
+    })
+    if (existing) return ok(existing, 200)
   }
 
-  // Vérifier que le restaurant n'est pas en maintenance
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { id: input.restaurantId, isActive: true },
-  });
-  if (!restaurant) return err("Restaurant non disponible", 404);
-  if (restaurant.maintenanceMode) {
-    return err("Le restaurant est temporairement fermé", 503);
-  }
+  const validItems = (items ?? []).map(item => ({
+    productId: item.productId!,
+    quantity: item.quantity!,
+    selectedOptions: (item.selectedOptions ?? []).map(opt => ({
+      groupId: opt.groupId!,
+      optionId: opt.optionId!,
+    })),
+  }))
 
-  // Calcul des totaux côté serveur (jamais faire confiance au client)
-  let totals;
-  try {
-    totals = await calculateOrderTotals(input.restaurantId, input.items);
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Produit indisponible";
-    return err(msg, 400, "PRODUCT_UNAVAILABLE");
-  }
+  const { subtotal, taxAmount, total, items: lines } = await calculateOrderTotals(restaurantId, validItems)
+  const orderNumber = await generateOrderNumber(restaurantId)
 
-  const orderNumber = await generateOrderNumber(input.restaurantId);
-
-  // Créer la commande en transaction
-  const order = await prisma.$transaction(async (tx) => {
-    const newOrder = await tx.order.create({
-      data: {
-        orderNumber,
-        restaurantId: input.restaurantId,
-        createdById: user.id,
-        kioskId: input.kioskId,
-        status: "PENDING",
-        subtotal: totals.subtotal,
-        taxAmount: totals.taxAmount,
-        discountAmount: 0,
-        total: totals.total,
-        notes: input.notes,
-        tableNumber: input.tableNumber,
-        customerName: input.customerName,
-        isTakeaway: input.isTakeaway ?? false,
-        idempotencyKey: input.idempotencyKey,
-        confirmedAt: null,
-        items: {
-          create: totals.items.map((item) => ({
-            productId: item.productId,
-            productName: item.productName,
-            unitPrice: item.unitPrice,
-            quantity: item.quantity,
-            subtotal: item.subtotal,
-            options: {
-              create: item.selectedOptions.map((opt) => ({
-                optionId: opt.optionId,
-                optionName: opt.optionName,
-                priceModifier: opt.priceModifier,
-              })),
-            },
-          })),
-        },
+  const order = await prisma.order.create({
+    data: {
+      restaurantId,
+      orderNumber,
+      status: 'PENDING',
+      subtotal,
+      taxAmount,
+      total,
+      notes,
+      idempotencyKey,
+      createdById: user.id,
+      items: {
+        create: lines.map(line => ({
+          productId: line.productId,
+          productName: line.productName,
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+          subtotal: line.subtotal,
+          options: {
+            create: line.selectedOptions.map(opt => ({
+              optionId: opt.optionId,
+              optionName: opt.optionName,
+              priceModifier: opt.priceModifier,
+            })),
+          },
+        })),
       },
-      include: {
-        items: { include: { options: true } },
+      statusHistory: {
+        create: { toStatus: 'PENDING', changedById: user.id },
       },
-    });
+    },
+    include: { items: { include: { options: true } } },
+  })
 
-    // Historique
-    await tx.orderStatusHistory.create({
-      data: {
-        orderId: newOrder.id,
-        fromStatus: null,
-        toStatus: "PENDING",
-        changedById: user.id,
-      },
-    });
-
-    return newOrder;
-  });
-
-  // SSE broadcast
-  broadcast(input.restaurantId, "order:new", {
+  broadcast(restaurantId, 'order:new', {
     orderId: order.id,
     orderNumber: order.orderNumber,
-    total: order.total.toString(),
-    itemCount: order.items.length,
-  });
+    total: order.total,
+  })
 
-  await auditLog({
-    action: "ORDER_CREATED",
-    actorId: user.id,
-    restaurantId: input.restaurantId,
-    entity: "Order",
-    entityId: order.id,
-    after: { orderNumber, total: totals.total.toString() },
-    req,
-  });
-
-  return ok({ order }, 201);
-});
+  return ok(order, 201)
+}

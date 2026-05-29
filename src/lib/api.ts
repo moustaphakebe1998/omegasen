@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ZodError, ZodSchema } from 'zod'
-import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/db/client'
 import type { AuditAction } from '@prisma/client'
 

@@ -1,124 +1,94 @@
-// src/app/api/auth/login/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { ok, err } from '@/lib/api'
+import { setAuthCookie } from '@/lib/auth'
+import { prisma } from '@/db/client'
+import { rateLimit } from '@/lib/rate-limit'
+import bcrypt from 'bcryptjs'
+import { z } from 'zod'
 
-import { NextRequest } from "next/server";
-import bcrypt from "bcryptjs";
-import { ok, err, parseBody, auditLog } from "@/lib/api";
-import { signToken, setAuthCookie } from "@/lib/auth";
-import { checkLoginRateLimit } from "@/lib/rate-limit";
-import { loginSchema } from "@/validations";
-import { prisma } from "@/db/client";
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+})
 
-export async function POST(req: NextRequest) {
-  // Rate limiting
-  const { blocked, retryAfter } = await checkLoginRateLimit(req);
-  if (blocked) {
-    return err(
-      `Trop de tentatives. Réessayez dans ${retryAfter}s`,
-      429,
-      "TOO_MANY_REQUESTS"
-    );
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const limited = await rateLimit(req, 'login')
+  if (!limited.success) {
+    return err('Trop de tentatives, réessayez dans 15 minutes', 429)
   }
 
-  // Validation
-  const parsed = await parseBody(req, loginSchema);
-  if ("error" in parsed) return parsed.error;
-  const { email, password } = parsed.data;
+  let body: { email: string; password: string }
+  try {
+    body = loginSchema.parse(await req.json())
+  } catch {
+    return err('Email et mot de passe requis', 400)
+  }
 
-  // Chercher l'utilisateur
+  // Délai constant pour éviter timing attacks
+  const start = Date.now()
+
   const user = await prisma.user.findUnique({
-    where: { email, deletedAt: null },
+    where: { email: body.email },
     include: {
       restaurants: { select: { restaurantId: true } },
     },
-  });
+  })
 
-  // Protection timing-attack : comparer même si user inexistant
-  const hash = user?.passwordHash ?? "$2b$12$invalidhashfortimingprotection";
-  const isValid = await bcrypt.compare(password, hash);
+  const elapsed = Date.now() - start
+  if (elapsed < 100) await new Promise(r => setTimeout(r, 100 - elapsed))
 
-  if (!user || !isValid) {
-    // Incrémenter le compteur de tentatives
-    if (user) {
-      const attempts = user.loginAttempts + 1;
-      const lockedUntil = attempts >= 5
-        ? new Date(Date.now() + 15 * 60 * 1000)
-        : null;
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { loginAttempts: attempts, lockedUntil },
-      });
-    }
-
-    await auditLog({
-      action: "USER_LOGIN",
-      req,
-      after: { email, success: false },
-    });
-
-    return err("Email ou mot de passe incorrect", 401, "INVALID_CREDENTIALS");
+  if (!user || !user.isActive || user.deletedAt) {
+    return err('Email ou mot de passe incorrect', 401)
   }
 
-  // Vérifier si verrouillé
   if (user.lockedUntil && user.lockedUntil > new Date()) {
-    const wait = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60_000);
-    return err(
-      `Compte temporairement verrouillé. Réessayez dans ${wait} min`,
-      423,
-      "ACCOUNT_LOCKED"
-    );
+    return err('Compte temporairement bloqué', 423)
   }
 
-  if (!user.isActive) {
-    return err("Compte désactivé", 403, "ACCOUNT_DISABLED");
+  const valid = await bcrypt.compare(body.password, user.passwordHash)
+
+  if (!valid) {
+    const attempts = user.loginAttempts + 1
+    const lockedUntil = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { loginAttempts: attempts, lockedUntil },
+    })
+    return err('Email ou mot de passe incorrect', 401)
   }
 
-  // Réinitialiser les tentatives et mettre à jour le lastLogin
   await prisma.user.update({
     where: { id: user.id },
-    data: {
-      loginAttempts: 0,
-      lockedUntil: null,
-      lastLoginAt: new Date(),
-    },
-  });
+    data: { loginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
+  })
 
-  // Générer le token
-  const restaurantIds = user.restaurants.map((r) => r.restaurantId);
-  const token = await signToken({
-    sub: user.id,
+  const restaurantIds = user.restaurants.map(r => r.restaurantId)
+
+  await setAuthCookie({
+    id: user.id,
     email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
     role: user.role,
     restaurants: restaurantIds,
-  });
+  })
 
-  await setAuthCookie(token);
-
-  await auditLog({
-    action: "USER_LOGIN",
-    actorId: user.id,
-    req,
-    after: { email, success: true },
-  });
+  // Audit log non-bloquant
+  prisma.auditLog.create({
+    data: {
+      action: 'USER_LOGIN',
+      actorId: user.id,
+      ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
+      userAgent: req.headers.get('user-agent') ?? undefined,
+    },
+  }).catch(() => {})
 
   return ok({
-    user: {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-    },
-    redirectTo: getRedirectUrl(user.role),
-  });
-}
-
-function getRedirectUrl(role: string): string {
-  switch (role) {
-    case "CEO": return "/admin";
-    case "MANAGER": return "/manager";
-    case "KITCHEN": return "/kitchen";
-    case "KIOSK": return "/kiosk";
-    default: return "/";
-  }
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: user.role,
+    restaurants: restaurantIds,
+  })
 }
