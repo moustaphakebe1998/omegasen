@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     return new Response("Accès refusé", { status: 403 });
   }
 
-  const stream = createSSEStream(restaurantId, payload.sub);
+  const stream = createSSEStream(restaurantId, payload.id);
 
   return new Response(stream, { headers: SSE_HEADERS });
 }
