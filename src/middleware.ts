@@ -69,7 +69,7 @@ export async function middleware(req: NextRequest) {
 
   // Injecter l'utilisateur dans les headers (pour les Server Components)
   const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("x-user-id", payload.sub);
+  requestHeaders.set("x-user-id", payload.id);
   requestHeaders.set("x-user-role", payload.role);
   requestHeaders.set(
     "x-user-restaurants",

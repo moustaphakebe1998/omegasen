@@ -5,7 +5,7 @@ import {
   LayoutDashboard, UtensilsCrossed, ShoppingBag, Settings,
   LogOut, Plus, Edit2, Eye, EyeOff, AlertTriangle, CheckCircle,
   Clock, TrendingUp, Users, ChevronRight, RefreshCw, Search,
-  Filter, MoreVertical, Package, X, Save, Toggle
+  Filter, MoreVertical, Package, X, Save, ToggleLeft
 } from 'lucide-react'
 import { formatPrice, formatDateTime, cn } from '@/lib/utils'
 import { OrderStatusBadge } from '@/components/shared/order-status-badge'
@@ -69,20 +69,24 @@ export function ManagerDashboardClient({
   const [maintenanceMode, setMaintenanceMode] = useState(restaurant.maintenanceMode)
   const [updatingSettings, setUpdatingSettings] = useState(false)
 
-  useSSE(`/api/sse?restaurantId=${restaurant.id}`, {
-    onEvent: useCallback((event: { type: string; data: unknown }) => {
-      if (event.type === 'order:new' || event.type === 'order:update') {
-        // Refetch orders on SSE event
+  useSSE(
+    {
+      'order:new': () => {
         fetch(`/api/orders?restaurantId=${restaurant.id}&limit=50`)
           .then(r => r.json())
           .then(data => { if (data.data) setOrders(data.data.items) })
           .catch(() => {})
-        if (event.type === 'order:new') {
-          toast.info('Nouvelle commande', 'Une nouvelle commande vient d\'arriver')
-        }
-      }
-    }, [restaurant.id]),
-  })
+        toast.info('Nouvelle commande', "Une nouvelle commande vient d'arriver")
+      },
+      'order:update': () => {
+        fetch(`/api/orders?restaurantId=${restaurant.id}&limit=50`)
+          .then(r => r.json())
+          .then(data => { if (data.data) setOrders(data.data.items) })
+          .catch(() => {})
+      },
+    },
+    { restaurantId: restaurant.id }
+  )
 
   // KPI compute
   const todayTotal = orderStats.reduce((sum, s) =>
@@ -202,11 +206,11 @@ export function ManagerDashboardClient({
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-full bg-surface-100 flex items-center justify-center">
               <span className="text-xs font-bold text-surface-600">
-                {user.name.charAt(0).toUpperCase()}
+                {user.firstName.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-surface-900 truncate">{user.name}</p>
+              <p className="text-sm font-semibold text-surface-900 truncate">{`${user.firstName} ${user.lastName}`}</p>
               <p className="text-xs text-surface-400">{user.role}</p>
             </div>
           </div>

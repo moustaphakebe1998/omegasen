@@ -198,7 +198,7 @@ export async function updateOrderStatus(
       t.isRollback === true
   );
 
-  const timestamps: Partial<Record<string, Date | null>> = {};
+  const timestamps: Record<string, Date | null | string> = {};
   const now = new Date();
 
   if (newStatus === "CONFIRMED") timestamps.confirmedAt = now;
@@ -207,7 +207,6 @@ export async function updateOrderStatus(
   if (newStatus === "SERVED") timestamps.servedAt = isRollback ? null : now;
   if (newStatus === "CANCELLED") {
     timestamps.cancelledAt = now;
-    timestamps.cancelReason = reason ?? null;
   }
 
   const [updatedOrder] = await prisma.$transaction([
