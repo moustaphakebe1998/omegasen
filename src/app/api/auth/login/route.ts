@@ -17,15 +17,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return err('Trop de tentatives, réessayez dans 15 minutes', 429)
   }
 
-  const parsed = loginSchema.safeParse(await req.json().catch(() => ({})))
-  if (!parsed.success) return err('Email et mot de passe requis', 400)
-  const { email, password } = parsed.data
+  let body: { email: string; password: string }
+  try {
+    body = loginSchema.parse(await req.json())
+  } catch {
+    return err('Email et mot de passe requis', 400)
+  }
 
+  // Délai constant pour éviter timing attacks
   const start = Date.now()
 
   const user = await prisma.user.findUnique({
-    where: { email },
-    include: { restaurants: { select: { restaurantId: true } } },
+    where: { email: body.email },
+    include: {
+      restaurants: { select: { restaurantId: true } },
+    },
   })
 
   const elapsed = Date.now() - start
@@ -39,7 +45,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return err('Compte temporairement bloqué', 423)
   }
 
-  const valid = await bcrypt.compare(password, user.passwordHash)
+  const valid = await bcrypt.compare(body.password, user.passwordHash)
 
   if (!valid) {
     const attempts = user.loginAttempts + 1
@@ -67,6 +73,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     restaurants: restaurantIds,
   })
 
+  // Audit log non-bloquant
   prisma.auditLog.create({
     data: {
       action: 'USER_LOGIN',

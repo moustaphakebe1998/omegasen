@@ -72,7 +72,11 @@
     "typescript": "^5.3.3",
     "vitest": "^1.2.2"
   },
-  "prisma": {
-    "seed": "node_modules/.bin/tsx prisma/seed.ts"
+  "overrides": {
+    "prisma": "5.22.0",
+    "@prisma/client": "5.22.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

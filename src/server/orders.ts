@@ -198,7 +198,7 @@ export async function updateOrderStatus(
       t.isRollback === true
   );
 
-  const timestamps: Record<string, Date | null | string> = {};
+  const timestamps: Partial<Record<string, Date | null>> = {};
   const now = new Date();
 
   if (newStatus === "CONFIRMED") timestamps.confirmedAt = now;
