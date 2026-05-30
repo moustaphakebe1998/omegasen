@@ -46,21 +46,23 @@ function ToastItem({ t, onDismiss }: { t: Toast; onDismiss: (id: string) => void
 }
 
 export function ToastProvider() {
+  const [mounted, setMounted] = useState(false)
   const [toasts, setToasts] = useState<Toast[]>([])
   const dismiss = useCallback((id: string) => setToasts(prev => prev.filter(t => t.id !== id)), [])
 
   useEffect(() => {
+    setMounted(true)
     const handler: ToastListener = (t) => setToasts(prev => [...prev.slice(-4), t])
     listeners.push(handler)
     return () => { const i = listeners.indexOf(handler); if (i > -1) listeners.splice(i, 1) }
   }, [])
 
-  if (typeof window === 'undefined') return null
+  if (!mounted) return null
 
   return createPortal(
     <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end pointer-events-none">
       {toasts.map(t => (
-        <div key={t.id} className="pointer-events-auto animate-slide-up">
+        <div key={t.id} className="pointer-events-auto">
           <ToastItem t={t} onDismiss={dismiss} />
         </div>
       ))}
