@@ -17,10 +17,11 @@ from app.core.deps import AnyMember, Manager, Session, SuperAdmin
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
 from app.core.money import SUPPORTED_CURRENCIES
 from app.core.schema import Schema
-from app.core.security import hash_password, random_code
+from app.core.security import random_code
 from app.core.storage import public_url
 from app.models import KitchenStation, Media, Membership, OpeningHours, QrCode, Restaurant, User
 from app.models.enums import MemberRole, RestaurantStatus
+from app.modules.accounts import ensure_account, issue_link, send_activation_email
 
 router = APIRouter(prefix="/api/restaurants", tags=["restaurants"])
 
@@ -134,6 +135,7 @@ class RestaurantUpdate(RestaurantBase):
     takeaway_enabled: bool | None = None
     require_prepayment: bool | None = None
     late_after_minutes: int | None = Field(default=None, ge=1, le=240)
+    reservations_enabled: bool | None = None
     logo_media_id: uuid.UUID | None = None
     cover_media_id: uuid.UUID | None = None
 
@@ -164,6 +166,7 @@ class RestaurantOut(Schema):
     takeaway_enabled: bool
     require_prepayment: bool
     late_after_minutes: int
+    reservations_enabled: bool
     logo_media_id: uuid.UUID | None
     cover_media_id: uuid.UUID | None
     logo_url: str | None
@@ -310,14 +313,20 @@ class MemberOut(Schema):
     phone: str | None
     role: MemberRole
     is_active: bool
+    # Le compte a-t-il choisi son mot de passe ? (sinon : invitation en attente)
+    activated: bool
     created_at: datetime
+    # Renseignés à l'ajout / au renvoi de l'invitation : lien à transmettre si l'email n'est pas parti.
+    activation_url: str | None = None
+    email_sent: bool | None = None
 
 
 class MemberCreate(Schema):
+    """Pas de mot de passe : la personne reçoit un lien d'activation pour choisir le sien."""
+
     email: EmailStr
     full_name: str = Field(min_length=2, max_length=120)
     role: MemberRole
-    password: str | None = Field(default=None, min_length=10, max_length=200)
     phone: str | None = Field(default=None, max_length=32)
 
 
@@ -335,6 +344,7 @@ def _member_out(m: Membership) -> MemberOut:
         phone=m.user.phone,
         role=m.role,
         is_active=m.is_active,
+        activated=m.user.activated_at is not None,
         created_at=m.created_at,
     )
 
@@ -358,14 +368,7 @@ async def list_members(ctx: Manager, session: Session):
 @router.post("/{restaurant_id}/members", response_model=MemberOut, status_code=201)
 async def add_member(body: MemberCreate, ctx: Manager, session: Session):
     _check_role_grant(ctx, body.role)
-    email = body.email.lower()
-    user = await session.scalar(select(User).where(User.email == email))
-    if not user:
-        if not body.password:
-            raise Unprocessable("Mot de passe requis pour créer un nouveau compte", code="password_required")
-        user = User(email=email, full_name=body.full_name, phone=body.phone, password_hash=hash_password(body.password))
-        session.add(user)
-        await session.flush()
+    user, needs_activation = await ensure_account(session, body.email, body.full_name, phone=body.phone)
     existing = await session.scalar(
         select(Membership).where(Membership.user_id == user.id, Membership.restaurant_id == ctx.restaurant.id)
     )
@@ -373,6 +376,7 @@ async def add_member(body: MemberCreate, ctx: Manager, session: Session):
         raise Conflict("Cette personne fait déjà partie de l'équipe", code="already_member")
     m = Membership(user_id=user.id, restaurant_id=ctx.restaurant.id, role=body.role)
     session.add(m)
+    url = await issue_link(session, user) if needs_activation else None
     audit(
         session,
         "member.added",
@@ -384,7 +388,36 @@ async def add_member(body: MemberCreate, ctx: Manager, session: Session):
     )
     await session.commit()
     await session.refresh(m, ["user"])
-    return _member_out(m)
+    out = _member_out(m)
+    if url:
+        out.activation_url = url
+        out.email_sent = await send_activation_email(
+            user, url, context=f"Vous avez été ajouté(e) à l'équipe du restaurant « {ctx.restaurant.name} »."
+        )
+    return out
+
+
+@router.post("/{restaurant_id}/members/{member_id}/resend-invite", response_model=MemberOut)
+async def resend_invite(member_id: uuid.UUID, ctx: Manager, session: Session):
+    m = await _get_member(session, ctx, member_id)
+    if m.user.activated_at is not None:
+        raise Conflict("Ce compte est déjà activé", code="already_activated")
+    url = await issue_link(session, m.user)
+    audit(
+        session,
+        "member.invite_resent",
+        actor_id=ctx.user.id,
+        restaurant_id=ctx.restaurant.id,
+        entity="User",
+        entity_id=m.user_id,
+    )
+    await session.commit()
+    out = _member_out(m)
+    out.activation_url = url
+    out.email_sent = await send_activation_email(
+        m.user, url, context=f"Vous avez été ajouté(e) à l'équipe du restaurant « {ctx.restaurant.name} »."
+    )
+    return out
 
 
 async def _get_member(session, ctx, member_id: uuid.UUID) -> Membership:

@@ -12,13 +12,16 @@ from pydantic import EmailStr, Field
 from sqlalchemy import func, select
 
 from app.core.audit import audit
+from app.core.config import get_settings
 from app.core.deps import Session, SuperAdmin
 from app.core.errors import Conflict, NotFound
+from app.core.mailer import build, send_email
 from app.core.ratelimit import client_ip, hit
 from app.core.schema import Schema
 from app.models import RestaurantRequest
 from app.models.enums import RequestStatus
-from app.modules.auth import ensure_account
+from app.modules.accounts import ensure_account, issue_link, send_activation_email
+from app.modules.notifications import notify, publish_pending, superadmin_ids
 from app.modules.restaurants import RestaurantCreate, create_restaurant
 
 public_router = APIRouter(prefix="/api/public/restaurant-requests", tags=["restaurant-requests"])
@@ -77,8 +80,9 @@ class ApproveOut(Schema):
     restaurant_id: uuid.UUID
     restaurant_slug: str
     owner_email: str
-    # Présent si le propriétaire n'avait pas encore de compte : lien à lui transmettre (valable 7 jours).
+    # Présent si le propriétaire n'avait pas encore de compte : lien envoyé par email (et copiable).
     activation_url: str | None
+    email_sent: bool | None = None
 
 
 class RejectIn(Schema):
@@ -117,7 +121,16 @@ async def submit(body: RequestIn, request: Request, session: Session):
     session.add(r)
     await session.flush()
     audit(session, "restaurant_request.submitted", entity="RestaurantRequest", entity_id=r.id, ip=client_ip(request))
+    notify(
+        session,
+        await superadmin_ids(session),
+        "request.submitted",
+        f"Nouvelle demande : {r.restaurant_name}",
+        body=f"{r.contact_name} · {r.email}" + (f" · {r.city}" if r.city else ""),
+        link="/admin/requests",
+    )
     await session.commit()
+    await publish_pending(session)
     return RequestReceipt(id=r.id, status=r.status)
 
 
@@ -147,7 +160,7 @@ async def list_requests(
 @admin_router.post("/{request_id}/approve", response_model=ApproveOut)
 async def approve(request_id: uuid.UUID, body: ApproveIn, admin: SuperAdmin, session: Session):
     req = await _pending(session, request_id)
-    owner, activation_url = await ensure_account(session, req.email, req.contact_name, phone=req.phone)
+    owner, needs_activation = await ensure_account(session, req.email, req.contact_name, phone=req.phone)
     restaurant = await create_restaurant(
         session,
         RestaurantCreate(
@@ -160,6 +173,7 @@ async def approve(request_id: uuid.UUID, body: ApproveIn, admin: SuperAdmin, ses
         ),
         owner,
     )
+    activation_url = await issue_link(session, owner) if needs_activation else None
     req.status = RequestStatus.APPROVED
     req.review_note = body.review_note
     req.reviewed_at = datetime.now(UTC)
@@ -175,7 +189,19 @@ async def approve(request_id: uuid.UUID, body: ApproveIn, admin: SuperAdmin, ses
         data={"owner": owner.email},
     )
     await session.commit()
+    context = f"Bonne nouvelle : votre demande pour « {restaurant.name} » a été acceptée et votre espace est prêt."
+    if activation_url:
+        email_sent = await send_activation_email(owner, activation_url, context=context)
+    else:
+        text, html_body = build(
+            "",
+            "Votre restaurant est ouvert sur OmegaSen",
+            [f"Bonjour {owner.full_name},", context, "Connectez-vous avec votre compte habituel pour le configurer."],
+            ("Se connecter", f"{get_settings().public_app_url.rstrip('/')}/login"),
+        )
+        email_sent = await send_email(owner.email, "Votre restaurant est ouvert sur OmegaSen", text, html_body)
     return ApproveOut(
+        email_sent=email_sent,
         request=_out(req),
         restaurant_id=restaurant.id,
         restaurant_slug=restaurant.slug,
@@ -193,4 +219,15 @@ async def reject(request_id: uuid.UUID, body: RejectIn, admin: SuperAdmin, sessi
     req.reviewed_by_id = admin.id
     audit(session, "restaurant_request.rejected", actor_id=admin.id, entity="RestaurantRequest", entity_id=req.id)
     await session.commit()
+    text, html_body = build(
+        "",
+        "Votre demande d'ouverture",
+        [
+            f"Bonjour {req.contact_name},",
+            f"Nous ne pouvons pas donner suite à votre demande pour « {req.restaurant_name} ».",
+            f"Motif : {req.review_note}",
+            "Vous pouvez nous écrire en répondant à l'adresse de contact OmegaSen pour plus d'informations.",
+        ],
+    )
+    await send_email(req.email, "Votre demande d'ouverture sur OmegaSen", text, html_body)
     return _out(req)

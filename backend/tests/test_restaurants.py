@@ -1,4 +1,4 @@
-from tests.conftest import login, make_user
+from tests.conftest import add_member, make_user
 
 
 async def test_create_restaurant_defaults_and_owner(owner, restaurant):
@@ -32,12 +32,7 @@ async def test_tenant_isolation(client, owner, restaurant):
 
 async def test_roles(client, owner, restaurant):
     rid = restaurant["id"]
-    r = await owner.post(
-        f"/api/restaurants/{rid}/members",
-        json={"email": "cook@example.com", "full_name": "Cuisinier", "role": "KITCHEN", "password": "Password!123"},
-    )
-    assert r.status_code == 201, r.text
-    cook = await login(client, "cook@example.com")
+    cook = await add_member(owner, client, rid, "cook@example.com", "KITCHEN")
     assert (await cook.get(f"/api/restaurants/{rid}/menu")).status_code == 200
     assert (await cook.patch(f"/api/restaurants/{rid}", json={"name": "X"})).status_code == 403
     assert (await cook.post(f"/api/restaurants/{rid}/menu/categories", json={"name": "X"})).status_code == 403
@@ -47,14 +42,10 @@ async def test_roles(client, owner, restaurant):
 
 async def test_manager_cannot_create_owner_and_last_owner_protected(client, owner, restaurant):
     rid = restaurant["id"]
-    await owner.post(
-        f"/api/restaurants/{rid}/members",
-        json={"email": "mgr@example.com", "full_name": "Manager", "role": "MANAGER", "password": "Password!123"},
-    )
-    mgr = await login(client, "mgr@example.com")
+    mgr = await add_member(owner, client, rid, "mgr@example.com", "MANAGER")
     r = await mgr.post(
         f"/api/restaurants/{rid}/members",
-        json={"email": "x@example.com", "full_name": "X X", "role": "OWNER", "password": "Password!123"},
+        json={"email": "x@example.com", "full_name": "X X", "role": "OWNER"},
     )
     assert r.status_code == 403
     members = (await owner.get(f"/api/restaurants/{rid}/members")).json()

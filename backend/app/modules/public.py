@@ -6,7 +6,7 @@ from typing import Literal
 from fastapi import APIRouter, Query, Request
 from sqlalchemy import func, or_, select
 
-from app.core.deps import Session
+from app.core.deps import OptionalUser, Session
 from app.core.errors import NotFound
 from app.core.ratelimit import client_ip, hit
 from app.core.schema import Schema
@@ -15,11 +15,13 @@ from app.models import Media, Order, Restaurant
 from app.models.enums import MediaKind, OrderChannel, RestaurantStatus
 from app.modules.media import MediaOut, media_out
 from app.modules.menu import CategoryOut, load_menu
+from app.modules.notifications import publish_pending
 from app.modules.orders import (
     ORDER_LOADS,
     PlaceOrderIn,
     TrackingOut,
     broadcast_order,
+    notify_new_order,
     place_order,
     tracking_out,
 )
@@ -54,6 +56,7 @@ class PublicRestaurant(PublicRestaurantCard):
     dine_in_enabled: bool
     takeaway_enabled: bool
     require_prepayment: bool
+    reservations_enabled: bool
     opening_hours: list[HoursSlot]
     gallery: list[MediaOut]
     menu: list[CategoryOut]
@@ -139,6 +142,7 @@ async def get_restaurant(slug: str, session: Session):
         dine_in_enabled=r.dine_in_enabled,
         takeaway_enabled=r.takeaway_enabled,
         require_prepayment=r.require_prepayment,
+        reservations_enabled=r.reservations_enabled,
         opening_hours=[
             HoursSlot(day_of_week=h.day_of_week, opens_at=h.opens_at, closes_at=h.closes_at) for h in r.opening_hours
         ],
@@ -156,11 +160,16 @@ class PlacedOrderOut(TrackingOut):
 
 
 @router.post("/restaurants/{slug}/orders", response_model=PlacedOrderOut, status_code=201)
-async def create_order(slug: str, body: PublicOrderIn, request: Request, session: Session):
+async def create_order(slug: str, body: PublicOrderIn, request: Request, session: Session, user: OptionalUser):
     await hit("public_order", client_ip(request), limit=20, window_seconds=600)
     r = await _by_slug(session, slug)
     order, created = await place_order(session, r, body, channel=OrderChannel(body.channel), actor=None)
+    if created:
+        if user:  # client connecté : la commande apparaît dans « Mes commandes »
+            order.customer_user_id = user.id
+        await notify_new_order(session, order, r)
     await session.commit()
+    await publish_pending(session)
     order = await session.scalar(
         select(Order).where(Order.id == order.id).options(*ORDER_LOADS).execution_options(populate_existing=True)
     )

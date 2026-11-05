@@ -52,6 +52,10 @@ class Order(UUIDPk, Timestamps, Base):
     reference: Mapped[str] = mapped_column(String(32), unique=True)  # ex. 20261105-042-K7H
 
     channel: Mapped[OrderChannel] = mapped_column(str_enum(OrderChannel))
+    # Client connecté (compte facultatif) : permet l'historique « Mes commandes ».
+    customer_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
     service_mode: Mapped[ServiceMode] = mapped_column(str_enum(ServiceMode))
     status: Mapped[OrderStatus] = mapped_column(str_enum(OrderStatus), default=OrderStatus.NEW, index=True)
     payment_status: Mapped[PaymentStatus] = mapped_column(str_enum(PaymentStatus), default=PaymentStatus.UNPAID)

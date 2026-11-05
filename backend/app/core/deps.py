@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.errors import Forbidden, NotFound, Unauthorized
+from app.core.permissions import Perm, roles_with
 from app.core.security import decode_access_token
 from app.models import Membership, Restaurant, User
 from app.models.enums import MemberRole, RestaurantStatus
@@ -45,6 +46,20 @@ async def current_user(request: Request, session: Session) -> User:
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
+
+
+async def optional_user(request: Request, session: Session) -> User | None:
+    """Utilisateur connecté s'il y en a un (routes publiques : compte client facultatif)."""
+    token = _bearer(request)
+    if not token:
+        return None
+    try:
+        return await load_user_from_token(session, token)
+    except Unauthorized:
+        return None
+
+
+OptionalUser = Annotated[User | None, Depends(optional_user)]
 
 
 async def superadmin(user: CurrentUser) -> User:
@@ -90,15 +105,19 @@ async def resolve_context(
         raise NotFound("Restaurant introuvable")
     if restaurant.status == RestaurantStatus.SUSPENDED:
         raise Forbidden("Ce restaurant est suspendu", code="restaurant_suspended")
+    if restaurant.status == RestaurantStatus.CLOSED:
+        raise Forbidden("Ce restaurant est fermé", code="restaurant_closed")
     if roles and membership.role not in roles:
         raise Forbidden("Votre rôle ne permet pas cette action")
     return RestaurantContext(user, restaurant, membership.role)
 
 
+# Groupes de rôles dérivés de la table des permissions (app/core/permissions.py).
 ALL_ROLES = tuple(MemberRole)
-MANAGERS = (MemberRole.OWNER, MemberRole.MANAGER)
-FRONT_OF_HOUSE = (MemberRole.OWNER, MemberRole.MANAGER, MemberRole.CASHIER)
-KITCHEN_STAFF = (MemberRole.OWNER, MemberRole.MANAGER, MemberRole.KITCHEN, MemberRole.CASHIER)
+MANAGERS = roles_with(Perm.TEAM_MANAGE)
+FRONT_OF_HOUSE = roles_with(Perm.ORDERS_CREATE)
+KITCHEN_STAFF = roles_with(Perm.ORDERS_PREPARE)
+RESERVATION_STAFF = roles_with(Perm.RESERVATIONS_MANAGE)
 
 
 def require_roles(*roles: MemberRole):
@@ -117,3 +136,4 @@ Manager = Annotated[RestaurantContext, Depends(require_roles(*MANAGERS))]
 FrontOfHouse = Annotated[RestaurantContext, Depends(require_roles(*FRONT_OF_HOUSE))]
 KitchenStaff = Annotated[RestaurantContext, Depends(require_roles(*KITCHEN_STAFF))]
 Owner = Annotated[RestaurantContext, Depends(require_roles(MemberRole.OWNER))]
+ReservationStaff = Annotated[RestaurantContext, Depends(require_roles(*RESERVATION_STAFF))]

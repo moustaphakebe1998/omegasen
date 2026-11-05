@@ -7,7 +7,7 @@ python -m app.cli purge-e2e [--since ISO] [--emails MOTIF]   # nettoie les donnÃ
 
 import asyncio
 import sys
-from datetime import time
+from datetime import UTC, datetime, time
 from pathlib import Path
 
 from botocore.exceptions import ClientError
@@ -79,6 +79,7 @@ async def bootstrap() -> None:
                 full_name="Super Admin",
                 is_superadmin=True,
                 password_hash=hash_password(s.superadmin_password),
+                activated_at=datetime.now(UTC),
             )
         )
         await session.commit()
@@ -88,7 +89,9 @@ async def bootstrap() -> None:
 async def _user(session, email: str, name: str) -> User:
     u = await session.scalar(select(User).where(User.email == email))
     if not u:
-        u = User(email=email, full_name=name, password_hash=hash_password(DEMO_PASSWORD))
+        u = User(
+            email=email, full_name=name, password_hash=hash_password(DEMO_PASSWORD), activated_at=datetime.now(UTC)
+        )
         session.add(u)
         await session.flush()
     return u

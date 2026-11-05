@@ -5,6 +5,7 @@ Jamais de base de production ici : l'URL est forcée vers la base locale de test
 
 import os
 import uuid
+from datetime import UTC, datetime
 
 os.environ.update(
     ENVIRONMENT="test",
@@ -123,6 +124,7 @@ async def make_user(
                 full_name="Test User",
                 password_hash=hash_password(password),
                 is_superadmin=superadmin,
+                activated_at=datetime.now(UTC),
             )
         )
         await s.commit()
@@ -133,6 +135,29 @@ async def login(client: AsyncClient, email: str, password: str = "Password!123")
     r = await client.post("/api/auth/login", json={"email": email, "password": password})
     assert r.status_code == 200, r.text
     return Api(client, r.json()["access_token"], r.json()["user"])
+
+
+async def add_member(
+    manager: Api, client: AsyncClient, rid: str, email: str, role: str, password: str = "Password!123"
+) -> Api:
+    """Le gérant ajoute un employé (invitation), qui active son compte via le lien reçu."""
+    r = await manager.post(
+        f"/api/restaurants/{rid}/members", json={"email": email, "full_name": "Employé Test", "role": role}
+    )
+    assert r.status_code == 201, r.text
+    token = r.json()["activation_url"].rsplit("/activate/", 1)[1]
+    r = await client.post("/api/auth/activate", json={"token": token, "password": password})
+    assert r.status_code == 200, r.text
+    return Api(client, r.json()["access_token"], r.json()["user"])
+
+
+@pytest.fixture(autouse=True)
+def _clear_outbox():
+    from app.core.mailer import OUTBOX
+
+    OUTBOX.clear()
+    yield
+    OUTBOX.clear()
 
 
 @pytest.fixture

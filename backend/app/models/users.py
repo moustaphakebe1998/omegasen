@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base, Timestamps, UUIDPk
-from app.models.enums import MemberRole
+from app.models.enums import AccountType, MemberRole, TokenPurpose
 from app.models.types import str_enum
 
 
@@ -22,6 +22,9 @@ class User(UUIDPk, Timestamps, Base):
     failed_logins: Mapped[int] = mapped_column(Integer, default=0)
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Renseigné quand l'utilisateur a choisi son mot de passe (activation) : vaut vérification de l'email.
+    activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    account_type: Mapped[AccountType] = mapped_column(str_enum(AccountType), default=AccountType.STAFF)
 
     memberships: Mapped[list["Membership"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -61,9 +64,11 @@ class RefreshToken(UUIDPk, Base):
 
 
 class ActivationToken(UUIDPk, Base):
-    """Lien à usage unique permettant à un compte créé par un administrateur de choisir son mot de passe."""
+    """Lien à usage unique et temporaire : activation de compte (choix du mot de passe) ou réinitialisation."""
 
     __tablename__ = "activation_tokens"
+
+    purpose: Mapped[TokenPurpose] = mapped_column(str_enum(TokenPurpose), default=TokenPurpose.ACTIVATION)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True

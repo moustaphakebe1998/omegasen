@@ -36,6 +36,19 @@ class Settings(BaseSettings):
     s3_region: str = "us-east-1"
     max_upload_mb: int = 10
 
+    # Comptes : durée de validité des liens envoyés par email
+    activation_ttl_hours: int = Field(default=72, ge=1, le=24 * 30)
+    reset_ttl_minutes: int = Field(default=60, ge=5, le=24 * 60)
+
+    # Emails (SMTP). Sans SMTP_HOST, les emails sont seulement écrits dans les journaux (développement).
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_starttls: bool = True  # port 587
+    smtp_ssl: bool = False  # port 465
+    email_from: str = "OmegaSen <no-reply@omegasen.local>"
+
     # Bootstrap
     superadmin_email: str | None = None
     superadmin_password: str | None = None

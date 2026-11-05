@@ -48,6 +48,7 @@ from app.models.enums import (
     RestaurantStatus,
     ServiceMode,
 )
+from app.modules.notifications import notify, publish_pending, restaurant_member_ids
 
 router = APIRouter(prefix="/api/restaurants/{restaurant_id}/orders", tags=["orders"])
 
@@ -299,6 +300,55 @@ async def load_order(session: AsyncSession, restaurant_id: uuid.UUID, order_id: 
     return o
 
 
+async def notify_new_order(session: AsyncSession, o: Order, restaurant: Restaurant) -> None:
+    """Commande publique (QR, en ligne, borne) : prévient les responsables du restaurant."""
+    notify(
+        session,
+        await restaurant_member_ids(session, restaurant.id, (MemberRole.OWNER, MemberRole.MANAGER)),
+        "order.created",
+        f"Nouvelle commande {o.display_number}",
+        body=f"{CHANNEL_LABEL.get(o.channel, o.channel)} · {o.customer_name or 'Client'}",
+        link=f"/manage/{restaurant.id}/orders",
+        restaurant_id=restaurant.id,
+        data={"order_id": str(o.id), "reference": o.reference},
+    )
+
+
+async def notify_order_ready(session: AsyncSession, o: Order, restaurant: Restaurant) -> None:
+    """Commande prête : prévient la caisse et les responsables, ainsi que le client s'il a un compte."""
+    staff = await restaurant_member_ids(
+        session, restaurant.id, (MemberRole.OWNER, MemberRole.MANAGER, MemberRole.CASHIER)
+    )
+    notify(
+        session,
+        staff,
+        "order.ready",
+        f"Commande {o.display_number} prête",
+        body=o.customer_name or None,
+        link=f"/pos/{restaurant.id}",
+        restaurant_id=restaurant.id,
+        data={"order_id": str(o.id), "reference": o.reference},
+    )
+    if o.customer_user_id:
+        notify(
+            session,
+            [o.customer_user_id],
+            "order.ready",
+            f"Votre commande {o.display_number} est prête",
+            body=restaurant.name,
+            link=f"/track/{o.tracking_token}",
+            restaurant_id=restaurant.id,
+        )
+
+
+CHANNEL_LABEL = {
+    OrderChannel.QR: "QR Code",
+    OrderChannel.ONLINE: "En ligne",
+    OrderChannel.KIOSK: "Borne",
+    OrderChannel.POS: "Guichet",
+}
+
+
 async def broadcast_order(o: Order, restaurant: Restaurant, event: str) -> None:
     """Diffuse l'état de la commande à la cuisine/caisse et à la page de suivi du client."""
     await publish(restaurant_channel(restaurant.id), event, order_out(o, restaurant).model_dump(mode="json"))
@@ -548,6 +598,8 @@ async def change_status(session: AsyncSession, ctx: RestaurantContext, order: Or
     session.add(
         OrderStatusEvent(order_id=order.id, from_status=frm, to_status=to, actor_id=ctx.user.id, reason=body.reason)
     )
+    if to == S.READY and frm in (S.NEW, S.PREPARING):
+        await notify_order_ready(session, order, ctx.restaurant)
     audit(
         session,
         "order.status_changed",
@@ -692,6 +744,7 @@ async def set_status(order_id: uuid.UUID, body: StatusIn, ctx: KitchenStaff, ses
     order = await load_order(session, ctx.restaurant.id, order_id)
     await change_status(session, ctx, order, body)
     await session.commit()
+    await publish_pending(session)
     order = await load_order(session, ctx.restaurant.id, order_id)
     await broadcast_order(order, ctx.restaurant, "order.updated")
     return order_out(order, ctx.restaurant, ctx.role)

@@ -9,8 +9,10 @@ class MemberRole(StrEnum):
 
 
 class RestaurantStatus(StrEnum):
+    PENDING = "PENDING"  # en préparation : visible par l'équipe, pas encore public
     ACTIVE = "ACTIVE"
-    SUSPENDED = "SUSPENDED"
+    SUSPENDED = "SUSPENDED"  # bloqué par le super admin
+    CLOSED = "CLOSED"  # fermé définitivement
 
 
 class MediaKind(StrEnum):
@@ -76,3 +78,22 @@ class RequestStatus(StrEnum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+
+
+class TokenPurpose(StrEnum):
+    ACTIVATION = "ACTIVATION"  # première connexion : choix du mot de passe (vaut vérification de l'email)
+    RESET = "RESET"  # mot de passe oublié
+
+
+class AccountType(StrEnum):
+    STAFF = "STAFF"  # personnel des restaurants et super admins
+    CUSTOMER = "CUSTOMER"  # client final (compte facultatif)
+
+
+class ReservationStatus(StrEnum):
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    DECLINED = "DECLINED"
+    CANCELLED = "CANCELLED"
+    SEATED = "SEATED"
+    NO_SHOW = "NO_SHOW"

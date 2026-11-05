@@ -3,7 +3,7 @@ import json
 
 from app.core.money import extract_vat
 from app.core.redis import get_redis
-from tests.conftest import login, opt
+from tests.conftest import add_member, opt
 
 
 def qr_order(menu, **extra):
@@ -114,11 +114,7 @@ async def test_idempotency_and_sequential_numbers(client, restaurant, menu):
 
 async def test_kitchen_flow_and_roles(client, owner, restaurant, menu):
     rid = restaurant["id"]
-    await owner.post(
-        f"/api/restaurants/{rid}/members",
-        json={"email": "chef@example.com", "full_name": "Chef", "role": "KITCHEN", "password": "Password!123"},
-    )
-    chef = await login(client, "chef@example.com")
+    chef = await add_member(owner, client, rid, "chef@example.com", "KITCHEN")
     placed = (await client.post(f"/api/public/restaurants/{restaurant['slug']}/orders", json=qr_order(menu))).json()
 
     active = (await chef.get(f"/api/restaurants/{rid}/orders/active")).json()

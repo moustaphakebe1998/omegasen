@@ -1,4 +1,4 @@
-"""Authentification : connexion, inscription, rotation des jetons de rafraîchissement, profil."""
+"""Authentification : connexion, rotation des jetons de rafraîchissement, déconnexion, profil courant."""
 
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -6,12 +6,12 @@ from datetime import UTC, datetime, timedelta
 from fastapi import APIRouter, Request, Response
 from pydantic import EmailStr, Field
 from sqlalchemy import select, update
-from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.deps import CurrentUser, Session
-from app.core.errors import NotFound, Unauthorized, Unprocessable
+from app.core.errors import Unauthorized, Unprocessable
+from app.core.permissions import Perm, permissions_for
 from app.core.ratelimit import client_ip, hit
 from app.core.schema import Schema
 from app.core.security import (
@@ -21,8 +21,8 @@ from app.core.security import (
     new_refresh_token,
     verify_password,
 )
-from app.models import ActivationToken, Membership, RefreshToken, Restaurant, User
-from app.models.enums import MemberRole
+from app.models import Membership, RefreshToken, Restaurant, User
+from app.models.enums import AccountType, MemberRole, RestaurantStatus
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -39,16 +39,6 @@ class LoginIn(Schema):
     password: str = Field(min_length=1, max_length=200)
 
 
-class ActivateIn(Schema):
-    token: str = Field(min_length=10, max_length=200)
-    password: str = Field(min_length=10, max_length=200)
-
-
-class ActivationInfo(Schema):
-    email: str
-    full_name: str
-
-
 class ChangePasswordIn(Schema):
     current_password: str
     new_password: str = Field(min_length=10, max_length=200)
@@ -58,7 +48,9 @@ class MembershipOut(Schema):
     restaurant_id: uuid.UUID
     restaurant_name: str
     restaurant_slug: str
+    restaurant_status: RestaurantStatus
     role: MemberRole
+    permissions: list[Perm]  # permissions effectives (table RBAC) — l'interface s'y fie pour l'affichage
 
 
 class UserOut(Schema):
@@ -67,6 +59,7 @@ class UserOut(Schema):
     full_name: str
     phone: str | None
     is_superadmin: bool
+    account_type: AccountType
     memberships: list[MembershipOut]
 
 
@@ -97,14 +90,22 @@ async def user_out(session, user: User) -> UserOut:
         full_name=user.full_name,
         phone=user.phone,
         is_superadmin=user.is_superadmin,
+        account_type=user.account_type,
         memberships=[
-            MembershipOut(restaurant_id=r.id, restaurant_name=r.name, restaurant_slug=r.slug, role=m.role)
+            MembershipOut(
+                restaurant_id=r.id,
+                restaurant_name=r.name,
+                restaurant_slug=r.slug,
+                restaurant_status=r.status,
+                role=m.role,
+                permissions=sorted(permissions_for(m.role)),
+            )
             for m, r in rows.all()
         ],
     )
 
 
-async def _issue_tokens(
+async def issue_tokens(
     session, request: Request, response: Response, user: User, family_id: uuid.UUID | None = None
 ) -> TokenOut:
     settings = get_settings()
@@ -169,78 +170,11 @@ async def login(body: LoginIn, request: Request, response: Response, session: Se
     user.locked_until = None
     user.last_login_at = now
     audit(session, "user.login", actor_id=user.id, ip=client_ip(request))
-    return await _issue_tokens(session, request, response, user)
+    return await issue_tokens(session, request, response, user)
 
 
-# Pas d'inscription libre : les comptes sont créés par un super admin (propriétaires, via les demandes
-# d'ouverture) ou par un gérant (employés). Un compte créé sans mot de passe reçoit un lien d'activation.
-
-ACTIVATION_TTL = timedelta(days=7)
-
-
-async def create_activation_link(session, user: User) -> str:
-    """Crée un lien d'activation à usage unique (7 jours) ; le jeton brut n'est jamais stocké."""
-    raw = new_refresh_token()
-    now = datetime.now(UTC)
-    session.add(
-        ActivationToken(user_id=user.id, token_hash=hash_token(raw), created_at=now, expires_at=now + ACTIVATION_TTL)
-    )
-    return f"{get_settings().public_app_url.rstrip('/')}/activate/{raw}"
-
-
-async def ensure_account(
-    session, email: str, full_name: str | None, *, password: str | None = None, phone: str | None = None
-) -> tuple[User, str | None]:
-    """Retourne le compte existant, ou le crée. Sans mot de passe : compte inutilisable + lien d'activation."""
-    email = email.lower()
-    user = await session.scalar(select(User).where(User.email == email))
-    if user:
-        return user, None
-    if not full_name:
-        raise Unprocessable("Nom requis pour créer le compte", code="owner_details_required")
-    user = User(
-        email=email,
-        full_name=full_name.strip(),
-        phone=phone,
-        # Mot de passe aléatoire jamais communiqué : le compte ne sert qu'après activation.
-        password_hash=hash_password(new_refresh_token()) if password is None else hash_password(password),
-    )
-    session.add(user)
-    await session.flush()
-    return user, (await create_activation_link(session, user)) if password is None else None
-
-
-async def _valid_activation(session, token: str) -> ActivationToken:
-    row = await session.scalar(
-        select(ActivationToken)
-        .where(ActivationToken.token_hash == hash_token(token))
-        .options(selectinload(ActivationToken.user))
-    )
-    if not row or row.used_at or row.expires_at <= datetime.now(UTC) or not row.user.is_active:
-        raise NotFound("Lien d'activation invalide ou expiré", code="invalid_activation")
-    return row
-
-
-@router.get("/activation/{token}", response_model=ActivationInfo)
-async def activation_info(token: str, request: Request, session: Session):
-    await hit("activation", client_ip(request), limit=30, window_seconds=600)
-    row = await _valid_activation(session, token)
-    return ActivationInfo(email=row.user.email, full_name=row.user.full_name)
-
-
-@router.post("/activate", response_model=TokenOut)
-async def activate(body: ActivateIn, request: Request, response: Response, session: Session):
-    await hit("activation", client_ip(request), limit=30, window_seconds=600)
-    row = await _valid_activation(session, body.token)
-    now = datetime.now(UTC)
-    row.used_at = now
-    user = row.user
-    user.password_hash = hash_password(body.password)
-    user.failed_logins = 0
-    user.locked_until = None
-    user.last_login_at = now
-    audit(session, "user.activated", actor_id=user.id, ip=client_ip(request))
-    return await _issue_tokens(session, request, response, user)
+# Pas d'inscription libre du personnel : les comptes sont créés par le super admin ou par le gérant
+# du restaurant (équipe), puis activés par lien (app/modules/accounts.py).
 
 
 @router.post("/refresh", response_model=TokenOut)
@@ -266,7 +200,7 @@ async def refresh(request: Request, response: Response, session: Session):
         if family_alive and now - token.revoked_at < timedelta(seconds=REUSE_GRACE_SECONDS):
             user = await session.get(User, token.user_id)
             if user and user.is_active:
-                return await _issue_tokens(session, request, response, user, family_id=token.family_id)
+                return await issue_tokens(session, request, response, user, family_id=token.family_id)
         # Sinon : réutilisation d'un jeton déjà tourné → vol probable → révoque toute la famille.
         await session.execute(
             update(RefreshToken)
@@ -282,7 +216,7 @@ async def refresh(request: Request, response: Response, session: Session):
     if not user or not user.is_active:
         raise Unauthorized("Compte désactivé")
     token.revoked_at = now
-    return await _issue_tokens(session, request, response, user, family_id=token.family_id)
+    return await issue_tokens(session, request, response, user, family_id=token.family_id)
 
 
 @router.post("/logout", status_code=204)

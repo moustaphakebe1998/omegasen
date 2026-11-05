@@ -52,6 +52,7 @@ class Restaurant(UUIDPk, Timestamps, Base):
     takeaway_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     require_prepayment: Mapped[bool] = mapped_column(Boolean, default=False)
     late_after_minutes: Mapped[int] = mapped_column(Integer, default=15)
+    reservations_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
     logo_media_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),

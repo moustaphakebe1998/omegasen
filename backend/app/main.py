@@ -13,16 +13,19 @@ from app.core.logging import RequestLogMiddleware, configure_logging
 from app.core.redis import close_redis, get_redis
 from app.core.storage import ensure_bucket
 from app.modules import (
+    accounts,
     admin,
     analytics,
     auth,
     media,
     menu,
+    notifications,
     orders,
     payments,
     public,
     qrcodes,
     requests,
+    reservations,
     restaurants,
     ws,
 )
@@ -69,6 +72,11 @@ def create_app() -> FastAPI:
         app.include_router(module.router)
     app.include_router(requests.public_router)
     app.include_router(requests.admin_router)
+    app.include_router(accounts.router)
+    app.include_router(accounts.me_router)
+    app.include_router(notifications.router)
+    app.include_router(reservations.public_router)
+    app.include_router(reservations.router)
 
     @app.get("/health", tags=["system"])
     @app.get("/api/health", tags=["system"], include_in_schema=False)
