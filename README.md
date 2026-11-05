@@ -45,26 +45,17 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 
 ## Développement local
 
-Prérequis : Docker, Python 3.12+, Node 22+.
+Prérequis : Docker Desktop (démarré), Python 3.12+, Node 22+.
 
 ```bash
-cp .env.example .env
-docker compose -f docker-compose.dev.yml up -d postgres redis   # + minio si MINIO_IMAGE est défini
-
-# Backend
-cd backend
-python3.12 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/alembic upgrade head
-.venv/bin/python -m app.cli seed-demo          # restaurant de démo + comptes
-.venv/bin/uvicorn app.main:app --port 8100 --reload
-
-# Frontend (autre terminal)
-cd frontend
-npm install
-npm run dev                                     # http://localhost:3100
+./dev.sh          # installe si besoin, démarre base + API + site → http://localhost:3100 (Ctrl+C pour arrêter)
+./dev.sh stop     # arrête aussi PostgreSQL et Redis
+./dev.sh reset    # repart d'une base de démo vierge
 ```
 
-Sans MinIO, un S3 local de développement peut être lancé avec `backend/.venv/bin/moto_server -p 9010` (`pip install "moto[server]"`).
+Le script crée `.env` s'il manque, installe les dépendances au premier lancement, démarre PostgreSQL et Redis (Docker), applique les migrations, crée le super admin et le restaurant de démo, puis lance le stockage d'images local (port 9010), l'API (8100) et le site (3100). Les ports occupés par un ancien lancement sont libérés automatiquement. Journaux : `.dev-logs/`.
+
+En local, les images sont stockées dans un S3 de développement en mémoire (`moto`) : elles sont perdues à chaque redémarrage. Avec `MINIO_IMAGE` défini, `docker compose -f docker-compose.dev.yml up -d minio` fournit un stockage persistant.
 
 **Comptes de démonstration** (mot de passe `Demo!2026pass`) : `owner@demo.example.com`, `manager@demo.example.com`, `caisse@demo.example.com`, `cuisine@demo.example.com`. Restaurant : `/r/le-baobab-demo`.
 Super admin : définir `SUPERADMIN_EMAIL` et `SUPERADMIN_PASSWORD`, puis lancer `python -m app.cli bootstrap`.
