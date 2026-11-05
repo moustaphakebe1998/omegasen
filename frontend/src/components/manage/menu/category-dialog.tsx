@@ -21,7 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { api, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 
 import { type Category, menuKey } from "./utils";
 
@@ -78,7 +79,7 @@ function CategoryForm({
       toast.success(category ? "Catégorie mise à jour" : "Catégorie créée");
       onOpenChange(false);
     } catch (e) {
-      setError(errorMessage(e));
+      setError(actionErrorMessage(e));
     }
   });
 

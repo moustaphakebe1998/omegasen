@@ -99,10 +99,10 @@ class StatusIn(Schema):
     staff_note: str | None = Field(default=None, max_length=1000)
 
 
-def _out(r: Reservation) -> ReservationOut:
+def _out(r: Reservation, can_manage: bool = True) -> ReservationOut:
     return ReservationOut(
         **{k: getattr(r, k) for k in ReservationOut.model_fields if k != "allowed_transitions"},
-        allowed_transitions=sorted(TRANSITIONS[r.status]),
+        allowed_transitions=sorted(TRANSITIONS[r.status]) if can_manage else [],
     )
 
 
@@ -273,7 +273,8 @@ async def list_reservations(
     if upcoming:
         cond.append(Reservation.starts_at >= datetime.now(UTC) - timedelta(hours=3))
     rows = await session.scalars(select(Reservation).where(*cond).order_by(Reservation.starts_at).limit(500))
-    return [_out(r) for r in rows]
+    can_manage = ctx.can(Perm.RESERVATIONS_MANAGE)
+    return [_out(r, can_manage) for r in rows]
 
 
 @router.post("", response_model=ReservationOut, status_code=201)

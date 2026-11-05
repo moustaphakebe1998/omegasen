@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, ReceiptText, ShoppingBag, Trash2, Utensils } from "lucide-react";
+import { Loader2, Minus, Plus, ReceiptText, ShoppingBag, Trash2, Utensils } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,8 @@ export function Ticket({
   onDetails,
   onCheckout,
   idPrefix,
+  checkoutLabel = "Encaisser",
+  submitting = false,
 }: {
   cart: Cart;
   currency: string;
@@ -48,6 +50,9 @@ export function Ticket({
   onCheckout: () => void;
   /** Préfixe d'identifiants (le ticket peut être rendu deux fois : panneau + tiroir mobile). */
   idPrefix: string;
+  /** Libellé du bouton principal (« Envoyer en cuisine » sans la permission d'encaisser). */
+  checkoutLabel?: string;
+  submitting?: boolean;
 }) {
   const set = <K extends keyof TicketDetails>(k: K, v: TicketDetails[K]) => onDetails({ ...details, [k]: v });
 
@@ -66,7 +71,10 @@ export function Ticket({
       <div className="min-h-0 flex-1 overflow-y-auto">
         {cart.lines.length === 0 ? (
           <div className="flex flex-col items-center gap-3 p-10 text-center text-muted-foreground">
-            <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary" aria-hidden>
+            <span
+              className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+              aria-hidden
+            >
               <ReceiptText className="size-7" />
             </span>
             <p>Touchez un produit pour l&apos;ajouter.</p>
@@ -189,8 +197,13 @@ export function Ticket({
           <span className="text-lg font-semibold">Total TTC</span>
           <span className="tabular text-3xl font-black">{formatMoney(cart.total, currency)}</span>
         </div>
-        <Button className="h-16 w-full text-xl font-bold" disabled={cart.lines.length === 0} onClick={onCheckout}>
-          Encaisser {cart.count > 0 && `(${cart.count})`}
+        <Button
+          className="h-16 w-full text-xl font-bold"
+          disabled={cart.lines.length === 0 || submitting}
+          onClick={onCheckout}
+        >
+          {submitting && <Loader2 className="size-5 animate-spin" />}
+          {checkoutLabel} {cart.count > 0 && `(${cart.count})`}
         </Button>
       </div>
     </div>

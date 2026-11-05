@@ -8,12 +8,13 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ApiError, errorMessage } from "@/lib/api/client";
+import { ApiError } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 
-import { aria, Field, FormError } from "./fields";
+import { aria, Field, FormError, ReadOnlyFieldset, SectionTitle } from "./fields";
 import { type Restaurant, useUpdateRestaurant } from "./use-restaurant";
 
 const optional = (max: number) => z.string().trim().max(max, `${max} caractères maximum`);
@@ -65,7 +66,7 @@ function defaults(r: Restaurant): Values {
   };
 }
 
-export function InfoForm({ restaurant }: { restaurant: Restaurant }) {
+export function InfoForm({ restaurant, editable = true }: { restaurant: Restaurant; editable?: boolean }) {
   const update = useUpdateRestaurant(restaurant.id);
   const [error, setError] = useState<string | null>(null);
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: defaults(restaurant) });
@@ -78,6 +79,7 @@ export function InfoForm({ restaurant }: { restaurant: Restaurant }) {
   const slugChanged = slug.trim() !== restaurant.slug;
 
   const onSubmit = form.handleSubmit(async (v) => {
+    if (!editable) return;
     setError(null);
     const s = (x: string) => x.trim() || null;
     const n = (x: string) => (x.trim() === "" ? null : Number(x.replace(",", ".")));
@@ -102,13 +104,18 @@ export function InfoForm({ restaurant }: { restaurant: Restaurant }) {
       if (e instanceof ApiError && e.code === "slug_taken") {
         form.setError("slug", { message: "Cette adresse est déjà utilisée par un autre établissement." });
       }
-      setError(errorMessage(e));
+      setError(actionErrorMessage(e));
     }
   });
 
   const text = (name: keyof Values, label: string, props: React.ComponentProps<typeof Input> = {}, hint?: string) => (
     <Field id={`info-${name}`} label={label} error={errors[name]?.message} hint={hint}>
-      <Input {...aria(`info-${name}`, errors[name]?.message, !!hint)} {...props} {...register(name)} />
+      <Input
+        {...aria(`info-${name}`, errors[name]?.message, !!hint)}
+        {...props}
+        placeholder={editable ? props.placeholder : undefined}
+        {...register(name)}
+      />
     </Field>
   );
 
@@ -116,61 +123,85 @@ export function InfoForm({ restaurant }: { restaurant: Restaurant }) {
     <Card>
       <form onSubmit={onSubmit} noValidate>
         <CardHeader>
-          <CardTitle>Informations</CardTitle>
+          <SectionTitle readOnly={!editable}>Informations</SectionTitle>
           <CardDescription>Affichées sur votre page publique et vos tickets.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 pt-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            {text("name", "Nom de l'établissement")}
-            <Field
-              id="info-slug"
-              label="Adresse de la page publique"
-              error={errors.slug?.message}
-              hint={
-                <>
-                  Votre page : <span className="font-mono">/r/{slug || "…"}</span>
-                </>
-              }
-            >
-              <Input {...aria("info-slug", errors.slug?.message, true)} autoCapitalize="none" spellCheck={false} {...register("slug")} />
+        <ReadOnlyFieldset readOnly={!editable}>
+          <CardContent className="grid gap-4 pt-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {text("name", "Nom de l'établissement")}
+              <Field
+                id="info-slug"
+                label="Adresse de la page publique"
+                error={errors.slug?.message}
+                hint={
+                  <>
+                    Votre page : <span className="font-mono">/r/{slug || "…"}</span>
+                  </>
+                }
+              >
+                <Input
+                  {...aria("info-slug", errors.slug?.message, true)}
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  {...register("slug")}
+                />
+              </Field>
+            </div>
+            {slugChanged && !errors.slug && (
+              <p
+                className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+                role="status"
+              >
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                Votre QR Code n&apos;est pas affecté, mais les anciens liens vers /r/{restaurant.slug} (partagés,
+                réseaux sociaux…) ne fonctionneront plus.
+              </p>
+            )}
+            <Field id="info-description" label="Description" error={errors.description?.message}>
+              <Textarea
+                rows={3}
+                {...aria("info-description", errors.description?.message)}
+                {...register("description")}
+              />
             </Field>
-          </div>
-          {slugChanged && !errors.slug && (
-            <p className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100" role="status">
-              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-              Votre QR Code n&apos;est pas affecté, mais les anciens liens vers /r/{restaurant.slug} (partagés, réseaux
-              sociaux…) ne fonctionneront plus.
-            </p>
-          )}
-          <Field id="info-description" label="Description" error={errors.description?.message}>
-            <Textarea rows={3} {...aria("info-description", errors.description?.message)} {...register("description")} />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {text("cuisine", "Type de cuisine", { placeholder: "Ex. Sénégalaise, Italienne" })}
-            {text("phone", "Téléphone", { type: "tel", autoComplete: "tel" })}
-            {text("email", "Email de contact", { type: "email", autoComplete: "email" })}
-            {text("website", "Site web", { type: "url", placeholder: "https://" })}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
-            {text("address_line", "Adresse", { autoComplete: "street-address" })}
-            {text("postal_code", "Code postal", { autoComplete: "postal-code" })}
-            {text("city", "Ville", { autoComplete: "address-level2" })}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {text("latitude", "Latitude (facultatif)", { inputMode: "decimal", placeholder: "14.6928" })}
-            {text("longitude", "Longitude (facultatif)", { inputMode: "decimal", placeholder: "-17.4467" })}
-          </div>
-          <FormError message={error} />
-        </CardContent>
-        <CardFooter className="justify-end gap-2 pt-6">
-          <Button type="button" variant="outline" disabled={!isDirty || isSubmitting} onClick={() => form.reset()}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={!isDirty || isSubmitting}>
-            {isSubmitting && <Loader2 className="animate-spin" />}
-            Enregistrer
-          </Button>
-        </CardFooter>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {text("cuisine", "Type de cuisine", { placeholder: "Ex. Sénégalaise, Italienne" })}
+              {text("phone", "Téléphone", { type: "tel", autoComplete: "tel" })}
+              {text("email", "Email de contact", { type: "email", autoComplete: "email" })}
+              {text("website", "Site web", { type: "url", placeholder: "https://" })}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+              {text("address_line", "Adresse", { autoComplete: "street-address" })}
+              {text("postal_code", "Code postal", { autoComplete: "postal-code" })}
+              {text("city", "Ville", { autoComplete: "address-level2" })}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {text("latitude", "Latitude (facultatif)", { inputMode: "decimal", placeholder: "14.6928" })}
+              {text("longitude", "Longitude (facultatif)", { inputMode: "decimal", placeholder: "-17.4467" })}
+            </div>
+            <FormError message={error} />
+          </CardContent>
+        </ReadOnlyFieldset>
+        {editable && (
+          <CardFooter className="justify-end gap-2 pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!isDirty || isSubmitting}
+              onClick={() => {
+                form.reset();
+                setError(null);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button type="submit" disabled={!isDirty || isSubmitting}>
+              {isSubmitting && <Loader2 className="animate-spin" />}
+              Enregistrer
+            </Button>
+          </CardFooter>
+        )}
       </form>
     </Card>
   );

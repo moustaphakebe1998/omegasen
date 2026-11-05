@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 import { formatElapsed, formatMoney, formatTime } from "@/lib/format";
 import { CHANNEL, SERVICE_MODE } from "@/lib/labels";
 
@@ -32,11 +33,17 @@ export function OrdersSheet({
   active,
   awaiting,
   now,
+  canRecordPayments = true,
+  canSeeKitchen = true,
 }: {
   rid: string;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   rules: TransitionRules | undefined;
+  /** Permission `payments.record` : bouton « Encaisser ». */
+  canRecordPayments?: boolean;
+  /** Permission `orders.prepare` : liste des commandes en cuisine / prêtes. */
+  canSeeKitchen?: boolean;
   active: UseQueryResult<Order[]>;
   awaiting: UseQueryResult<Order[]>;
   now: number;
@@ -61,7 +68,7 @@ export function OrdersSheet({
       toast.success(`Commande ${o.display_number} remise au client`);
       refresh();
     },
-    onError: (e) => toast.error(errorMessage(e)),
+    onError: (e) => toast.error(actionErrorMessage(e)),
   });
 
   const pay = useMutation({
@@ -82,7 +89,7 @@ export function OrdersSheet({
       setPaying(null);
       refresh();
     },
-    onError: (e) => toast.error(errorMessage(e)),
+    onError: (e) => toast.error(actionErrorMessage(e)),
   });
 
   const orders = active.data ?? [];
@@ -119,7 +126,7 @@ export function OrdersSheet({
           >
             <Printer className="size-5" />
           </Button>
-          {isUnpaid(o) && o.status !== "CANCELLED" && (
+          {canRecordPayments && isUnpaid(o) && o.status !== "CANCELLED" && (
             <Button variant="outline" className="h-12 text-base" onClick={() => setPaying(o)}>
               <Banknote className="size-5" />
               Encaisser
@@ -181,8 +188,16 @@ export function OrdersSheet({
                 "Aucune commande en attente.",
                 awaiting.isLoading,
               )}
-            {section("Prêtes à remettre", ready, "Aucune commande prête.", active.isLoading)}
-            {section("En cuisine", inProgress, "Aucune commande en préparation.", active.isLoading)}
+            {canSeeKitchen ? (
+              <>
+                {section("Prêtes à remettre", ready, "Aucune commande prête.", active.isLoading)}
+                {section("En cuisine", inProgress, "Aucune commande en préparation.", active.isLoading)}
+              </>
+            ) : (
+              <p className="rounded-xl border border-dashed bg-background p-4 text-sm text-muted-foreground">
+                Le suivi des commandes en cuisine n&apos;est pas disponible avec vos permissions.
+              </p>
+            )}
           </div>
         </SheetContent>
       </Sheet>
@@ -190,7 +205,9 @@ export function OrdersSheet({
         open={paying !== null}
         onOpenChange={(o) => !o && setPaying(null)}
         title={paying ? `Encaisser la commande ${paying.display_number}` : "Encaisser"}
-        description={paying && paying.sent_to_kitchen_at === null ? "Une fois réglée, la commande partira en cuisine." : undefined}
+        description={
+          paying && paying.sent_to_kitchen_at === null ? "Une fois réglée, la commande partira en cuisine." : undefined
+        }
         amountDue={paying ? paying.total - paying.amount_paid : 0}
         currency={paying?.currency ?? "XOF"}
         submitting={pay.isPending}

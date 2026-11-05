@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 import type { Category } from "./orders";
@@ -16,19 +17,25 @@ import type { Category } from "./orders";
 export function staffMenuQuery(rid: string) {
   return {
     queryKey: ["staff-menu", rid] as const,
-    queryFn: () => unwrap(api.GET("/api/restaurants/{restaurant_id}/menu", { params: { path: { restaurant_id: rid } } })),
+    queryFn: () =>
+      unwrap(api.GET("/api/restaurants/{restaurant_id}/menu", { params: { path: { restaurant_id: rid } } })),
   };
 }
 
 function normalize(s: string) {
-  return s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 /** Ruptures de stock : la cuisine peut marquer un produit indisponible en un geste. */
-export function StockSheet({ rid, open, onOpenChange }: { rid: string; open: boolean; onOpenChange: (o: boolean) => void }) {
+export function StockSheet({
+  rid,
+  open,
+  onOpenChange,
+}: {
+  rid: string;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const menu = useQuery({ ...staffMenuQuery(rid), enabled: open });
@@ -46,13 +53,16 @@ export function StockSheet({ rid, open, onOpenChange }: { rid: string; open: boo
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData<Category[]>(key);
       qc.setQueryData<Category[]>(key, (cats) =>
-        cats?.map((c) => ({ ...c, products: c.products.map((p) => (p.id === id ? { ...p, is_available: value } : p)) })),
+        cats?.map((c) => ({
+          ...c,
+          products: c.products.map((p) => (p.id === id ? { ...p, is_available: value } : p)),
+        })),
       );
       return { previous };
     },
     onError: (e, _v, ctx) => {
       if (ctx?.previous) qc.setQueryData(staffMenuQuery(rid).queryKey, ctx.previous);
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     },
     onSuccess: (p) => toast.success(p.is_available ? `${p.name} : de nouveau disponible` : `${p.name} : en rupture`),
   });
@@ -102,7 +112,13 @@ export function StockSheet({ rid, open, onOpenChange }: { rid: string; open: boo
                   const id = `avail-${p.id}`;
                   return (
                     <li key={p.id} className="flex min-h-14 items-center justify-between gap-3 px-3">
-                      <label htmlFor={id} className={cn("flex-1 py-3 text-base font-medium", !p.is_available && "text-red-300 line-through")}>
+                      <label
+                        htmlFor={id}
+                        className={cn(
+                          "flex-1 py-3 text-base font-medium",
+                          !p.is_available && "text-red-300 line-through",
+                        )}
+                      >
                         {p.name}
                         {!p.is_available && <span className="ml-2 text-xs font-semibold no-underline">RUPTURE</span>}
                       </label>

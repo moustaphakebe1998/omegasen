@@ -1,7 +1,14 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
-import { Controller, type Control, type FieldErrors, useFieldArray, type UseFormRegister, useWatch } from "react-hook-form";
+import {
+  Controller,
+  type Control,
+  type FieldErrors,
+  useFieldArray,
+  type UseFormRegister,
+  useWatch,
+} from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +22,10 @@ type Props = {
   register: UseFormRegister<ProductFormValues>;
   errors: FieldErrors<ProductFormValues>;
   currency: string;
+  /** Consultation seule : pas d'ajout, de suppression ni de réordonnancement. */
+  readOnly?: boolean;
+  /** Sans `prices.edit`, les montants des suppléments ne sont pas modifiables. */
+  canEditPrices?: boolean;
 };
 
 function FieldMsg({ id, message }: { id?: string; message?: string }) {
@@ -29,7 +40,8 @@ function FieldMsg({ id, message }: { id?: string; message?: string }) {
 function choiceHelp(min: number, max: number): string {
   if (Number.isNaN(min) || Number.isNaN(max)) return "";
   if (min === 1 && max === 1) return "Choix obligatoire unique (ex. cuisson, accompagnement).";
-  if (min === 0) return max === 1 ? "Facultatif : le client peut choisir 1 option." : `Facultatif : jusqu'à ${max} options.`;
+  if (min === 0)
+    return max === 1 ? "Facultatif : le client peut choisir 1 option." : `Facultatif : jusqu'à ${max} options.`;
   if (min === max) return `Obligatoire : exactement ${min} options.`;
   return `Obligatoire : entre ${min} et ${max} options.`;
 }
@@ -41,6 +53,8 @@ function GroupEditor({
   register,
   errors,
   currency,
+  readOnly = false,
+  canEditPrices = true,
   onMove,
   onRemove,
 }: Props & { index: number; total: number; onMove: (delta: number) => void; onRemove: () => void }) {
@@ -102,7 +116,10 @@ function GroupEditor({
           const oErr = gErr?.options?.[oi];
           const ob = `${base}-o${oi}`;
           return (
-            <div key={f.id} className="grid gap-2 rounded-md bg-muted/40 p-2 sm:grid-cols-[1fr_8rem_auto_auto] sm:items-end">
+            <div
+              key={f.id}
+              className="grid gap-2 rounded-md bg-muted/40 p-2 sm:grid-cols-[1fr_8rem_auto_auto] sm:items-end"
+            >
               <div className="grid gap-1">
                 <Label htmlFor={`${ob}-name`} className="text-xs">
                   Option {oi + 1}
@@ -125,6 +142,8 @@ function GroupEditor({
                   placeholder="0"
                   aria-invalid={!!oErr?.price}
                   {...register(`option_groups.${index}.options.${oi}.price`)}
+                  disabled={!canEditPrices}
+                  title={canEditPrices ? undefined : "Vous n'avez pas la permission de modifier les prix"}
                 />
                 <FieldMsg message={oErr?.price?.message} />
               </div>
@@ -140,78 +159,82 @@ function GroupEditor({
                   Disponible
                 </Label>
               </div>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Monter l'option ${oi + 1}`}
-                  disabled={oi === 0}
-                  onClick={() => move(oi, oi - 1)}
-                >
-                  <ArrowUp />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Descendre l'option ${oi + 1}`}
-                  disabled={oi === fields.length - 1}
-                  onClick={() => move(oi, oi + 1)}
-                >
-                  <ArrowDown />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Supprimer l'option ${oi + 1}`}
-                  onClick={() => remove(oi)}
-                >
-                  <Trash2 />
-                </Button>
-              </div>
+              {!readOnly && (
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Monter l'option ${oi + 1}`}
+                    disabled={oi === 0}
+                    onClick={() => move(oi, oi - 1)}
+                  >
+                    <ArrowUp />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Descendre l'option ${oi + 1}`}
+                    disabled={oi === fields.length - 1}
+                    onClick={() => move(oi, oi + 1)}
+                  >
+                    <ArrowDown />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Supprimer l'option ${oi + 1}`}
+                    onClick={() => remove(oi)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              )}
             </div>
           );
         })}
         <FieldMsg message={gErr?.options?.root?.message ?? gErr?.options?.message} />
-        <div className="flex flex-wrap justify-between gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => append({ uid: null, name: "", price: "", is_available: true })}
-          >
-            <Plus />
-            Ajouter une option
-          </Button>
-          <div className="flex gap-1">
+        {!readOnly && (
+          <div className="flex flex-wrap justify-between gap-2">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
-              aria-label={`Monter le groupe ${index + 1}`}
-              disabled={index === 0}
-              onClick={() => onMove(-1)}
+              onClick={() => append({ uid: null, name: "", price: "", is_available: true })}
             >
-              <ArrowUp />
+              <Plus />
+              Ajouter une option
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              aria-label={`Descendre le groupe ${index + 1}`}
-              disabled={index === total - 1}
-              onClick={() => onMove(1)}
-            >
-              <ArrowDown />
-            </Button>
-            <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={onRemove}>
-              <Trash2 />
-              Supprimer le groupe
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-label={`Monter le groupe ${index + 1}`}
+                disabled={index === 0}
+                onClick={() => onMove(-1)}
+              >
+                <ArrowUp />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-label={`Descendre le groupe ${index + 1}`}
+                disabled={index === total - 1}
+                onClick={() => onMove(1)}
+              >
+                <ArrowDown />
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={onRemove}>
+                <Trash2 />
+                Supprimer le groupe
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </fieldset>
   );
@@ -224,7 +247,9 @@ export function OptionGroupsEditor(props: Props) {
     <div className="grid gap-3">
       {fields.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          Aucune option. Ajoutez un groupe pour proposer des choix (cuisson, accompagnement, suppléments…).
+          {props.readOnly
+            ? "Aucune option."
+            : "Aucune option. Ajoutez un groupe pour proposer des choix (cuisson, accompagnement, suppléments…)."}
         </p>
       )}
       {fields.map((f, i) => (
@@ -238,25 +263,27 @@ export function OptionGroupsEditor(props: Props) {
         />
       ))}
       <FieldMsg message={props.errors.option_groups?.root?.message ?? props.errors.option_groups?.message} />
-      <div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            append({
-              uid: null,
-              name: "",
-              min_choices: 0,
-              max_choices: 1,
-              options: [{ uid: null, name: "", price: "", is_available: true }],
-            })
-          }
-        >
-          <Plus />
-          Ajouter un groupe d&apos;options
-        </Button>
-      </div>
+      {!props.readOnly && (
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              append({
+                uid: null,
+                name: "",
+                min_choices: 0,
+                max_choices: 1,
+                options: [{ uid: null, name: "", price: "", is_available: true }],
+              })
+            }
+          >
+            <Plus />
+            Ajouter un groupe d&apos;options
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

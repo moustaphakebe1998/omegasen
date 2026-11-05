@@ -1,5 +1,7 @@
 "use client";
 
+import { ReadOnlyHint } from "@/components/manage/layout/permissions";
+import { CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -86,5 +88,43 @@ export function FormError({ message }: { message: string | null }) {
     <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
       {message}
     </p>
+  );
+}
+
+/** Titre de section avec la mention « Lecture seule » quand l'utilisateur ne peut pas la modifier. */
+export function SectionTitle({ children, readOnly }: { children: React.ReactNode; readOnly?: boolean }) {
+  return (
+    <CardTitle className="flex flex-wrap items-center gap-2">
+      {children}
+      {readOnly && <ReadOnlyHint />}
+    </CardTitle>
+  );
+}
+
+/**
+ * Désactive tous les champs d'une section non modifiable tout en gardant les valeurs lisibles
+ * (pas d'opacité réduite : c'est une présentation en lecture seule, pas un champ en attente).
+ */
+export function ReadOnlyFieldset({
+  readOnly,
+  className,
+  children,
+}: {
+  readOnly: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <fieldset
+      disabled={readOnly}
+      className={cn(
+        "m-0 min-w-0 border-0 p-0",
+        readOnly &&
+          "[&_:disabled]:cursor-default [&_:disabled]:opacity-100 [&_[data-disabled]]:opacity-100 [&_input:disabled]:bg-muted/40 [&_textarea:disabled]:bg-muted/40",
+        className,
+      )}
+    >
+      {children}
+    </fieldset>
   );
 }

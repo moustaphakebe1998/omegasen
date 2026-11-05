@@ -9,11 +9,11 @@ import { z } from "zod";
 
 import { parseVatPercent, vatInput } from "@/components/manage/menu/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { errorMessage } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 
-import { aria, Field, FormError, SwitchRow } from "./fields";
+import { aria, Field, FormError, ReadOnlyFieldset, SectionTitle, SwitchRow } from "./fields";
 import { type Restaurant, useUpdateRestaurant } from "./use-restaurant";
 
 const schema = z.object({
@@ -76,7 +76,7 @@ function defaults(r: Restaurant): Values {
   };
 }
 
-export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
+export function OrdersForm({ restaurant, editable = true }: { restaurant: Restaurant; editable?: boolean }) {
   const update = useUpdateRestaurant(restaurant.id);
   const [error, setError] = useState<string | null>(null);
   const [tzList] = useState(timezones);
@@ -89,6 +89,7 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
   const [dineIn, takeaway] = useWatch({ control, name: ["dine_in_enabled", "takeaway_enabled"] });
 
   const onSubmit = form.handleSubmit(async (v) => {
+    if (!editable) return;
     setError(null);
     try {
       const data = await update({
@@ -104,7 +105,7 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
       form.reset(defaults(data));
       toast.success("Réglages de commande enregistrés");
     } catch (e) {
-      setError(errorMessage(e));
+      setError(actionErrorMessage(e));
     }
   });
 
@@ -117,7 +118,14 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
       control={control}
       name={name}
       render={({ field }) => (
-        <SwitchRow id={`ord-${name}`} label={label} hint={hint} checked={field.value} onChange={field.onChange} />
+        <SwitchRow
+          id={`ord-${name}`}
+          label={label}
+          hint={hint}
+          checked={field.value}
+          onChange={field.onChange}
+          disabled={!editable}
+        />
       )}
     />
   );
@@ -126,102 +134,114 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
     <Card>
       <form onSubmit={onSubmit} noValidate>
         <CardHeader>
-          <CardTitle>Commande</CardTitle>
+          <SectionTitle readOnly={!editable}>Commande</SectionTitle>
           <CardDescription>Modes de service, réservations, paiement et suivi en cuisine.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 pt-6">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {sw(
-              "accepting_orders",
-              "Commandes ouvertes",
-              "Désactivez pour suspendre temporairement toutes les commandes clients.",
+        <ReadOnlyFieldset readOnly={!editable}>
+          <CardContent className="grid gap-4 pt-6">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {sw(
+                "accepting_orders",
+                "Commandes ouvertes",
+                "Désactivez pour suspendre temporairement toutes les commandes clients.",
+              )}
+              {sw(
+                "require_prepayment",
+                "Paiement au comptoir avant préparation",
+                "Les commandes QR Code / en ligne ne partent en cuisine qu'une fois payées au comptoir.",
+              )}
+              {sw("dine_in_enabled", "Sur place", "Le client peut commander pour manger sur place.")}
+              {sw("takeaway_enabled", "À emporter", "Le client peut commander à emporter.")}
+              {sw(
+                "reservations_enabled",
+                "Réservations en ligne",
+                "Affiche le bouton « Réserver une table » sur votre page publique. Les demandes arrivent dans Réservations.",
+              )}
+            </div>
+            {!dineIn && !takeaway && (
+              <p
+                className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+                role="status"
+              >
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                Aucun mode de service actif : vos clients ne pourront pas commander.
+              </p>
             )}
-            {sw(
-              "require_prepayment",
-              "Paiement au comptoir avant préparation",
-              "Les commandes QR Code / en ligne ne partent en cuisine qu'une fois payées au comptoir.",
-            )}
-            {sw("dine_in_enabled", "Sur place", "Le client peut commander pour manger sur place.")}
-            {sw("takeaway_enabled", "À emporter", "Le client peut commander à emporter.")}
-            {sw(
-              "reservations_enabled",
-              "Réservations en ligne",
-              "Affiche le bouton « Réserver une table » sur votre page publique. Les demandes arrivent dans Réservations.",
-            )}
-          </div>
-          {!dineIn && !takeaway && (
-            <p
-              className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
-              role="status"
-            >
-              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-              Aucun mode de service actif : vos clients ne pourront pas commander.
-            </p>
-          )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              id="ord-late"
-              label="Commande en retard après (minutes)"
-              hint="Au-delà, la commande est signalée en cuisine."
-              error={errors.late_after_minutes?.message}
-            >
-              <Input
-                inputMode="numeric"
-                {...aria("ord-late", errors.late_after_minutes?.message, true)}
-                {...register("late_after_minutes")}
-              />
-            </Field>
-            <Field
-              id="ord-vat"
-              label="TVA par défaut (%)"
-              hint="Appliquée aux produits sans taux spécifique. Prix TTC."
-              error={errors.vat?.message}
-            >
-              <Input inputMode="decimal" {...aria("ord-vat", errors.vat?.message, true)} {...register("vat")} />
-            </Field>
-            <Field
-              id="ord-tz"
-              label="Fuseau horaire"
-              hint="Utilisé pour les horaires d'ouverture et les rapports."
-              error={errors.timezone?.message}
-            >
-              <Input
-                list="ord-tz-list"
-                autoComplete="off"
-                {...aria("ord-tz", errors.timezone?.message, true)}
-                {...register("timezone")}
-              />
-              <datalist id="ord-tz-list">
-                {tzList.map((tz) => (
-                  <option key={tz} value={tz} />
-                ))}
-              </datalist>
-            </Field>
-            <Field
-              id="ord-currency"
-              label="Devise"
-              hint="Définie à la création du restaurant ; elle ne peut pas être modifiée."
-            >
-              <Input
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                id="ord-late"
+                label="Commande en retard après (minutes)"
+                hint="Au-delà, la commande est signalée en cuisine."
+                error={errors.late_after_minutes?.message}
+              >
+                <Input
+                  inputMode="numeric"
+                  {...aria("ord-late", errors.late_after_minutes?.message, true)}
+                  {...register("late_after_minutes")}
+                />
+              </Field>
+              <Field
+                id="ord-vat"
+                label="TVA par défaut (%)"
+                hint="Appliquée aux produits sans taux spécifique. Prix TTC."
+                error={errors.vat?.message}
+              >
+                <Input inputMode="decimal" {...aria("ord-vat", errors.vat?.message, true)} {...register("vat")} />
+              </Field>
+              <Field
+                id="ord-tz"
+                label="Fuseau horaire"
+                hint="Utilisé pour les horaires d'ouverture et les rapports."
+                error={errors.timezone?.message}
+              >
+                <Input
+                  list="ord-tz-list"
+                  autoComplete="off"
+                  {...aria("ord-tz", errors.timezone?.message, true)}
+                  {...register("timezone")}
+                />
+                <datalist id="ord-tz-list">
+                  {tzList.map((tz) => (
+                    <option key={tz} value={tz} />
+                  ))}
+                </datalist>
+              </Field>
+              <Field
                 id="ord-currency"
-                value={restaurant.currency}
-                readOnly
-                disabled
-                aria-describedby="ord-currency-hint"
-              />
-            </Field>
-          </div>
-          <FormError message={error} />
-        </CardContent>
-        <CardFooter className="justify-end gap-2 pt-6">
-          <Button type="button" variant="outline" disabled={!isDirty || isSubmitting} onClick={() => form.reset()}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={!isDirty || isSubmitting}>
-            {isSubmitting && <Loader2 className="animate-spin" />}
-            Enregistrer
-          </Button>
-        </CardFooter>
+                label="Devise"
+                hint="Définie à la création du restaurant ; elle ne peut pas être modifiée."
+              >
+                <Input
+                  id="ord-currency"
+                  value={restaurant.currency}
+                  readOnly
+                  disabled
+                  aria-describedby="ord-currency-hint"
+                />
+              </Field>
+            </div>
+            <FormError message={error} />
+          </CardContent>
+        </ReadOnlyFieldset>
+        {editable && (
+          <CardFooter className="justify-end gap-2 pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!isDirty || isSubmitting}
+              onClick={() => {
+                form.reset();
+                setError(null);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button type="submit" disabled={!isDirty || isSubmitting}>
+              {isSubmitting && <Loader2 className="animate-spin" />}
+              Enregistrer
+            </Button>
+          </CardFooter>
+        )}
       </form>
     </Card>
   );

@@ -3,6 +3,7 @@
 import { CalendarDays, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 
+import { useCan } from "@/components/manage/layout/permissions";
 import { NewReservationDialog } from "@/components/manage/reservations/new-reservation-dialog";
 import { ReservationCard } from "@/components/manage/reservations/reservation-card";
 import { useReservations } from "@/components/manage/reservations/use-reservations";
@@ -27,6 +28,7 @@ export function ReservationsSheet({
   list: ReturnType<typeof useReservations>;
 }) {
   const [newOpen, setNewOpen] = useState(false);
+  const canManage = useCan(restaurant.id)("reservations.manage");
   const tz = restaurant.timezone;
   const all = list.data ?? [];
   const toCome = all.filter((r) => UPCOMING.includes(r.status));
@@ -57,10 +59,12 @@ export function ReservationsSheet({
           <SheetHeader className="border-b bg-background pr-12">
             <SheetTitle className="text-xl">Réservations du jour</SheetTitle>
             <SheetDescription className="first-letter:uppercase">{formatDayLabel(todayIn(tz))}</SheetDescription>
-            <Button className="mt-2 h-12 w-full text-base sm:w-auto sm:self-start" onClick={() => setNewOpen(true)}>
-              <Plus className="size-5" />
-              Nouvelle réservation
-            </Button>
+            {canManage && (
+              <Button className="mt-2 h-12 w-full text-base sm:w-auto sm:self-start" onClick={() => setNewOpen(true)}>
+                <Plus className="size-5" />
+                Nouvelle réservation
+              </Button>
+            )}
           </SheetHeader>
           <div className="flex-1 space-y-6 overflow-y-auto p-4">
             {list.isPending ? (
@@ -88,7 +92,7 @@ export function ReservationsSheet({
           </div>
         </SheetContent>
       </Sheet>
-      <NewReservationDialog restaurant={restaurant} open={newOpen} onOpenChange={setNewOpen} />
+      {canManage && <NewReservationDialog restaurant={restaurant} open={newOpen} onOpenChange={setNewOpen} />}
     </>
   );
 }

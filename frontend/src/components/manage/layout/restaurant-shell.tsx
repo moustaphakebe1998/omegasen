@@ -14,6 +14,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -23,15 +24,35 @@ import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 import { CHANNEL, ROLE } from "@/lib/labels";
+import type { Perm } from "@/lib/permissions";
 import { type RealtimeEvent, useRestaurantSocket } from "@/lib/realtime";
 
 import { type Order, useRestaurant } from "./hooks";
+import { AccessDenied, useCan } from "./permissions";
+
+/** Rubrique de navigation + permission requise (aucune = tout membre du restaurant). */
+type ManageNavItem = NavItem & { perm?: Perm };
+
+function manageNav(rid: string): ManageNavItem[] {
+  return [
+    { href: `/manage/${rid}`, label: "Vue d'ensemble", icon: LayoutDashboard, exact: true },
+    { href: `/manage/${rid}/orders`, label: "Commandes", icon: Receipt, perm: "orders.history" },
+    { href: `/manage/${rid}/reservations`, label: "Réservations", icon: CalendarDays, perm: "reservations.view" },
+    { href: `/manage/${rid}/menu`, label: "Menu", icon: UtensilsCrossed, perm: "menu.view" },
+    { href: `/manage/${rid}/qr`, label: "QR Code", icon: QrCode },
+    { href: `/manage/${rid}/settings`, label: "Établissement", icon: Settings, perm: "restaurant.view" },
+    { href: `/manage/${rid}/team`, label: "Équipe", icon: Users, perm: "team.view" },
+    { href: `/manage/${rid}/stats`, label: "Statistiques", icon: BarChart3, perm: "stats.view" },
+  ];
+}
 
 /** Gabarit de l'espace gérant + abonnement temps réel unique pour toutes les pages. */
 export function RestaurantShell({ rid, children }: { rid: string; children: React.ReactNode }) {
   const { roleIn, user } = useAuth();
   const queryClient = useQueryClient();
   const restaurant = useRestaurant(rid);
+  const can = useCan(rid);
+  const pathname = usePathname();
 
   const onEvent = useCallback(
     (e: RealtimeEvent) => {
@@ -55,19 +76,13 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
   }, [queryClient, rid]);
   useRestaurantSocket(rid, onEvent, onReconnect);
 
-  const nav: NavItem[] = useMemo(
-    () => [
-      { href: `/manage/${rid}`, label: "Vue d'ensemble", icon: LayoutDashboard, exact: true },
-      { href: `/manage/${rid}/orders`, label: "Commandes", icon: Receipt },
-      { href: `/manage/${rid}/reservations`, label: "Réservations", icon: CalendarDays },
-      { href: `/manage/${rid}/menu`, label: "Menu", icon: UtensilsCrossed },
-      { href: `/manage/${rid}/qr`, label: "QR Code", icon: QrCode },
-      { href: `/manage/${rid}/settings`, label: "Établissement", icon: Settings },
-      { href: `/manage/${rid}/team`, label: "Équipe", icon: Users },
-      { href: `/manage/${rid}/stats`, label: "Statistiques", icon: BarChart3 },
-    ],
-    [rid],
-  );
+  const allNav = useMemo(() => manageNav(rid), [rid]);
+  const nav: NavItem[] = useMemo(() => allNav.filter((i) => !i.perm || can(i.perm)), [allNav, can]);
+  // Accès direct à une rubrique sans la permission requise : état vide plutôt qu'une page en erreur.
+  const section = allNav.find((i) => !i.exact && (pathname === i.href || pathname.startsWith(`${i.href}/`)));
+  const denied = !!section?.perm && !can(section.perm);
+  const canKitchen = can("orders.prepare");
+  const canPos = can("orders.create");
 
   if (restaurant.isPending) return <FullPageSpinner />;
   if (restaurant.isError) {
@@ -93,20 +108,24 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
       avatarUrl={r.logo_url}
       actions={
         <div className="hidden items-center gap-2 sm:flex">
-          <Button asChild variant="outline" size="sm" title="Ouvrir l'écran cuisine">
-            <a href={`/kitchen/${rid}`} target="_blank" rel="noopener noreferrer">
-              <ChefHat />
-              <span className="hidden md:inline">Cuisine</span>
-              <span className="sr-only md:hidden">Cuisine (nouvel onglet)</span>
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="sm" title="Ouvrir la caisse">
-            <a href={`/pos/${rid}`} target="_blank" rel="noopener noreferrer">
-              <Wallet />
-              <span className="hidden md:inline">Caisse</span>
-              <span className="sr-only md:hidden">Caisse (nouvel onglet)</span>
-            </a>
-          </Button>
+          {canKitchen && (
+            <Button asChild variant="outline" size="sm" title="Ouvrir l'écran cuisine">
+              <a href={`/kitchen/${rid}`} target="_blank" rel="noopener noreferrer">
+                <ChefHat />
+                <span className="hidden md:inline">Cuisine</span>
+                <span className="sr-only md:hidden">Cuisine (nouvel onglet)</span>
+              </a>
+            </Button>
+          )}
+          {canPos && (
+            <Button asChild variant="outline" size="sm" title="Ouvrir la caisse">
+              <a href={`/pos/${rid}`} target="_blank" rel="noopener noreferrer">
+                <Wallet />
+                <span className="hidden md:inline">Caisse</span>
+                <span className="sr-only md:hidden">Caisse (nouvel onglet)</span>
+              </a>
+            </Button>
+          )}
           <Button asChild variant="ghost" size="sm" title="Voir la page publique">
             <a href={`/r/${r.slug}`} target="_blank" rel="noopener noreferrer">
               <ExternalLink />
@@ -120,8 +139,8 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
         <div className="grid gap-2">
           <p className="px-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">Ouvrir</p>
           {[
-            { href: `/kitchen/${rid}`, label: "Écran cuisine", icon: ChefHat },
-            { href: `/pos/${rid}`, label: "Caisse", icon: Wallet },
+            ...(canKitchen ? [{ href: `/kitchen/${rid}`, label: "Écran cuisine", icon: ChefHat }] : []),
+            ...(canPos ? [{ href: `/pos/${rid}`, label: "Caisse", icon: Wallet }] : []),
             { href: `/r/${r.slug}`, label: "Page publique", icon: ExternalLink },
           ].map(({ href, label, icon: Icon }) => (
             <Button key={href} asChild variant="outline" className="justify-start">
@@ -135,7 +154,9 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
         </div>
       }
     >
-      <div className="[&_[data-slot=card]]:rounded-2xl">{children}</div>
+      <div className="[&_[data-slot=card]]:rounded-2xl">
+        {denied ? <AccessDenied backHref={`/manage/${rid}`} /> : children}
+      </div>
     </AppShell>
   );
 }

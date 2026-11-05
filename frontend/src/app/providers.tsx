@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { PasswordChangeGate } from "@/components/shared/password-change-gate";
 import { Toaster } from "@/components/ui/sonner";
 import { ApiError } from "@/lib/api/client";
 import { AuthProvider } from "@/lib/auth";
@@ -23,7 +24,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <PasswordChangeGate>{children}</PasswordChangeGate>
+      </AuthProvider>
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );

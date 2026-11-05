@@ -635,6 +635,8 @@ async def create_pos_order(body: PosOrderIn, ctx: Can(Perm.ORDERS_CREATE), sessi
     """Commande saisie au guichet (caisse). Peut être encaissée immédiatement."""
     from app.modules.payments import record_payment  # cycle
 
+    if body.payment:
+        ctx.require(Perm.PAYMENTS_RECORD)
     order, created = await place_order(session, ctx.restaurant, body, channel=OrderChannel.POS, actor=ctx.user)
     if created and body.payment:
         await record_payment(
@@ -741,7 +743,8 @@ async def get_order(order_id: uuid.UUID, ctx: AnyMember, session: Session):
 
 
 @router.post("/{order_id}/status", response_model=OrderOut)
-async def set_status(order_id: uuid.UUID, body: StatusIn, ctx: Can(Perm.ORDERS_PREPARE), session: Session):
+async def set_status(order_id: uuid.UUID, body: StatusIn, ctx: AnyMember, session: Session):
+    # Permission vérifiée par transition (préparer, annuler, rouvrir) dans change_status.
     order = await load_order(session, ctx.restaurant.id, order_id)
     await change_status(session, ctx, order, body)
     await session.commit()

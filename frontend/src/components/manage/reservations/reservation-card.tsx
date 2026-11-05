@@ -3,6 +3,7 @@
 import { Ban, Check, Loader2, Mail, MessageSquareText, Phone, UserCheck, UserX, Users, X } from "lucide-react";
 import { useState } from "react";
 
+import { useCan } from "@/components/manage/layout/permissions";
 import { ReasonDialog } from "@/components/manage/orders/reason-dialog";
 import {
   AlertDialog,
@@ -71,10 +72,11 @@ export function ReservationCard({
   touch?: boolean;
 }) {
   const setStatus = useSetReservationStatus(rid);
+  const canManage = useCan(rid)("reservations.manage");
   const [declineOpen, setDeclineOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const pending = setStatus.isPending ? setStatus.variables?.status : null;
-  const actions = ACTIONS.filter((a) => r.allowed_transitions.includes(a.status));
+  const actions = canManage ? ACTIONS.filter((a) => r.allowed_transitions.includes(a.status)) : [];
   const done = r.status === "DECLINED" || r.status === "CANCELLED" || r.status === "NO_SHOW";
   const phoneHref = `tel:${r.customer_phone.replace(/[^\d+]/g, "")}`;
 

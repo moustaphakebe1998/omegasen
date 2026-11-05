@@ -10,10 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { api, errorMessage, unwrap, type Schemas } from "@/lib/api/client";
-import { useAuth } from "@/lib/auth";
+import { useCan } from "@/components/manage/layout/permissions";
+import { api, unwrap, type Schemas } from "@/lib/api/client";
 import { formatDateTime, formatMoney, formatTime } from "@/lib/format";
-import { CHANNEL, ORDER_STATUS, PAYMENT_METHOD, SERVICE_MODE, type OrderStatus, type PaymentMethod } from "@/lib/labels";
+import {
+  CHANNEL,
+  ORDER_STATUS,
+  PAYMENT_METHOD,
+  SERVICE_MODE,
+  type OrderStatus,
+  type PaymentMethod,
+} from "@/lib/labels";
+import { actionErrorMessage } from "@/lib/permissions";
 
 import { type Order } from "../layout/hooks";
 import { PaymentDialog } from "./payment-dialog";
@@ -58,9 +66,12 @@ export function OrderDetailSheet({
 
 function OrderDetail({ rid, initial, currency }: { rid: string; initial: Order; currency: string }) {
   const queryClient = useQueryClient();
-  const { roleIn, user } = useAuth();
-  const role = roleIn(rid);
-  const canRefund = !!user?.is_superadmin || role === "OWNER" || role === "MANAGER";
+  const can = useCan(rid);
+  const canRefund = can("payments.refund");
+  const canRecord = can("payments.record");
+  // La route de changement de statut exige `orders.prepare` ; l'annulation exige en plus `orders.cancel`.
+  const canChangeStatus = can("orders.prepare");
+  const canCancel = canChangeStatus && can("orders.cancel");
 
   const { data: order = initial, isFetching } = useQuery({
     queryKey: ["orders", rid, "detail", initial.id],
@@ -95,7 +106,7 @@ function OrderDetail({ rid, initial, currency }: { rid: string; initial: Order; 
       applyUpdate(updated);
       toast.success(`Commande n° ${updated.display_number} : ${ORDER_STATUS[updated.status].label}`);
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       throw e;
     } finally {
       setBusyStatus(null);
@@ -113,7 +124,7 @@ function OrderDetail({ rid, initial, currency }: { rid: string; initial: Order; 
       applyUpdate(updated);
       toast.success("Paiement enregistré");
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       throw e;
     }
   };
@@ -129,14 +140,14 @@ function OrderDetail({ rid, initial, currency }: { rid: string; initial: Order; 
       applyUpdate(updated);
       toast.success("Paiement remboursé");
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       throw e;
     }
   };
 
   const remaining = Math.max(0, order.total - order.amount_paid);
-  const canPay = order.status !== "CANCELLED" && remaining > 0;
-  const forward = order.allowed_transitions.filter((s) => s !== "CANCELLED");
+  const canPay = canRecord && order.status !== "CANCELLED" && remaining > 0;
+  const forward = canChangeStatus ? order.allowed_transitions.filter((s) => s !== "CANCELLED") : [];
 
   return (
     <>
@@ -212,7 +223,8 @@ function OrderDetail({ rid, initial, currency }: { rid: string; initial: Order; 
                       {it.options.map((op, i) => (
                         <li key={i}>
                           {op.group_name} : {op.option_name}
-                          {op.price_delta !== 0 && ` (${op.price_delta > 0 ? "+" : ""}${formatMoney(op.price_delta, currency)})`}
+                          {op.price_delta !== 0 &&
+                            ` (${op.price_delta > 0 ? "+" : ""}${formatMoney(op.price_delta, currency)})`}
                         </li>
                       ))}
                     </ul>
@@ -323,7 +335,7 @@ function OrderDetail({ rid, initial, currency }: { rid: string; initial: Order; 
               <Printer />
               Imprimer le ticket
             </Button>
-            {order.allowed_transitions.includes("CANCELLED") && (
+            {canCancel && order.allowed_transitions.includes("CANCELLED") && (
               <Button variant="destructive" disabled={busyStatus !== null} onClick={() => setCancelOpen(true)}>
                 Annuler la commande
               </Button>

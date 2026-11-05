@@ -2,6 +2,7 @@
 
 import { ChefHat, Clock, ImageIcon, ShoppingBag, Store } from "lucide-react";
 
+import { useCan } from "@/components/manage/layout/permissions";
 import { PageHeader } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,17 +27,32 @@ const TABS = [
 export function SettingsView({ rid }: { rid: string }) {
   const restaurant = useRestaurant(rid);
   const r = restaurant.data;
+  const can = useCan(rid);
+  const canInfo = can("restaurant.edit");
+  const canSettings = can("settings.edit");
+  const canMedia = can("media.manage");
+  const anyEdit = canInfo || canSettings || canMedia;
 
   return (
     <>
-      <PageHeader title="Établissement" description="Informations, commande, images, horaires et postes de cuisine." />
+      <PageHeader
+        title="Établissement"
+        description={
+          anyEdit
+            ? "Informations, commande, images, horaires et postes de cuisine."
+            : "Informations, commande, images, horaires et postes de cuisine (consultation uniquement)."
+        }
+      />
       {restaurant.isPending ? (
         <div className="grid gap-4">
           <Skeleton className="h-9 w-full max-w-xl" />
           <Skeleton className="h-96 rounded-2xl" />
         </div>
       ) : restaurant.isError || !r ? (
-        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+        <div
+          className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive"
+          role="alert"
+        >
           {errorMessage(restaurant.error)}{" "}
           <Button variant="link" className="h-auto p-0" onClick={() => restaurant.refetch()}>
             Réessayer
@@ -53,19 +69,19 @@ export function SettingsView({ rid }: { rid: string }) {
             ))}
           </TabsList>
           <TabsContent value="info" forceMount className="data-[state=inactive]:hidden">
-            <InfoForm key={r.id} restaurant={r} />
+            <InfoForm key={r.id} restaurant={r} editable={canInfo} />
           </TabsContent>
           <TabsContent value="orders" forceMount className="data-[state=inactive]:hidden">
-            <OrdersForm key={r.id} restaurant={r} />
+            <OrdersForm key={r.id} restaurant={r} editable={canSettings} />
           </TabsContent>
           <TabsContent value="images">
-            <ImagesSection restaurant={r} />
+            <ImagesSection restaurant={r} editable={canMedia} />
           </TabsContent>
           <TabsContent value="hours" forceMount className="data-[state=inactive]:hidden">
-            <HoursEditor key={r.id} restaurant={r} />
+            <HoursEditor key={r.id} restaurant={r} editable={canInfo} />
           </TabsContent>
           <TabsContent value="stations">
-            <StationsSection rid={rid} />
+            <StationsSection rid={rid} editable={canSettings} />
           </TabsContent>
         </Tabs>
       )}

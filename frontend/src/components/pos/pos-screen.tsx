@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { useCan } from "@/components/manage/layout/permissions";
 import { useReservations } from "@/components/manage/reservations/use-reservations";
 import { ProductDialog } from "@/components/shared/product-dialog";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import { api, ApiError, errorMessage, unwrap } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 import { buildLine, type Product, toOrderItems, useCart } from "@/lib/cart";
 import { formatMoney } from "@/lib/format";
+import { actionErrorMessage } from "@/lib/permissions";
 import { type RealtimeEvent, useRestaurantSocket } from "@/lib/realtime";
 import { todayIn } from "@/lib/reservations";
 import { cn } from "@/lib/utils";
@@ -49,7 +51,10 @@ const orNull = (s: string) => (s.trim() ? s.trim() : null);
 
 export function PosScreen({ rid }: { rid: string }) {
   const qc = useQueryClient();
-  const { user, logout, roleIn } = useAuth();
+  const { user, logout } = useAuth();
+  const can = useCan(rid);
+  const canRecord = can("payments.record");
+  const canPrepare = can("orders.prepare");
   const transitionRules = useTransitionRules(rid);
   const now = useNow(1000);
   const cart = useCart(null);
@@ -72,8 +77,8 @@ export function PosScreen({ rid }: { rid: string }) {
   const [done, setDone] = useState<{ order: Order; change: number } | null>(null);
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [reservationsOpen, setReservationsOpen] = useState(false);
-  // KITCHEN n'a pas la permission reservations.manage.
-  const canReserve = !!restaurant.data && (roleIn(rid) !== "KITCHEN" || !!user?.is_superadmin);
+  // Le tiroir des réservations exige `reservations.view` ; ses actions, `reservations.manage`.
+  const canReserve = !!restaurant.data && can("reservations.view");
   const reservations = useReservations(rid, { day: todayIn(restaurant.data?.timezone) }, canReserve);
   const pendingReservations = (reservations.data ?? []).filter((r) => r.status === "PENDING").length;
 
@@ -116,6 +121,8 @@ export function PosScreen({ rid }: { rid: string }) {
     queryFn: () =>
       unwrap(api.GET("/api/restaurants/{restaurant_id}/orders/active", { params: { path: { restaurant_id: rid } } })),
     refetchInterval: poll,
+    // Liste « cuisine » : réservée à `orders.prepare`.
+    enabled: canPrepare,
   });
   const awaiting = useQuery({
     queryKey: ["pos-awaiting", rid],
@@ -171,7 +178,7 @@ export function PosScreen({ rid }: { rid: string }) {
       resetTicket();
       void qc.invalidateQueries({ queryKey: ["pos-active", rid] });
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       if (e instanceof ApiError && e.status === 422) void qc.invalidateQueries({ queryKey: ["staff-menu", rid] });
     } finally {
       setSubmitting(false);
@@ -185,7 +192,10 @@ export function PosScreen({ rid }: { rid: string }) {
       modes={modes}
       details={currentDetails}
       onDetails={setDetails}
-      onCheckout={() => setPayOpen(true)}
+      // Sans `payments.record`, la commande part sans paiement (à encaisser par un collègue).
+      onCheckout={() => (canRecord ? setPayOpen(true) : void placeOrder(null))}
+      checkoutLabel={canRecord ? "Encaisser" : "Envoyer la commande"}
+      submitting={!canRecord && submitting}
       idPrefix={idPrefix}
     />
   );
@@ -368,6 +378,8 @@ export function PosScreen({ rid }: { rid: string }) {
         open={ordersOpen}
         onOpenChange={setOrdersOpen}
         rules={transitionRules}
+        canRecordPayments={canRecord}
+        canSeeKitchen={canPrepare}
         active={active}
         awaiting={awaiting}
         now={now}

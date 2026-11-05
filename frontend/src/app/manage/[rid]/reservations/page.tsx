@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { useRestaurant } from "@/components/manage/layout/hooks";
 import { IconChip } from "@/components/manage/layout/kpi-card";
+import { ReadOnlyHint, useCan } from "@/components/manage/layout/permissions";
 import { NewReservationDialog } from "@/components/manage/reservations/new-reservation-dialog";
 import { ReservationCard } from "@/components/manage/reservations/reservation-card";
 import { useReservations } from "@/components/manage/reservations/use-reservations";
@@ -57,6 +58,8 @@ export default function ReservationsPage() {
   const [filter, setFilter] = useState<ReservationStatus | "ALL">("ALL");
   const [newOpen, setNewOpen] = useState(false);
   const currentDay = day ?? today;
+  const can = useCan(rid);
+  const canManage = can("reservations.manage");
 
   const list = useReservations(rid, view === "day" ? { day: currentDay } : { upcoming: true }, !!restaurant);
   const all = list.data ?? [];
@@ -80,20 +83,30 @@ export default function ReservationsPage() {
         title="Réservations"
         description="Demandes en ligne et réservations prises par téléphone."
         actions={
-          <Button onClick={() => setNewOpen(true)} disabled={!restaurant}>
-            <Plus />
-            Nouvelle réservation
-          </Button>
+          canManage ? (
+            <Button onClick={() => setNewOpen(true)} disabled={!restaurant}>
+              <Plus />
+              Nouvelle réservation
+            </Button>
+          ) : (
+            <ReadOnlyHint title="Vos permissions permettent de consulter les réservations, pas de les gérer" />
+          )
         }
       />
 
       {restaurant && !restaurant.reservations_enabled && (
         <p className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-          Les réservations en ligne sont désactivées : vos clients ne peuvent pas réserver depuis votre page.{" "}
-          <Link href={`/manage/${rid}/settings`} className="font-medium underline underline-offset-4">
-            Les activer dans Établissement › Commande
-          </Link>
-          . Vous pouvez toujours saisir des réservations ici.
+          Les réservations en ligne sont désactivées : vos clients ne peuvent pas réserver depuis votre page.
+          {can("settings.edit") && (
+            <>
+              {" "}
+              <Link href={`/manage/${rid}/settings`} className="font-medium underline underline-offset-4">
+                Les activer dans Établissement › Commande
+              </Link>
+              .
+            </>
+          )}
+          {canManage && " Vous pouvez toujours saisir des réservations ici."}
         </p>
       )}
 
@@ -236,10 +249,12 @@ export default function ReservationsPage() {
               : "Aucune réservation à venir pour le moment."
           }
           action={
-            <Button variant="outline" onClick={() => setNewOpen(true)} disabled={!restaurant}>
-              <Plus />
-              Nouvelle réservation
-            </Button>
+            canManage ? (
+              <Button variant="outline" onClick={() => setNewOpen(true)} disabled={!restaurant}>
+                <Plus />
+                Nouvelle réservation
+              </Button>
+            ) : undefined
           }
         />
       ) : view === "day" ? (
@@ -269,7 +284,7 @@ export default function ReservationsPage() {
         </div>
       )}
 
-      {restaurant && (
+      {restaurant && canManage && (
         <NewReservationDialog
           restaurant={restaurant}
           open={newOpen}

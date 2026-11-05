@@ -8,13 +8,14 @@ import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api, errorMessage, type Schemas, unwrap } from "@/lib/api/client";
+import { api, type Schemas, unwrap } from "@/lib/api/client";
 import { DAYS } from "@/lib/format";
+import { actionErrorMessage } from "@/lib/permissions";
 
-import { FormError } from "./fields";
+import { FormError, SectionTitle } from "./fields";
 import { type Restaurant, restaurantKey } from "./use-restaurant";
 
 type Slot = { key: string; opens: string; closes: string };
@@ -42,7 +43,7 @@ function toWeek(hours: Schemas["HoursSlot"][]): Week {
 
 const serialize = (week: Week) => JSON.stringify(week.map((d) => d.map(({ opens, closes }) => [opens, closes])));
 
-export function HoursEditor({ restaurant }: { restaurant: Restaurant }) {
+export function HoursEditor({ restaurant, editable = true }: { restaurant: Restaurant; editable?: boolean }) {
   const qc = useQueryClient();
   const rid = restaurant.id;
   const [week, setWeek] = useState<Week>(() => toWeek(restaurant.opening_hours));
@@ -61,7 +62,10 @@ export function HoursEditor({ restaurant }: { restaurant: Restaurant }) {
   const addSlot = (day: number) =>
     setDay(day, (slots) => {
       const last = slots[slots.length - 1];
-      return [...slots, last ? { key: newKey(), opens: "19:00", closes: "23:00" } : { key: newKey(), opens: "11:00", closes: "15:00" }];
+      return [
+        ...slots,
+        last ? { key: newKey(), opens: "19:00", closes: "23:00" } : { key: newKey(), opens: "11:00", closes: "15:00" },
+      ];
     });
 
   const copyToAll = (day: number) => {
@@ -92,7 +96,9 @@ export function HoursEditor({ restaurant }: { restaurant: Restaurant }) {
       setError(`Maximum ${MAX_SLOTS} plages au total.`);
       return;
     }
-    const body = week.flatMap((slots, d) => slots.map((s) => ({ day_of_week: d, opens_at: s.opens, closes_at: s.closes })));
+    const body = week.flatMap((slots, d) =>
+      slots.map((s) => ({ day_of_week: d, opens_at: s.opens, closes_at: s.closes })),
+    );
     setSaving(true);
     try {
       const hours = await unwrap(
@@ -103,7 +109,7 @@ export function HoursEditor({ restaurant }: { restaurant: Restaurant }) {
       setSaved(current);
       toast.success("Horaires enregistrés");
     } catch (e) {
-      setError(errorMessage(e));
+      setError(actionErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -112,10 +118,10 @@ export function HoursEditor({ restaurant }: { restaurant: Restaurant }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Horaires d&apos;ouverture</CardTitle>
+        <SectionTitle readOnly={!editable}>Horaires d&apos;ouverture</SectionTitle>
         <CardDescription>
-          Plusieurs plages possibles par jour (ex. midi et soir). Une fermeture avant l&apos;ouverture signifie que la plage se
-          termine le lendemain (ex. 18:00 → 02:00).
+          Plusieurs plages possibles par jour (ex. midi et soir). Une fermeture avant l&apos;ouverture signifie que la
+          plage se termine le lendemain (ex. 18:00 → 02:00).
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">
@@ -130,98 +136,129 @@ export function HoursEditor({ restaurant }: { restaurant: Restaurant }) {
             <li key={DAYS[d]} className="grid gap-2 rounded-md border p-3 md:grid-cols-[8rem_1fr]">
               <div className="flex items-center justify-between gap-2 md:flex-col md:items-start md:justify-start">
                 <h3 className="font-medium">{DAYS[d]}</h3>
-                {slots.length === 0 && <Badge variant="secondary">Fermé</Badge>}
+                {editable && slots.length === 0 && <Badge variant="secondary">Fermé</Badge>}
               </div>
-              <div className="grid gap-2">
-                {slots.map((s, i) => {
-                  const err = errors[`${d}-${i}`];
-                  const base = `h-${d}-${i}`;
-                  const overnight = HHMM.test(s.opens) && HHMM.test(s.closes) && s.closes < s.opens;
-                  return (
-                    <div key={s.key} className="grid gap-1">
-                      <div className="flex flex-wrap items-end gap-2">
-                        <div className="grid gap-1">
-                          <Label htmlFor={`${base}-o`} className="text-xs">
-                            Ouverture
-                          </Label>
-                          <Input
-                            id={`${base}-o`}
-                            type="time"
-                            className="w-32"
-                            value={s.opens}
-                            aria-invalid={!!err}
-                            onChange={(e) => setDay(d, (sl) => sl.map((x) => (x.key === s.key ? { ...x, opens: e.target.value } : x)))}
-                          />
+              {!editable ? (
+                <p className="flex min-h-9 flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                  {slots.length === 0 ? (
+                    <span className="text-muted-foreground">Fermé</span>
+                  ) : (
+                    slots.map((s) => (
+                      <span key={s.key} className="tabular-nums">
+                        {s.opens} – {s.closes}
+                        {HHMM.test(s.opens) && HHMM.test(s.closes) && s.closes < s.opens && (
+                          <span className="text-xs text-muted-foreground"> (lendemain)</span>
+                        )}
+                      </span>
+                    ))
+                  )}
+                </p>
+              ) : (
+                <div className="grid gap-2">
+                  {slots.map((s, i) => {
+                    const err = errors[`${d}-${i}`];
+                    const base = `h-${d}-${i}`;
+                    const overnight = HHMM.test(s.opens) && HHMM.test(s.closes) && s.closes < s.opens;
+                    return (
+                      <div key={s.key} className="grid gap-1">
+                        <div className="flex flex-wrap items-end gap-2">
+                          <div className="grid min-w-0 flex-1 gap-1 sm:flex-none">
+                            <Label htmlFor={`${base}-o`} className="text-xs">
+                              Ouverture
+                            </Label>
+                            <Input
+                              id={`${base}-o`}
+                              type="time"
+                              className="w-full min-w-0 px-2 sm:w-36"
+                              value={s.opens}
+                              aria-invalid={!!err}
+                              onChange={(e) =>
+                                setDay(d, (sl) =>
+                                  sl.map((x) => (x.key === s.key ? { ...x, opens: e.target.value } : x)),
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="grid min-w-0 flex-1 gap-1 sm:flex-none">
+                            <Label htmlFor={`${base}-c`} className="text-xs">
+                              Fermeture
+                            </Label>
+                            <Input
+                              id={`${base}-c`}
+                              type="time"
+                              className="w-full min-w-0 px-2 sm:w-36"
+                              value={s.closes}
+                              aria-invalid={!!err}
+                              onChange={(e) =>
+                                setDay(d, (sl) =>
+                                  sl.map((x) => (x.key === s.key ? { ...x, closes: e.target.value } : x)),
+                                )
+                              }
+                            />
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Supprimer la plage ${i + 1} du ${DAYS[d].toLowerCase()}`}
+                            onClick={() => setDay(d, (sl) => sl.filter((x) => x.key !== s.key))}
+                          >
+                            <Trash2 />
+                          </Button>
+                          {overnight && (
+                            <span className="flex h-9 items-center gap-1 text-xs text-muted-foreground">
+                              <Moon className="size-3.5" />
+                              jusqu&apos;au lendemain
+                            </span>
+                          )}
                         </div>
-                        <div className="grid gap-1">
-                          <Label htmlFor={`${base}-c`} className="text-xs">
-                            Fermeture
-                          </Label>
-                          <Input
-                            id={`${base}-c`}
-                            type="time"
-                            className="w-32"
-                            value={s.closes}
-                            aria-invalid={!!err}
-                            onChange={(e) => setDay(d, (sl) => sl.map((x) => (x.key === s.key ? { ...x, closes: e.target.value } : x)))}
-                          />
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Supprimer la plage ${i + 1} du ${DAYS[d].toLowerCase()}`}
-                          onClick={() => setDay(d, (sl) => sl.filter((x) => x.key !== s.key))}
-                        >
-                          <Trash2 />
-                        </Button>
-                        {overnight && (
-                          <span className="flex h-9 items-center gap-1 text-xs text-muted-foreground">
-                            <Moon className="size-3.5" />
-                            jusqu&apos;au lendemain
-                          </span>
+                        {err && (
+                          <p className="text-xs text-destructive" role="alert">
+                            {err}
+                          </p>
                         )}
                       </div>
-                      {err && (
-                        <p className="text-xs text-destructive" role="alert">
-                          {err}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => addSlot(d)} disabled={total >= MAX_SLOTS}>
-                    <Plus />
-                    Ajouter une plage
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => copyToAll(d)}>
-                    <Copy />
-                    Copier sur tous les jours
-                  </Button>
+                    );
+                  })}
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => addSlot(d)} disabled={total >= MAX_SLOTS}>
+                      <Plus />
+                      Ajouter une plage
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => copyToAll(d)}>
+                      <Copy />
+                      Copier sur tous les jours
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </li>
           ))}
         </ul>
         <FormError message={error} />
       </CardContent>
-      <CardFooter className="justify-end gap-2">
-        <Button
-          variant="outline"
-          disabled={!dirty || saving}
-          onClick={() => {
-            setWeek(JSON.parse(saved).map((d: [string, string][]) => d.map(([opens, closes]) => ({ key: newKey(), opens, closes }))));
-            setErrors({});
-            setError(null);
-          }}
-        >
-          Annuler
-        </Button>
-        <Button onClick={save} disabled={!dirty || saving}>
-          {saving && <Loader2 className="animate-spin" />}
-          Enregistrer les horaires
-        </Button>
-      </CardFooter>
+      {editable && (
+        <CardFooter className="justify-end gap-2">
+          <Button
+            variant="outline"
+            disabled={!dirty || saving}
+            onClick={() => {
+              setWeek(
+                JSON.parse(saved).map((d: [string, string][]) =>
+                  d.map(([opens, closes]) => ({ key: newKey(), opens, closes })),
+                ),
+              );
+              setErrors({});
+              setError(null);
+            }}
+          >
+            Annuler
+          </Button>
+          <Button onClick={save} disabled={!dirty || saving}>
+            {saving && <Loader2 className="animate-spin" />}
+            Enregistrer les horaires
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }

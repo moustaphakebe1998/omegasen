@@ -165,3 +165,29 @@ export function productPayload(v: ProductFormValues, currency: string): Schemas[
     })),
   };
 }
+
+/**
+ * Corps de mise à jour d'un produit existant.
+ * Sans la permission `prices.edit`, les champs de prix et de promotion ne sont pas envoyés et les
+ * suppléments existants gardent leur montant d'origine (les nouveaux sont gratuits) : l'API refuse
+ * toute modification de prix à un collaborateur sans cette permission.
+ */
+export function productUpdatePayload(
+  v: ProductFormValues,
+  currency: string,
+  original: Product,
+  canEditPrices: boolean,
+): Schemas["ProductUpdate"] {
+  const body = productPayload(v, currency);
+  if (canEditPrices) return body;
+  const deltas = new Map(original.option_groups.flatMap((g) => g.options.map((o) => [o.id, o.price_delta] as const)));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { price, promo_price, promo_starts_at, promo_ends_at, ...rest } = body;
+  return {
+    ...rest,
+    option_groups: rest.option_groups?.map((g) => ({
+      ...g,
+      options: g.options.map((o) => ({ ...o, price_delta: (o.id && deltas.get(o.id)) || 0 })),
+    })),
+  };
+}

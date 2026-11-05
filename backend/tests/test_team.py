@@ -235,3 +235,38 @@ async def test_info_vs_settings_permissions(client, owner, restaurant):
     slots = [{"day_of_week": 0, "opens_at": "10:00", "closes_at": "22:00"}]
     assert (await api.put(f"/api/restaurants/{rid}/opening-hours", json=slots)).status_code == 200
     assert member["role"] == "MANAGER"
+
+
+async def test_fine_grained_order_and_reservation_rules(client, owner, restaurant, menu):
+    from tests.test_orders import qr_order
+
+    rid, slug = restaurant["id"], restaurant["slug"]
+    # Caisse sans encaissement ni préparation, mais avec l'annulation ; réservations en lecture seule.
+    perms = ["restaurant.view", "orders.history", "orders.create", "orders.cancel", "reservations.view"]
+    await _direct(owner, rid, "fine@example.com", "CASHIER", permissions=perms)
+    api = await login(client, "fine@example.com", "Initial!2026x")
+    await api.post(
+        "/api/auth/change-password", json={"current_password": "Initial!2026x", "new_password": "Fine!2026xyzz"}
+    )
+
+    assert (await api.get(f"/api/restaurants/{rid}/menu")).status_code == 403  # pas de menu.view
+    item = {"product_id": menu["bissap"]["id"], "quantity": 1}
+    pos = {"service_mode": "TAKEAWAY", "items": [item]}
+    r = await api.post(f"/api/restaurants/{rid}/orders", json={**pos, "payment": {"method": "CASH"}})
+    assert r.status_code == 403  # encaissement sans payments.record
+    oid = (await api.post(f"/api/restaurants/{rid}/orders", json=pos)).json()["id"]
+    r = await api.post(f"/api/restaurants/{rid}/orders/{oid}/status", json={"status": "PREPARING"})
+    assert r.status_code == 403  # pas orders.prepare
+    r = await api.post(f"/api/restaurants/{rid}/orders/{oid}/status", json={"status": "CANCELLED", "reason": "Erreur"})
+    assert r.status_code == 200  # orders.cancel suffit
+
+    await client.post(f"/api/public/restaurants/{slug}/orders", json=qr_order(menu))
+    from tests.test_admin_platform import _slot
+
+    await client.post(
+        f"/api/public/restaurants/{slug}/reservations",
+        json={"starts_at": _slot(), "party_size": 2, "customer_name": "Aa Bb", "customer_phone": "+221770000000"},
+    )
+    res = (await api.get(f"/api/restaurants/{rid}/reservations")).json()
+    assert res and res[0]["allowed_transitions"] == []
+    assert (await owner.get(f"/api/restaurants/{rid}/reservations")).json()[0]["allowed_transitions"]

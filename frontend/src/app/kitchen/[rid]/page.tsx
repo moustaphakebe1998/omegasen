@@ -3,13 +3,17 @@
 import { useParams } from "next/navigation";
 
 import { KitchenDisplay } from "@/components/kitchen/kitchen-display";
-import { RequireRestaurantRole } from "@/components/shared/guards";
+import { RequireRestaurantPerm } from "@/components/shared/guards";
 
 export default function KitchenPage() {
   const { rid } = useParams<{ rid: string }>();
   return (
-    <RequireRestaurantRole restaurantId={rid} roles={["OWNER", "MANAGER", "KITCHEN", "CASHIER"]}>
+    <RequireRestaurantPerm
+      restaurantId={rid}
+      perm="orders.prepare"
+      message="Vous n'avez pas la permission d'utiliser l'écran cuisine."
+    >
       <KitchenDisplay rid={rid} />
-    </RequireRestaurantRole>
+    </RequireRestaurantPerm>
   );
 }

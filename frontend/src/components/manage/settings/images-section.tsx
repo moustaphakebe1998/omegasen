@@ -15,16 +15,28 @@ import {
   uploadMedia,
 } from "@/components/manage/media/image-upload";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 
 import { ConfirmDialog } from "./confirm-dialog";
+import { SectionTitle } from "./fields";
 import { type Restaurant, useUpdateRestaurant } from "./use-restaurant";
 
-function GalleryItem({ rid, media, onDelete }: { rid: string; media: Media; onDelete: () => void }) {
+function GalleryItem({
+  rid,
+  media,
+  onDelete,
+  editable,
+}: {
+  rid: string;
+  media: Media;
+  onDelete: () => void;
+  editable: boolean;
+}) {
   const qc = useQueryClient();
   const [alt, setAlt] = useState(media.alt ?? "");
   const [saving, setSaving] = useState(false);
@@ -43,7 +55,7 @@ function GalleryItem({ rid, media, onDelete }: { rid: string; media: Media; onDe
       await qc.invalidateQueries({ queryKey: ["media", rid, "GALLERY"] });
       toast.success("Description enregistrée");
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -56,35 +68,47 @@ function GalleryItem({ rid, media, onDelete }: { rid: string; media: Media; onDe
         alt={media.alt ?? "Photo de la galerie"}
         className="aspect-[4/3] w-full rounded-lg"
       />
-      <Label htmlFor={id} className="text-xs">
-        Description de l&apos;image
-      </Label>
-      <div className="flex gap-1">
-        <Input
-          id={id}
-          value={alt}
-          maxLength={255}
-          placeholder="Ex. Notre terrasse"
-          onChange={(e) => setAlt(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && dirty) {
-              e.preventDefault();
-              save();
-            }
-          }}
-        />
-        <Button size="icon" variant="outline" aria-label="Enregistrer la description" disabled={!dirty || saving} onClick={save}>
-          {saving ? <Loader2 className="animate-spin" /> : <Save />}
-        </Button>
-        <Button size="icon" variant="ghost" aria-label="Supprimer l'image" onClick={onDelete}>
-          <Trash2 />
-        </Button>
-      </div>
+      {!editable ? (
+        <p className="truncate px-1 text-xs text-muted-foreground">{media.alt || "Sans description"}</p>
+      ) : (
+        <>
+          <Label htmlFor={id} className="text-xs">
+            Description de l&apos;image
+          </Label>
+          <div className="flex gap-1">
+            <Input
+              id={id}
+              value={alt}
+              maxLength={255}
+              placeholder="Ex. Notre terrasse"
+              onChange={(e) => setAlt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && dirty) {
+                  e.preventDefault();
+                  save();
+                }
+              }}
+            />
+            <Button
+              size="icon"
+              variant="outline"
+              aria-label="Enregistrer la description"
+              disabled={!dirty || saving}
+              onClick={save}
+            >
+              {saving ? <Loader2 className="animate-spin" /> : <Save />}
+            </Button>
+            <Button size="icon" variant="ghost" aria-label="Supprimer l'image" onClick={onDelete}>
+              <Trash2 />
+            </Button>
+          </div>
+        </>
+      )}
     </li>
   );
 }
 
-function Gallery({ rid }: { rid: string }) {
+function Gallery({ rid, editable }: { rid: string; editable: boolean }) {
   const qc = useQueryClient();
   const key = ["media", rid, "GALLERY"];
   const inputRef = useRef<HTMLInputElement>(null);
@@ -119,7 +143,7 @@ function Gallery({ rid }: { rid: string }) {
         await uploadMedia(rid, f, "GALLERY");
         ok++;
       } catch (e) {
-        toast.error(`${f.name} : ${errorMessage(e)}`);
+        toast.error(`${f.name} : ${actionErrorMessage(e)}`);
       }
       setProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
     }
@@ -140,7 +164,7 @@ function Gallery({ rid }: { rid: string }) {
       toast.success("Image supprimée");
       return true;
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       return false;
     }
   };
@@ -148,29 +172,33 @@ function Gallery({ rid }: { rid: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Galerie</CardTitle>
-        <CardDescription>Photos de l&apos;établissement et des plats affichées sur votre page publique.</CardDescription>
+        <SectionTitle readOnly={!editable}>Galerie</SectionTitle>
+        <CardDescription>
+          Photos de l&apos;établissement et des plats affichées sur votre page publique.
+        </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            ref={inputRef}
-            id="gallery-upload"
-            type="file"
-            multiple
-            accept={ACCEPTED_IMAGE_TYPES}
-            className="sr-only"
-            disabled={!!progress}
-            onChange={(e) => onFiles(e.target.files)}
-          />
-          <Button type="button" variant="outline" disabled={!!progress} onClick={() => inputRef.current?.click()}>
-            {progress ? <Loader2 className="animate-spin" /> : <ImagePlus />}
-            {progress ? `Envoi ${progress.done}/${progress.total}…` : "Ajouter des photos"}
-          </Button>
-          <label htmlFor="gallery-upload" className="text-xs text-muted-foreground">
-            Plusieurs fichiers possibles · JPEG, PNG ou WebP · {MAX_UPLOAD_MB} Mo max. par image
-          </label>
-        </div>
+        {editable && (
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              ref={inputRef}
+              id="gallery-upload"
+              type="file"
+              multiple
+              accept={ACCEPTED_IMAGE_TYPES}
+              className="sr-only"
+              disabled={!!progress}
+              onChange={(e) => onFiles(e.target.files)}
+            />
+            <Button type="button" variant="outline" disabled={!!progress} onClick={() => inputRef.current?.click()}>
+              {progress ? <Loader2 className="animate-spin" /> : <ImagePlus />}
+              {progress ? `Envoi ${progress.done}/${progress.total}…` : "Ajouter des photos"}
+            </Button>
+            <label htmlFor="gallery-upload" className="text-xs text-muted-foreground">
+              Plusieurs fichiers possibles · JPEG, PNG ou WebP · {MAX_UPLOAD_MB} Mo max. par image
+            </label>
+          </div>
+        )}
         {gallery.isPending ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             <Skeleton className="aspect-[4/3]" />
@@ -188,7 +216,13 @@ function Gallery({ rid }: { rid: string }) {
         ) : (
           <ul className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3">
             {items.map((m) => (
-              <GalleryItem key={`${m.id}-${m.alt ?? ""}`} rid={rid} media={m} onDelete={() => setToDelete(m)} />
+              <GalleryItem
+                key={`${m.id}-${m.alt ?? ""}`}
+                rid={rid}
+                media={m}
+                editable={editable}
+                onDelete={() => setToDelete(m)}
+              />
             ))}
           </ul>
         )}
@@ -206,14 +240,14 @@ function Gallery({ rid }: { rid: string }) {
   );
 }
 
-export function ImagesSection({ restaurant }: { restaurant: Restaurant }) {
+export function ImagesSection({ restaurant, editable = true }: { restaurant: Restaurant; editable?: boolean }) {
   const rid = restaurant.id;
   const update = useUpdateRestaurant(rid);
   return (
     <div className="grid gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>Logo et couverture</CardTitle>
+          <SectionTitle readOnly={!editable}>Logo et couverture</SectionTitle>
           <CardDescription>Le logo peut aussi être affiché au centre de votre QR Code.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
@@ -223,6 +257,7 @@ export function ImagesSection({ restaurant }: { restaurant: Restaurant }) {
             label="Logo"
             description="Format carré recommandé."
             previewUrl={restaurant.logo_url}
+            readOnly={!editable}
             onUploaded={async (m) => {
               await update({ logo_media_id: m.id });
               toast.success("Logo mis à jour");
@@ -239,6 +274,7 @@ export function ImagesSection({ restaurant }: { restaurant: Restaurant }) {
             description="Format paysage recommandé (ex. 1600 × 900)."
             aspect="wide"
             previewUrl={restaurant.cover_url}
+            readOnly={!editable}
             onUploaded={async (m) => {
               await update({ cover_media_id: m.id });
               toast.success("Couverture mise à jour");
@@ -250,7 +286,7 @@ export function ImagesSection({ restaurant }: { restaurant: Restaurant }) {
           />
         </CardContent>
       </Card>
-      <Gallery rid={rid} />
+      <Gallery rid={rid} editable={editable} />
     </div>
   );
 }

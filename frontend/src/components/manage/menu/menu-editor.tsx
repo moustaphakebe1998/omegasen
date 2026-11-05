@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDown,
   ArrowUp,
+  Eye,
   EyeOff,
   FolderPlus,
   MoreVertical,
@@ -16,6 +17,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ReadOnlyHint, useCan } from "@/components/manage/layout/permissions";
 import { ImagePreview } from "@/components/manage/media/image-upload";
 import { ConfirmDialog } from "@/components/manage/settings/confirm-dialog";
 import { useRestaurant } from "@/components/manage/settings/use-restaurant";
@@ -33,23 +35,18 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { CategoryDialog } from "./category-dialog";
 import { ProductEditor } from "./product-editor";
-import {
-  type Category,
-  menuKey,
-  moveItem,
-  type Product,
-  promoActive,
-} from "./utils";
+import { type Category, menuKey, moveItem, type Product, promoActive } from "./utils";
 
-type Confirm =
-  | { kind: "category"; item: Category }
-  | { kind: "product"; item: Product }
-  | null;
+/** Actions de la carte permises à l'utilisateur. */
+type MenuRights = { edit: boolean; delete: boolean; stock: boolean };
+
+type Confirm = { kind: "category"; item: Category } | { kind: "product"; item: Product } | null;
 
 function ProductRow({
   product,
@@ -60,11 +57,13 @@ function ProductRow({
   onEdit,
   onDelete,
   onMove,
+  rights,
 }: {
   product: Product;
   currency: string;
   index: number;
   total: number;
+  rights: MenuRights;
   onToggle: (v: boolean) => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -105,14 +104,10 @@ function ProductRow({
               </span>
             </>
           ) : (
-            <span className="font-semibold whitespace-nowrap">
-              {formatMoney(product.price, currency)}
-            </span>
+            <span className="font-semibold whitespace-nowrap">{formatMoney(product.price, currency)}</span>
           )}
           {product.promo_price != null && !promoActive(product) && (
-            <span className="text-xs text-muted-foreground">
-              Promo programmée
-            </span>
+            <span className="text-xs text-muted-foreground">Promo programmée</span>
           )}
           {product.option_groups.length > 0 && (
             <span className="text-xs whitespace-nowrap text-muted-foreground">
@@ -121,13 +116,9 @@ function ProductRow({
             </span>
           )}
         </div>
-        {(!product.is_available ||
-          !product.is_visible ||
-          product.is_featured) && (
+        {(!product.is_available || !product.is_visible || product.is_featured) && (
           <div className="mt-1.5 flex flex-wrap gap-1">
-            {!product.is_available && (
-              <Badge variant="destructive">Indisponible</Badge>
-            )}
+            {!product.is_available && <Badge variant="destructive">Indisponible</Badge>}
             {!product.is_visible && (
               <Badge variant="secondary">
                 <EyeOff />
@@ -152,6 +143,7 @@ function ProductRow({
             id={switchId}
             checked={product.is_available}
             onCheckedChange={onToggle}
+            disabled={!rights.stock}
             aria-label={`${product.name} : disponible`}
           />
           <label htmlFor={switchId} className="text-xs text-muted-foreground">
@@ -159,40 +151,49 @@ function ProductRow({
           </label>
         </div>
         <div className="flex items-center">
+          {rights.edit && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Monter ${product.name}`}
+                disabled={index === 0}
+                onClick={() => onMove(-1)}
+              >
+                <ArrowUp />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Descendre ${product.name}`}
+                disabled={index === total - 1}
+                onClick={() => onMove(1)}
+              >
+                <ArrowDown />
+              </Button>
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Monter ${product.name}`}
-            disabled={index === 0}
-            onClick={() => onMove(-1)}
-          >
-            <ArrowUp />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Descendre ${product.name}`}
-            disabled={index === total - 1}
-            onClick={() => onMove(1)}
-          >
-            <ArrowDown />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Modifier ${product.name}`}
+            aria-label={rights.edit ? `Modifier ${product.name}` : `Consulter ${product.name}`}
+            title={rights.edit ? "Modifier" : "Consulter"}
             onClick={onEdit}
           >
-            <Pencil />
+            {rights.edit ? <Pencil /> : <Eye />}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Supprimer ${product.name}`}
-            onClick={onDelete}
-          >
-            <Trash2 />
-          </Button>
+          {rights.delete && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`Supprimer ${product.name}`}
+              title="Supprimer"
+              className="text-muted-foreground hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Trash2 />
+            </Button>
+          )}
         </div>
       </div>
     </li>
@@ -212,6 +213,12 @@ export function MenuEditor({ rid }: { rid: string }) {
       ),
   });
   const currency = restaurant.data?.currency ?? "EUR";
+  const can = useCan(rid);
+  const rights: MenuRights = { edit: can("menu.edit"), delete: can("menu.delete"), stock: can("stock.manage") };
+  const canCreateCategory = can("menu.create");
+  // Un nouveau produit a forcément un prix : l'API exige aussi `prices.edit`.
+  const canCreateProduct = can("menu.create", "prices.edit");
+  const readOnly = !rights.edit && !rights.delete && !rights.stock && !canCreateCategory;
 
   const [catDialog, setCatDialog] = useState<{
     open: boolean;
@@ -254,17 +261,13 @@ export function MenuEditor({ rid }: { rid: string }) {
         }),
       );
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       refresh();
     }
   };
 
-  const moveProduct = async (
-    category: Category,
-    index: number,
-    delta: number,
-  ) => {
+  const moveProduct = async (category: Category, index: number, delta: number) => {
     const ids = moveItem(category.products, index, delta).map((p) => p.id);
     setMenu((old) =>
       old.map((c) =>
@@ -281,38 +284,30 @@ export function MenuEditor({ rid }: { rid: string }) {
     );
     try {
       await unwrap(
-        api.PUT(
-          "/api/restaurants/{restaurant_id}/menu/categories/{category_id}/products/order",
-          {
-            params: { path: { restaurant_id: rid, category_id: category.id } },
-            body: { ids },
-          },
-        ),
+        api.PUT("/api/restaurants/{restaurant_id}/menu/categories/{category_id}/products/order", {
+          params: { path: { restaurant_id: rid, category_id: category.id } },
+          body: { ids },
+        }),
       );
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       refresh();
     }
   };
 
   const toggleCategory = async (category: Category, is_visible: boolean) => {
-    setMenu((old) =>
-      old.map((c) => (c.id === category.id ? { ...c, is_visible } : c)),
-    );
+    setMenu((old) => old.map((c) => (c.id === category.id ? { ...c, is_visible } : c)));
     try {
       await unwrap(
-        api.PATCH(
-          "/api/restaurants/{restaurant_id}/menu/categories/{category_id}",
-          {
-            params: { path: { restaurant_id: rid, category_id: category.id } },
-            body: { is_visible },
-          },
-        ),
+        api.PATCH("/api/restaurants/{restaurant_id}/menu/categories/{category_id}", {
+          params: { path: { restaurant_id: rid, category_id: category.id } },
+          body: { is_visible },
+        }),
       );
       toast.success(is_visible ? "Catégorie visible" : "Catégorie masquée");
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       refresh();
     }
@@ -322,26 +317,19 @@ export function MenuEditor({ rid }: { rid: string }) {
     setMenu((old) =>
       old.map((c) => ({
         ...c,
-        products: c.products.map((p) =>
-          p.id === product.id ? { ...p, is_available } : p,
-        ),
+        products: c.products.map((p) => (p.id === product.id ? { ...p, is_available } : p)),
       })),
     );
     try {
       await unwrap(
-        api.POST(
-          "/api/restaurants/{restaurant_id}/menu/products/{product_id}/availability",
-          {
-            params: { path: { restaurant_id: rid, product_id: product.id } },
-            body: { is_available },
-          },
-        ),
+        api.POST("/api/restaurants/{restaurant_id}/menu/products/{product_id}/availability", {
+          params: { path: { restaurant_id: rid, product_id: product.id } },
+          body: { is_available },
+        }),
       );
-      toast.success(
-        `${product.name} : ${is_available ? "disponible" : "indisponible"}`,
-      );
+      toast.success(`${product.name} : ${is_available ? "disponible" : "indisponible"}`);
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       refresh();
     }
@@ -352,39 +340,32 @@ export function MenuEditor({ rid }: { rid: string }) {
     try {
       if (confirm.kind === "category") {
         await unwrap(
-          api.DELETE(
-            "/api/restaurants/{restaurant_id}/menu/categories/{category_id}",
-            {
-              params: {
-                path: { restaurant_id: rid, category_id: confirm.item.id },
-              },
+          api.DELETE("/api/restaurants/{restaurant_id}/menu/categories/{category_id}", {
+            params: {
+              path: { restaurant_id: rid, category_id: confirm.item.id },
             },
-          ),
+          }),
         );
         toast.success("Catégorie supprimée");
       } else {
         await unwrap(
-          api.DELETE(
-            "/api/restaurants/{restaurant_id}/menu/products/{product_id}",
-            {
-              params: {
-                path: { restaurant_id: rid, product_id: confirm.item.id },
-              },
+          api.DELETE("/api/restaurants/{restaurant_id}/menu/products/{product_id}", {
+            params: {
+              path: { restaurant_id: rid, product_id: confirm.item.id },
             },
-          ),
+          }),
         );
         toast.success("Produit supprimé");
       }
       await refresh();
       return true;
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       return false;
     }
   };
 
-  const openNewProduct = (categoryId: string) =>
-    setProdDialog({ open: true, product: null, categoryId });
+  const openNewProduct = (categoryId: string) => setProdDialog({ open: true, product: null, categoryId });
 
   const loading = menu.isPending || restaurant.isPending;
 
@@ -392,33 +373,35 @@ export function MenuEditor({ rid }: { rid: string }) {
     <>
       <PageHeader
         title="Menu"
-        description="Catégories, produits, prix, options et disponibilités. Les changements sont visibles immédiatement par vos clients."
+        description={
+          readOnly
+            ? "Catégories, produits, prix et options de votre carte (consultation uniquement)."
+            : "Catégories, produits, prix, options et disponibilités. Les changements sont visibles immédiatement par vos clients."
+        }
         actions={
-          <>
-            <Button
-              variant="outline"
-              onClick={() => setCatDialog({ open: true, category: null })}
-            >
-              <FolderPlus />
-              Nouvelle catégorie
-            </Button>
-            <Button
-              disabled={categories.length === 0}
-              onClick={() => openNewProduct(categories[0]?.id ?? "")}
-            >
-              <Plus />
-              Nouveau produit
-            </Button>
-          </>
+          canCreateCategory || canCreateProduct ? (
+            <>
+              {canCreateCategory && (
+                <Button variant="outline" onClick={() => setCatDialog({ open: true, category: null })}>
+                  <FolderPlus />
+                  Nouvelle catégorie
+                </Button>
+              )}
+              {canCreateProduct && (
+                <Button disabled={categories.length === 0} onClick={() => openNewProduct(categories[0]?.id ?? "")}>
+                  <Plus />
+                  Nouveau produit
+                </Button>
+              )}
+            </>
+          ) : readOnly ? (
+            <ReadOnlyHint />
+          ) : undefined
         }
       />
 
       {loading ? (
-        <div
-          className="grid gap-4"
-          aria-busy="true"
-          aria-label="Chargement de la carte"
-        >
+        <div className="grid gap-4" aria-busy="true" aria-label="Chargement de la carte">
           <Skeleton className="h-40 rounded-2xl" />
           <Skeleton className="h-40 rounded-2xl" />
         </div>
@@ -428,11 +411,7 @@ export function MenuEditor({ rid }: { rid: string }) {
           role="alert"
         >
           {errorMessage(menu.error)}{" "}
-          <Button
-            variant="link"
-            className="h-auto p-0"
-            onClick={() => menu.refetch()}
-          >
+          <Button variant="link" className="h-auto p-0" onClick={() => menu.refetch()}>
             Réessayer
           </Button>
         </div>
@@ -440,14 +419,18 @@ export function MenuEditor({ rid }: { rid: string }) {
         <EmptyState
           icon={UtensilsCrossed}
           title="Votre carte est vide"
-          description="Commencez par créer une catégorie (ex. Plats, Boissons), puis ajoutez-y vos produits."
+          description={
+            canCreateCategory
+              ? "Commencez par créer une catégorie (ex. Plats, Boissons), puis ajoutez-y vos produits."
+              : "Aucune catégorie pour le moment."
+          }
           action={
-            <Button
-              onClick={() => setCatDialog({ open: true, category: null })}
-            >
-              <FolderPlus />
-              Créer une première catégorie
-            </Button>
+            canCreateCategory ? (
+              <Button onClick={() => setCatDialog({ open: true, category: null })}>
+                <FolderPlus />
+                Créer une première catégorie
+              </Button>
+            ) : undefined
           }
         />
       ) : (
@@ -455,13 +438,7 @@ export function MenuEditor({ rid }: { rid: string }) {
           {categories.map((cat, ci) => {
             const visId = `cat-vis-${cat.id}`;
             return (
-              <Card
-                key={cat.id}
-                className={cn(
-                  "gap-3 rounded-2xl py-4 sm:py-5",
-                  !cat.is_visible && "border-dashed",
-                )}
-              >
+              <Card key={cat.id} className={cn("gap-3 rounded-2xl py-4 sm:py-5", !cat.is_visible && "border-dashed")}>
                 <CardHeader className="flex items-center gap-2 px-4 sm:px-5">
                   <div className="min-w-0 flex-1">
                     <h2 className="flex min-w-0 flex-wrap items-center gap-2 text-lg font-semibold">
@@ -477,89 +454,83 @@ export function MenuEditor({ rid }: { rid: string }) {
                         {cat.products.length > 1 ? "s" : ""}
                       </span>
                     </h2>
-                    {cat.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {cat.description}
-                      </p>
-                    )}
+                    {cat.description && <p className="text-sm text-muted-foreground">{cat.description}</p>}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <Switch
                       id={visId}
                       checked={cat.is_visible}
+                      disabled={!rights.edit}
                       onCheckedChange={(v) => toggleCategory(cat, v)}
                       aria-label={`Catégorie ${cat.name} visible`}
                     />
-                    <label
-                      htmlFor={visId}
-                      className="hidden text-xs text-muted-foreground sm:inline"
-                    >
+                    <label htmlFor={visId} className="hidden text-xs text-muted-foreground sm:inline">
                       Visible
                     </label>
                   </div>
-                  <div className="flex shrink-0 items-center">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Monter la catégorie ${cat.name}`}
-                      disabled={ci === 0}
-                      onClick={() => moveCategory(ci, -1)}
-                    >
-                      <ArrowUp />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Descendre la catégorie ${cat.name}`}
-                      disabled={ci === categories.length - 1}
-                      onClick={() => moveCategory(ci, 1)}
-                    >
-                      <ArrowDown />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Actions pour ${cat.name}`}
-                        >
-                          <MoreVertical />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => openNewProduct(cat.id)}
-                        >
-                          <Plus />
-                          Ajouter un produit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            setCatDialog({ open: true, category: cat })
-                          }
-                        >
-                          <Pencil />
-                          Renommer / modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() =>
-                            setConfirm({ kind: "category", item: cat })
-                          }
-                        >
-                          <Trash2 />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  {(rights.edit || rights.delete || canCreateProduct) && (
+                    <div className="flex shrink-0 items-center">
+                      {rights.edit && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Monter la catégorie ${cat.name}`}
+                            disabled={ci === 0}
+                            onClick={() => moveCategory(ci, -1)}
+                          >
+                            <ArrowUp />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Descendre la catégorie ${cat.name}`}
+                            disabled={ci === categories.length - 1}
+                            onClick={() => moveCategory(ci, 1)}
+                          >
+                            <ArrowDown />
+                          </Button>
+                        </>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon-sm" aria-label={`Actions pour ${cat.name}`}>
+                            <MoreVertical />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {canCreateProduct && (
+                            <DropdownMenuItem onClick={() => openNewProduct(cat.id)}>
+                              <Plus />
+                              Ajouter un produit
+                            </DropdownMenuItem>
+                          )}
+                          {rights.edit && (
+                            <DropdownMenuItem onClick={() => setCatDialog({ open: true, category: cat })}>
+                              <Pencil />
+                              Renommer / modifier
+                            </DropdownMenuItem>
+                          )}
+                          {rights.delete && (
+                            <>
+                              {(canCreateProduct || rights.edit) && <DropdownMenuSeparator />}
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setConfirm({ kind: "category", item: cat })}
+                              >
+                                <Trash2 />
+                                Supprimer la catégorie
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="grid gap-2 px-4 sm:px-5">
                   {cat.products.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Aucun produit dans cette catégorie.
-                    </p>
+                    <p className="text-sm text-muted-foreground">Aucun produit dans cette catégorie.</p>
                   ) : (
                     <ul className="grid gap-2">
                       {cat.products.map((p, pi) => (
@@ -577,24 +548,21 @@ export function MenuEditor({ rid }: { rid: string }) {
                               categoryId: cat.id,
                             })
                           }
-                          onDelete={() =>
-                            setConfirm({ kind: "product", item: p })
-                          }
+                          onDelete={() => setConfirm({ kind: "product", item: p })}
                           onMove={(d) => moveProduct(cat, pi, d)}
+                          rights={rights}
                         />
                       ))}
                     </ul>
                   )}
-                  <div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openNewProduct(cat.id)}
-                    >
-                      <Plus />
-                      Ajouter un produit
-                    </Button>
-                  </div>
+                  {canCreateProduct && (
+                    <div>
+                      <Button variant="outline" size="sm" onClick={() => openNewProduct(cat.id)}>
+                        <Plus />
+                        Ajouter un produit
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );

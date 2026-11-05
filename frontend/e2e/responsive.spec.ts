@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 
 import { demoRestaurant, login } from "./helpers";
 
+// Beaucoup de pages × 3 tailles d'écran : plus de temps que la limite par défaut.
+test.describe.configure({ timeout: 180_000 });
+
 /** Mobile, tablette, ordinateur. */
 const VIEWPORTS = [
   { name: "mobile", width: 390, height: 844 },

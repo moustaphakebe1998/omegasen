@@ -148,59 +148,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/restaurants/{restaurant_id}/members": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Members */
-        get: operations["list_members_api_restaurants__restaurant_id__members_get"];
-        put?: never;
-        /** Add Member */
-        post: operations["add_member_api_restaurants__restaurant_id__members_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/members/{member_id}/resend-invite": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Resend Invite */
-        post: operations["resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/members/{member_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove Member */
-        delete: operations["remove_member_api_restaurants__restaurant_id__members__member_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Member */
-        patch: operations["update_member_api_restaurants__restaurant_id__members__member_id__patch"];
-        trace?: never;
-    };
     "/api/restaurants/{restaurant_id}/stations": {
         parameters: {
             query?: never;
@@ -1362,6 +1309,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/restaurants/{restaurant_id}/permissions/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Permission Catalog
+         * @description Libellés des permissions et préréglages de chaque rôle (pour la grille de l'interface).
+         */
+        get: operations["permission_catalog_api_restaurants__restaurant_id__permissions_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/restaurants/{restaurant_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Members */
+        get: operations["list_members_api_restaurants__restaurant_id__members_get"];
+        put?: never;
+        /** Add Member */
+        post: operations["add_member_api_restaurants__restaurant_id__members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/restaurants/{restaurant_id}/members/{member_id}/resend-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend Invite */
+        post: operations["resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/restaurants/{restaurant_id}/members/{member_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Member */
+        delete: operations["remove_member_api_restaurants__restaurant_id__members__member_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Member */
+        patch: operations["update_member_api_restaurants__restaurant_id__members__member_id__patch"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1895,10 +1915,7 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
-        /**
-         * MemberCreate
-         * @description Pas de mot de passe : la personne reçoit un lien d'activation pour choisir le sien.
-         */
+        /** MemberCreate */
         MemberCreate: {
             /**
              * Email
@@ -1910,6 +1927,18 @@ export interface components {
             role: components["schemas"]["MemberRole"];
             /** Phone */
             phone?: string | null;
+            /**
+             * Mode
+             * @default invite
+             * @enum {string}
+             */
+            mode: "invite" | "password";
+            /** Password */
+            password?: string | null;
+            /** Permissions */
+            permissions?: components["schemas"]["Perm"][] | null;
+            /** Station Id */
+            station_id?: string | null;
         };
         /** MemberOut */
         MemberOut: {
@@ -1934,6 +1963,26 @@ export interface components {
             is_active: boolean;
             /** Activated */
             activated: boolean;
+            /** Must Change Password */
+            must_change_password: boolean;
+            /** Invite Status */
+            invite_status: ("PENDING" | "EXPIRED") | null;
+            /** Invite Expires At */
+            invite_expires_at: string | null;
+            /** Station Id */
+            station_id: string | null;
+            /** Station Name */
+            station_name: string | null;
+            /** Permissions */
+            permissions: components["schemas"]["Perm"][];
+            /** Permission Overrides */
+            permission_overrides: {
+                [key: string]: boolean;
+            };
+            /** Editable Profile */
+            editable_profile: boolean;
+            /** Last Login At */
+            last_login_at: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1951,9 +2000,22 @@ export interface components {
         MemberRole: "OWNER" | "MANAGER" | "CASHIER" | "KITCHEN";
         /** MemberUpdate */
         MemberUpdate: {
+            /** Full Name */
+            full_name?: string | null;
+            /** Phone */
+            phone?: string | null;
             role?: components["schemas"]["MemberRole"] | null;
             /** Is Active */
             is_active?: boolean | null;
+            /** Station Id */
+            station_id?: string | null;
+            /** Permissions */
+            permissions?: components["schemas"]["Perm"][] | null;
+            /**
+             * Reset Permissions
+             * @default false
+             */
+            reset_permissions: boolean;
         };
         /** MembershipIn */
         MembershipIn: {
@@ -1979,6 +2041,8 @@ export interface components {
             role: components["schemas"]["MemberRole"];
             /** Permissions */
             permissions: components["schemas"]["Perm"][];
+            /** Station Id */
+            station_id: string | null;
         };
         /** MembershipPatch */
         MembershipPatch: {
@@ -2299,7 +2363,29 @@ export interface components {
          * Perm
          * @enum {string}
          */
-        Perm: "restaurant.view" | "restaurant.edit" | "menu.manage" | "stock.manage" | "qr.manage" | "team.manage" | "orders.history" | "orders.create" | "orders.prepare" | "orders.cancel" | "payments.record" | "payments.refund" | "reservations.manage" | "stats.view";
+        Perm: "restaurant.view" | "restaurant.edit" | "settings.edit" | "media.manage" | "qr.manage" | "menu.view" | "menu.create" | "menu.edit" | "menu.delete" | "prices.edit" | "stock.manage" | "orders.history" | "orders.create" | "orders.prepare" | "orders.cancel" | "payments.record" | "payments.refund" | "reservations.view" | "reservations.manage" | "stats.view" | "team.view" | "team.manage";
+        /** PermissionCatalog */
+        PermissionCatalog: {
+            /** Groups */
+            groups: components["schemas"]["PermissionGroup"][];
+            /** Role Defaults */
+            role_defaults: {
+                [key: string]: components["schemas"]["Perm"][];
+            };
+        };
+        /** PermissionGroup */
+        PermissionGroup: {
+            /** Label */
+            label: string;
+            /** Items */
+            items: components["schemas"]["PermissionItem"][];
+        };
+        /** PermissionItem */
+        PermissionItem: {
+            key: components["schemas"]["Perm"];
+            /** Label */
+            label: string;
+        };
         /** PlacedOrderOut */
         PlacedOrderOut: {
             /** Reference */
@@ -3301,6 +3387,8 @@ export interface components {
             /** Is Superadmin */
             is_superadmin: boolean;
             account_type: components["schemas"]["AccountType"];
+            /** Must Change Password */
+            must_change_password: boolean;
             /** Memberships */
             memberships: components["schemas"]["MembershipOut"][];
         };
@@ -3619,170 +3707,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HoursSlot"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_members_api_restaurants__restaurant_id__members_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_member_api_restaurants__restaurant_id__members_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MemberCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                member_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_member_api_restaurants__restaurant_id__members__member_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                member_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_member_api_restaurants__restaurant_id__members__member_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                member_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MemberUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"];
                 };
             };
             /** @description Validation Error */
@@ -6303,6 +6227,201 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReservationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    permission_catalog_api_restaurants__restaurant_id__permissions_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionCatalog"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_members_api_restaurants__restaurant_id__members_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_member_api_restaurants__restaurant_id__members_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: string;
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_member_api_restaurants__restaurant_id__members__member_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: string;
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_member_api_restaurants__restaurant_id__members__member_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: string;
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"];
                 };
             };
             /** @description Validation Error */

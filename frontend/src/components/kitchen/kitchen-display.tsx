@@ -1,23 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Bell,
-  BellOff,
-  BellRing,
-  History,
-  Loader2,
-  LogOut,
-  Maximize,
-  Minimize,
-  PackageX,
-  WifiOff,
-} from "lucide-react";
+import { Bell, BellOff, BellRing, History, Loader2, LogOut, Maximize, Minimize, PackageX, WifiOff } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { useCan, useMembership } from "@/components/manage/layout/permissions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth";
 import type { OrderStatus } from "@/lib/labels";
 import { type RealtimeEvent, useRestaurantSocket } from "@/lib/realtime";
@@ -71,7 +62,11 @@ export function KitchenDisplay({ rid }: { rid: string }) {
   const fullscreen = useFullscreen();
   useWakeLock();
 
-  const [stationId, setStationId] = useState<string | null>(null);
+  const can = useCan(rid);
+  const canStock = can("stock.manage");
+  // Poste du collaborateur présélectionné (modifiable) ; ignoré s'il a été supprimé depuis.
+  const membership = useMembership(rid);
+  const [chosenStation, setStationId] = useState<string | null>(() => membership?.station_id ?? null);
   const [visible, setVisible] = useState<Column[]>(["NEW", "PREPARING", "READY"]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [stockOpen, setStockOpen] = useState(false);
@@ -86,6 +81,8 @@ export function KitchenDisplay({ rid }: { rid: string }) {
     queryFn: () =>
       unwrap(api.GET("/api/restaurants/{restaurant_id}/stations", { params: { path: { restaurant_id: rid } } })),
   });
+  const stationId =
+    chosenStation && stations.data && !stations.data.some((s) => s.id === chosenStation) ? null : chosenStation;
 
   const soundRef = useRef(sound);
   soundRef.current = sound;
@@ -149,7 +146,7 @@ export function KitchenDisplay({ rid }: { rid: string }) {
     },
     onError: (e, { order }, ctx) => {
       ctx?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data));
-      toast.error(`Commande ${order.display_number} : ${errorMessage(e)}`);
+      toast.error(`Commande ${order.display_number} : ${actionErrorMessage(e)}`);
     },
     onSuccess: (order) => upsertInKitchenCaches(qc, rid, order),
     onSettled: (_d, _e, { order }) =>
@@ -237,13 +234,20 @@ export function KitchenDisplay({ rid }: { rid: string }) {
               Activer le son
             </button>
           )}
-          <button type="button" className={cn(iconBtn, "ml-auto sm:ml-0")} onClick={() => setStockOpen(true)} aria-label="Ruptures">
-            <PackageX className="size-5" />
-            <span className="hidden sm:inline">Ruptures</span>
-          </button>
+          {canStock && (
+            <button
+              type="button"
+              className={cn(iconBtn, "ml-auto sm:ml-0")}
+              onClick={() => setStockOpen(true)}
+              aria-label="Ruptures"
+            >
+              <PackageX className="size-5" />
+              <span className="hidden sm:inline">Ruptures</span>
+            </button>
+          )}
           <button
             type="button"
-            className={iconBtn}
+            className={cn(iconBtn, !canStock && "ml-auto sm:ml-0")}
             onClick={fullscreen.toggle}
             aria-label={fullscreen.isFullscreen ? "Quitter le plein écran" : "Plein écran"}
           >
@@ -283,7 +287,10 @@ export function KitchenDisplay({ rid }: { rid: string }) {
               type="button"
               aria-pressed={on}
               onClick={() => toggleStatus(c.status)}
-              className={cn(chip, on ? "border-neutral-200 bg-neutral-100 text-black" : "border-neutral-700 text-neutral-300")}
+              className={cn(
+                chip,
+                on ? "border-neutral-200 bg-neutral-100 text-black" : "border-neutral-700 text-neutral-300",
+              )}
             >
               <span className={cn("size-2.5 rounded-full", c.dot)} aria-hidden />
               {c.title}
@@ -297,7 +304,10 @@ export function KitchenDisplay({ rid }: { rid: string }) {
           type="button"
           aria-pressed={showCompleted}
           onClick={() => setShowCompleted((v) => !v)}
-          className={cn(chip, showCompleted ? "border-neutral-200 bg-neutral-100 text-black" : "border-neutral-700 text-neutral-300")}
+          className={cn(
+            chip,
+            showCompleted ? "border-neutral-200 bg-neutral-100 text-black" : "border-neutral-700 text-neutral-300",
+          )}
         >
           <History className="size-4" aria-hidden />
           Terminées récemment
@@ -353,7 +363,9 @@ export function KitchenDisplay({ rid }: { rid: string }) {
                   </h2>
                   <div className="flex flex-col gap-3 p-3 md:min-h-0 md:flex-1 md:overflow-y-auto">
                     {sorted.length === 0 ? (
-                      <p className="rounded-xl border border-dashed border-neutral-800 py-8 text-center text-neutral-500">Aucune commande</p>
+                      <p className="rounded-xl border border-dashed border-neutral-800 py-8 text-center text-neutral-500">
+                        Aucune commande
+                      </p>
                     ) : (
                       sorted.map((o) => (
                         <KitchenOrderCard
@@ -376,7 +388,7 @@ export function KitchenDisplay({ rid }: { rid: string }) {
         )}
       </main>
 
-      <StockSheet rid={rid} open={stockOpen} onOpenChange={setStockOpen} />
+      {canStock && <StockSheet rid={rid} open={stockOpen} onOpenChange={setStockOpen} />}
     </div>
   );
 }

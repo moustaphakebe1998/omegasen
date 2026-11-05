@@ -6,13 +6,31 @@ import { formatElapsed, formatTime } from "@/lib/format";
 import { CHANNEL, PAYMENT_STATUS, SERVICE_MODE, type OrderStatus } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
-import { availableTransitions, CHANNEL_STYLE, elapsedMinutes, type Order, ROLLBACK, type TransitionRules } from "./orders";
+import {
+  availableTransitions,
+  CHANNEL_STYLE,
+  elapsedMinutes,
+  type Order,
+  ROLLBACK,
+  type TransitionRules,
+} from "./orders";
 
-const FORWARD: Partial<Record<OrderStatus, { to: OrderStatus; label: string; icon: typeof Check; className: string }>> = {
-  NEW: { to: "PREPARING", label: "Commencer", icon: ChefHat, className: "bg-amber-500 text-black hover:bg-amber-400" },
-  PREPARING: { to: "READY", label: "Prête", icon: Check, className: "bg-green-500 text-black hover:bg-green-400" },
-  READY: { to: "COMPLETED", label: "Terminée", icon: ArrowRight, className: "bg-neutral-100 text-black hover:bg-white" },
-};
+const FORWARD: Partial<Record<OrderStatus, { to: OrderStatus; label: string; icon: typeof Check; className: string }>> =
+  {
+    NEW: {
+      to: "PREPARING",
+      label: "Commencer",
+      icon: ChefHat,
+      className: "bg-amber-500 text-black hover:bg-amber-400",
+    },
+    PREPARING: { to: "READY", label: "Prête", icon: Check, className: "bg-green-500 text-black hover:bg-green-400" },
+    READY: {
+      to: "COMPLETED",
+      label: "Terminée",
+      icon: ArrowRight,
+      className: "bg-neutral-100 text-black hover:bg-white",
+    },
+  };
 
 const ACCENT: Record<OrderStatus, string> = {
   NEW: "border-blue-500/60",
@@ -90,7 +108,9 @@ export function KitchenOrderCard({
       </header>
 
       <div className="flex flex-wrap gap-1.5 text-sm font-semibold">
-        <span className={cn("rounded-md px-2 py-0.5 ring-1", CHANNEL_STYLE[order.channel])}>{CHANNEL[order.channel]}</span>
+        <span className={cn("rounded-md px-2 py-0.5 ring-1", CHANNEL_STYLE[order.channel])}>
+          {CHANNEL[order.channel]}
+        </span>
         <span className="rounded-md bg-neutral-800 px-2 py-0.5 ring-1 ring-neutral-600">
           {SERVICE_MODE[order.service_mode]}
           {order.table_label ? ` · Table ${order.table_label}` : ""}
@@ -162,7 +182,11 @@ export function KitchenOrderCard({
                 forward.className,
               )}
             >
-              {busy ? <Loader2 className="size-6 animate-spin" aria-hidden /> : <forward.icon className="size-6" aria-hidden />}
+              {busy ? (
+                <Loader2 className="size-6 animate-spin" aria-hidden />
+              ) : (
+                <forward.icon className="size-6" aria-hidden />
+              )}
               {forward.label}
             </button>
           )}

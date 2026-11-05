@@ -14,6 +14,7 @@ import {
   Power,
   QrCode,
   Receipt,
+  Settings,
   ShoppingBag,
   UtensilsCrossed,
   Wallet,
@@ -25,6 +26,7 @@ import { toast } from "sonner";
 
 import { localIsoDate, type Order, useRestaurant } from "@/components/manage/layout/hooks";
 import { IconChip, KpiCard } from "@/components/manage/layout/kpi-card";
+import { ReadOnlyHint, useCan } from "@/components/manage/layout/permissions";
 import { OrderDetailSheet } from "@/components/manage/orders/order-detail-sheet";
 import { OrdersTable } from "@/components/manage/orders/orders-table";
 import { TodayReservationsCard } from "@/components/manage/reservations/today-card";
@@ -46,6 +48,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 import { formatMoney } from "@/lib/format";
 import { ORDER_STATUS, type OrderStatus } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -79,6 +82,11 @@ export default function OverviewPage() {
   const [selected, setSelected] = useState<Order | null>(null);
   const [confirmOff, setConfirmOff] = useState(false);
   const [saving, setSaving] = useState(false);
+  const can = useCan(rid);
+  const canStats = can("stats.view");
+  const canActive = can("orders.prepare");
+  const canHistory = can("orders.history");
+  const canSettings = can("settings.edit");
 
   // Clés sous ["orders", rid] : rafraîchies automatiquement par les événements temps réel.
   const stats = useQuery({
@@ -89,11 +97,13 @@ export default function OverviewPage() {
           params: { path: { restaurant_id: rid }, query: { from: today, to: today } },
         }),
       ),
+    enabled: canStats,
   });
   const active = useQuery({
     queryKey: ["orders", rid, "active"],
     queryFn: () =>
       unwrap(api.GET("/api/restaurants/{restaurant_id}/orders/active", { params: { path: { restaurant_id: rid } } })),
+    enabled: canActive,
   });
   const latest = useQuery({
     queryKey: ["orders", rid, "list", { page: 1, page_size: 8 }],
@@ -103,6 +113,7 @@ export default function OverviewPage() {
           params: { path: { restaurant_id: rid }, query: { page: 1, page_size: 8 } },
         }),
       ),
+    enabled: canHistory,
   });
 
   const setAccepting = async (value: boolean) => {
@@ -117,7 +128,7 @@ export default function OverviewPage() {
       queryClient.setQueryData(["restaurant", rid], r);
       toast.success(value ? "Les commandes sont ouvertes" : "Les commandes sont suspendues");
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -145,6 +156,7 @@ export default function OverviewPage() {
                 <Label htmlFor="accepting" className="text-base font-semibold">
                   Accepte les commandes
                 </Label>
+                {!canSettings && <ReadOnlyHint />}
                 <Badge
                   className={cn(
                     "border-transparent",
@@ -169,103 +181,114 @@ export default function OverviewPage() {
             id="accepting"
             className="mt-1 shrink-0 sm:mt-0"
             checked={restaurant.accepting_orders}
-            disabled={saving}
+            disabled={saving || !canSettings}
             onCheckedChange={(v) => (v ? setAccepting(true) : setConfirmOff(true))}
           />
         </div>
       )}
 
-      <section aria-labelledby="kpi-title" className="mb-6">
-        <h2 id="kpi-title" className="sr-only">
-          Indicateurs du jour
-        </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {stats.isPending ? (
-            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
-          ) : stats.isError ? (
-            <p className="col-span-full text-sm text-muted-foreground">{errorMessage(stats.error)}</p>
-          ) : (
-            <>
-              <KpiCard icon={Receipt} tone="blue" label="Commandes du jour" value={stats.data.orders} />
-              <KpiCard
-                icon={Wallet}
-                tone="green"
-                label="Chiffre d'affaires"
-                value={formatMoney(stats.data.revenue, currency)}
-                hint="Commandes payées"
-              />
-              <KpiCard
-                icon={ShoppingBag}
-                tone="violet"
-                label="Panier moyen"
-                value={formatMoney(stats.data.average_ticket, currency)}
-              />
-              <KpiCard
-                icon={Ban}
-                tone="red"
-                label="Annulées"
-                value={stats.data.cancelled}
-                hint={
-                  stats.data.avg_preparation_minutes != null
-                    ? `Préparation moy. ${Math.round(stats.data.avg_preparation_minutes)} min`
-                    : undefined
-                }
-              />
-            </>
-          )}
-        </div>
-      </section>
-
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        <section
-          aria-labelledby="active-title"
-          className="flex flex-col self-start rounded-2xl border bg-card p-4 shadow-sm sm:p-5 lg:col-span-2"
-        >
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 id="active-title" className="font-semibold">
-              Commandes en cours
-            </h2>
-            {lateCount > 0 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-300">
-                <AlertTriangle className="size-3.5" />
-                {lateCount} commande{lateCount > 1 ? "s" : ""} en retard
-              </span>
+      {canStats && (
+        <section aria-labelledby="kpi-title" className="mb-6">
+          <h2 id="kpi-title" className="sr-only">
+            Indicateurs du jour
+          </h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {stats.isPending ? (
+              Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
+            ) : stats.isError ? (
+              <p className="col-span-full text-sm text-muted-foreground">{errorMessage(stats.error)}</p>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-950/50 dark:text-green-300">
-                <CircleCheck className="size-3.5" />
-                Aucun retard
-              </span>
+              <>
+                <KpiCard icon={Receipt} tone="blue" label="Commandes du jour" value={stats.data.orders} />
+                <KpiCard
+                  icon={Wallet}
+                  tone="green"
+                  label="Chiffre d'affaires"
+                  value={formatMoney(stats.data.revenue, currency)}
+                  hint="Commandes payées"
+                />
+                <KpiCard
+                  icon={ShoppingBag}
+                  tone="violet"
+                  label="Panier moyen"
+                  value={formatMoney(stats.data.average_ticket, currency)}
+                />
+                <KpiCard
+                  icon={Ban}
+                  tone="red"
+                  label="Annulées"
+                  value={stats.data.cancelled}
+                  hint={
+                    stats.data.avg_preparation_minutes != null
+                      ? `Préparation moy. ${Math.round(stats.data.avg_preparation_minutes)} min`
+                      : undefined
+                  }
+                />
+              </>
             )}
           </div>
-          <ul className="grid flex-1 gap-3 sm:grid-cols-3">
-            {counts.map(({ status, count }) => {
-              const t = STATUS_TILE[status];
-              const Icon = t.icon;
-              return (
-                <li
-                  key={status}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border p-3 sm:flex-col sm:items-start sm:justify-between sm:p-4",
-                    t.tile,
-                  )}
-                >
-                  <span
-                    className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", t.chip)}
-                    aria-hidden
-                  >
-                    <Icon className="size-4.5" />
-                  </span>
-                  <div className="flex min-w-0 flex-1 items-baseline justify-between gap-2 sm:w-full sm:flex-none sm:flex-col-reverse sm:items-start sm:gap-0.5">
-                    <p className="text-sm font-medium">{ORDER_STATUS[status].label}</p>
-                    <p className="text-3xl font-semibold tabular-nums sm:text-4xl">{active.isPending ? "…" : count}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
         </section>
-        <div className="grid min-w-0 grid-cols-1 content-start gap-4 [&>*]:min-w-0">
-          {restaurant && <TodayReservationsCard rid={rid} timeZone={restaurant.timezone} />}
+      )}
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+        {canActive && (
+          <section
+            aria-labelledby="active-title"
+            className="flex flex-col self-start rounded-2xl border bg-card p-4 shadow-sm sm:p-5 lg:col-span-2"
+          >
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 id="active-title" className="font-semibold">
+                Commandes en cours
+              </h2>
+              {lateCount > 0 ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-300">
+                  <AlertTriangle className="size-3.5" />
+                  {lateCount} commande{lateCount > 1 ? "s" : ""} en retard
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-950/50 dark:text-green-300">
+                  <CircleCheck className="size-3.5" />
+                  Aucun retard
+                </span>
+              )}
+            </div>
+            <ul className="grid flex-1 gap-3 sm:grid-cols-3">
+              {counts.map(({ status, count }) => {
+                const t = STATUS_TILE[status];
+                const Icon = t.icon;
+                return (
+                  <li
+                    key={status}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border p-3 sm:flex-col sm:items-start sm:justify-between sm:p-4",
+                      t.tile,
+                    )}
+                  >
+                    <span
+                      className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", t.chip)}
+                      aria-hidden
+                    >
+                      <Icon className="size-4.5" />
+                    </span>
+                    <div className="flex min-w-0 flex-1 items-baseline justify-between gap-2 sm:w-full sm:flex-none sm:flex-col-reverse sm:items-start sm:gap-0.5">
+                      <p className="text-sm font-medium">{ORDER_STATUS[status].label}</p>
+                      <p className="text-3xl font-semibold tabular-nums sm:text-4xl">
+                        {active.isPending ? "…" : count}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+        <div
+          className={cn(
+            "grid min-w-0 grid-cols-1 content-start gap-4 [&>*]:min-w-0",
+            !canActive && "lg:col-span-3 lg:grid-cols-2 lg:items-start",
+          )}
+        >
+          {restaurant && can("reservations.view") && <TodayReservationsCard rid={rid} timeZone={restaurant.timezone} />}
           <section aria-labelledby="quick-title" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
             <h2 id="quick-title" className="mb-3 font-semibold">
               Accès rapides
@@ -273,34 +296,54 @@ export default function OverviewPage() {
             <ul className="grid gap-2">
               {[
                 {
+                  href: `/manage/${rid}/orders`,
+                  label: "Commandes",
+                  hint: "Historique et suivi des commandes",
+                  icon: Receipt,
+                  tone: "blue" as const,
+                  show: canHistory && !canActive,
+                },
+                {
                   href: `/manage/${rid}/qr`,
                   label: "QR Code",
                   hint: "Télécharger et imprimer",
                   icon: QrCode,
                   tone: "violet" as const,
+                  show: true,
                 },
                 {
                   href: `/manage/${rid}/menu`,
                   label: "Menu",
-                  hint: "Produits, prix et disponibilités",
+                  hint: can("menu.edit") ? "Produits, prix et disponibilités" : "Consulter la carte",
                   icon: UtensilsCrossed,
                   tone: "orange" as const,
+                  show: can("menu.view"),
                 },
-              ].map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-                  >
-                    <IconChip icon={l.icon} tone={l.tone} className="size-9" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">{l.label}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{l.hint}</span>
-                    </span>
-                    <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </li>
-              ))}
+                {
+                  href: `/manage/${rid}/settings`,
+                  label: "Établissement",
+                  hint: "Informations, horaires et réglages",
+                  icon: Settings,
+                  tone: "green" as const,
+                  show: can("restaurant.view") && !can("reservations.view"),
+                },
+              ]
+                .filter((l) => l.show)
+                .map((l) => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                    >
+                      <IconChip icon={l.icon} tone={l.tone} className="size-9" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium">{l.label}</span>
+                        <span className="block truncate text-xs text-muted-foreground">{l.hint}</span>
+                      </span>
+                      <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </li>
+                ))}
               {restaurant && (
                 <li>
                   <a
@@ -325,38 +368,40 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      <Card className="gap-0 overflow-hidden rounded-2xl pb-0">
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
-          <CardTitle>Dernières commandes</CardTitle>
-          <Button asChild variant="ghost" size="sm">
-            <Link href={`/manage/${rid}/orders`}>
-              Tout voir
-              <ArrowRight />
-            </Link>
-          </Button>
-        </CardHeader>
-        {latest.isPending ? (
-          <div className="space-y-2 p-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-9 w-full" />
-            ))}
-          </div>
-        ) : latest.isError ? (
-          <p className="p-4 text-sm text-muted-foreground">{errorMessage(latest.error)}</p>
-        ) : latest.data.items.length === 0 ? (
-          <div className="p-4">
-            <EmptyState
-              icon={Receipt}
-              title="Aucune commande pour le moment"
-              description="Imprimez votre QR Code pour recevoir vos premières commandes."
-            />
-          </div>
-        ) : (
-          <div className="border-t">
-            <OrdersTable orders={latest.data.items} currency={currency} onSelect={setSelected} showDate />
-          </div>
-        )}
-      </Card>
+      {canHistory && (
+        <Card className="gap-0 overflow-hidden rounded-2xl pb-0">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle>Dernières commandes</CardTitle>
+            <Button asChild variant="ghost" size="sm">
+              <Link href={`/manage/${rid}/orders`}>
+                Tout voir
+                <ArrowRight />
+              </Link>
+            </Button>
+          </CardHeader>
+          {latest.isPending ? (
+            <div className="space-y-2 p-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-9 w-full" />
+              ))}
+            </div>
+          ) : latest.isError ? (
+            <p className="p-4 text-sm text-muted-foreground">{errorMessage(latest.error)}</p>
+          ) : latest.data.items.length === 0 ? (
+            <div className="p-4">
+              <EmptyState
+                icon={Receipt}
+                title="Aucune commande pour le moment"
+                description="Imprimez votre QR Code pour recevoir vos premières commandes."
+              />
+            </div>
+          ) : (
+            <div className="border-t">
+              <OrdersTable orders={latest.data.items} currency={currency} onSelect={setSelected} showDate />
+            </div>
+          )}
+        </Card>
+      )}
 
       <OrderDetailSheet rid={rid} order={selected} currency={currency} onOpenChange={(o) => !o && setSelected(null)} />
 

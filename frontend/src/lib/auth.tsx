@@ -15,7 +15,8 @@ type AuthState = {
   /** Active un compte créé par un administrateur (lien à usage unique) et ouvre la session. */
   activate: (token: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
-  reload: () => Promise<void>;
+  /** Recharge l'utilisateur courant (`/api/auth/me`) et le retourne. */
+  reload: () => Promise<User>;
   roleIn: (restaurantId: string) => Role | null;
 };
 
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const reload = useCallback(async () => {
     const me = await unwrap(api.GET("/api/auth/me"));
     setUser(me);
+    return me;
   }, []);
 
   const roleIn = useCallback(
@@ -90,8 +92,13 @@ export function useAuth() {
   return ctx;
 }
 
+/** Page du changement de mot de passe obligatoire (première connexion d'un compte créé directement). */
+export const PASSWORD_CHANGE_PATH = "/changer-mot-de-passe";
+
 /** Page d'accueil par défaut selon le profil de l'utilisateur. */
 export function homeFor(user: User): string {
+  // Compte créé avec un mot de passe initial : changement obligatoire avant toute chose.
+  if (user.must_change_password) return PASSWORD_CHANGE_PATH;
   if (user.account_type === "CUSTOMER" && !user.is_superadmin && user.memberships.length === 0) return "/compte";
   if (user.is_superadmin && user.memberships.length === 0) return "/admin";
   if (user.memberships.length === 1) {

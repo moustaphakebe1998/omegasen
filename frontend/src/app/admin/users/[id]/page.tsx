@@ -200,7 +200,7 @@ export default function AdminUserPage() {
         </section>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <ProfileCard key={`${u.full_name}|${u.phone}`} user={u} pending={patch.isPending} onSave={patch.mutate} />
 
         {/* Accès */}

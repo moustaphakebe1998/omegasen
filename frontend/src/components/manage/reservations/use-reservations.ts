@@ -3,7 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { api, errorMessage, unwrap } from "@/lib/api/client";
+import { api, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 import type { Reservation, ReservationStatus } from "@/lib/reservations";
 
 export type ReservationFilters = { day?: string; status?: ReservationStatus; upcoming?: boolean };
@@ -57,7 +58,7 @@ export function useSetReservationStatus(rid: string) {
       void qc.invalidateQueries({ queryKey: reservationsKey(rid) });
     },
     onError: (e) => {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       void qc.invalidateQueries({ queryKey: reservationsKey(rid) });
     },
   });

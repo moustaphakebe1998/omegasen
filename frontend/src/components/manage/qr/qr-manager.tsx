@@ -1,22 +1,14 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  AlertTriangle,
-  Check,
-  Copy,
-  Download,
-  FileText,
-  Loader2,
-  Printer,
-  QrCode,
-  RefreshCw,
-} from "lucide-react";
+import { AlertTriangle, Check, Copy, Download, FileText, Loader2, Printer, QrCode, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { useCan } from "@/components/manage/layout/permissions";
 import { ConfirmDialog } from "@/components/manage/settings/confirm-dialog";
+import { SectionTitle } from "@/components/manage/settings/fields";
 import { useRestaurant } from "@/components/manage/settings/use-restaurant";
 import { PageHeader } from "@/components/shared/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fetchBlob, type Schemas, unwrap } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/format";
+import { actionErrorMessage } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 type Qr = Schemas["QrOut"];
@@ -62,11 +55,13 @@ function ColorField({
   label,
   value,
   onChange,
+  disabled,
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) {
   const valid = HEX.test(value);
   return (
@@ -78,10 +73,12 @@ function ColorField({
           type="color"
           value={valid ? value.toLowerCase() : "#000000"}
           onChange={(e) => onChange(e.target.value.toUpperCase())}
-          className="h-9 w-12 shrink-0 cursor-pointer rounded-md border bg-background p-1"
+          disabled={disabled}
+          className="h-9 w-12 shrink-0 cursor-pointer rounded-md border bg-background p-1 disabled:cursor-default"
         />
         <Input
           aria-label={`${label} (code hexadécimal)`}
+          disabled={disabled}
           value={value}
           maxLength={7}
           className="font-mono uppercase"
@@ -103,11 +100,14 @@ function Customize({
   rid,
   hasLogo,
   onSave,
+  editable,
 }: {
   qr: Qr;
   rid: string;
   hasLogo: boolean;
   onSave: (body: Schemas["QrUpdate"]) => Promise<void>;
+  /** Permission `qr.manage` : sinon, présentation en lecture seule. */
+  editable: boolean;
 }) {
   const [fg, setFg] = useState(qr.foreground_color.toUpperCase());
   const [bg, setBg] = useState(qr.background_color.toUpperCase());
@@ -124,7 +124,7 @@ function Customize({
       await onSave({ foreground_color: fg, background_color: bg });
       toast.success("Couleurs enregistrées");
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -136,7 +136,7 @@ function Customize({
       toast.success(msg);
       return true;
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
       return false;
     }
   };
@@ -144,44 +144,64 @@ function Customize({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Personnalisation</CardTitle>
-        <CardDescription>Gardez un code foncé sur fond clair pour une lecture fiable par tous les téléphones.</CardDescription>
+        <SectionTitle readOnly={!editable}>Personnalisation</SectionTitle>
+        <CardDescription>
+          {editable
+            ? "Gardez un code foncé sur fond clair pour une lecture fiable par tous les téléphones."
+            : "Couleurs et options actuelles du QR Code. Les téléchargements restent disponibles."}
+        </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-5">
         <div className="grid gap-4 sm:grid-cols-2">
-          <ColorField id="qr-fg" label="Couleur du code" value={fg} onChange={setFg} />
-          <ColorField id="qr-bg" label="Couleur du fond" value={bg} onChange={setBg} />
+          <ColorField id="qr-fg" label="Couleur du code" value={fg} onChange={setFg} disabled={!editable} />
+          <ColorField id="qr-bg" label="Couleur du fond" value={bg} onChange={setBg} disabled={!editable} />
         </div>
-        {valid && (ratio < 4.5 || inverted) && (
-          <p className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100" role="status">
+        {editable && valid && (ratio < 4.5 || inverted) && (
+          <p
+            className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+            role="status"
+          >
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
             {inverted
               ? "Le code est plus clair que le fond : certains téléphones ne pourront pas le lire."
               : `Contraste faible (${ratio.toFixed(1)}:1) : le QR Code risque d'être difficile à scanner. Visez au moins 4,5:1.`}
           </p>
         )}
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={saveColors} disabled={!valid || !dirty || saving}>
-            {saving && <Loader2 className="animate-spin" />}
-            Enregistrer les couleurs
-          </Button>
-          <Button
-            variant="outline"
-            disabled={saving}
-            onClick={() => {
-              setFg("#111827");
-              setBg("#FFFFFF");
-            }}
-          >
-            <RefreshCw />
-            Couleurs par défaut
-          </Button>
-        </div>
+        {editable && (
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={saveColors} disabled={!valid || !dirty || saving}>
+              {saving && <Loader2 className="animate-spin" />}
+              Enregistrer les couleurs
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={!dirty || saving}
+              onClick={() => {
+                setFg(qr.foreground_color.toUpperCase());
+                setBg(qr.background_color.toUpperCase());
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="outline"
+              disabled={saving}
+              onClick={() => {
+                setFg("#111827");
+                setBg("#FFFFFF");
+              }}
+            >
+              <RefreshCw />
+              Couleurs par défaut
+            </Button>
+          </div>
+        )}
 
         <div className="flex items-start gap-3 rounded-md border p-3">
           <Switch
             id="qr-logo"
             checked={qr.with_logo}
+            disabled={!editable}
             onCheckedChange={(v) => toggle({ with_logo: v }, v ? "Logo affiché au centre" : "Logo retiré")}
             aria-describedby="qr-logo-hint"
           />
@@ -207,6 +227,7 @@ function Customize({
           <Switch
             id="qr-active"
             checked={qr.is_active}
+            disabled={!editable}
             onCheckedChange={(v) => (v ? toggle({ is_active: true }, "QR Code réactivé") : setConfirmOff(true))}
             aria-describedby="qr-active-hint"
           />
@@ -235,6 +256,7 @@ function Customize({
 export function QrManager({ rid }: { rid: string }) {
   const qc = useQueryClient();
   const restaurant = useRestaurant(rid);
+  const can = useCan(rid);
   const qr = useQuery({
     queryKey: ["qr", rid],
     queryFn: () => unwrap(api.GET("/api/restaurants/{restaurant_id}/qr", { params: { path: { restaurant_id: rid } } })),
@@ -250,7 +272,14 @@ export function QrManager({ rid }: { rid: string }) {
 
   const d = qr.data;
   const sig = d
-    ? [d.foreground_color, d.background_color, d.with_logo, d.is_active, d.regenerated_at, restaurant.data?.logo_media_id].join("|")
+    ? [
+        d.foreground_color,
+        d.background_color,
+        d.with_logo,
+        d.is_active,
+        d.regenerated_at,
+        restaurant.data?.logo_media_id,
+      ].join("|")
     : null;
 
   useEffect(() => {
@@ -340,7 +369,10 @@ export function QrManager({ rid }: { rid: string }) {
           <Skeleton className="h-80 rounded-2xl" />
         </div>
       ) : qr.isError || !d ? (
-        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+        <div
+          className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive"
+          role="alert"
+        >
           {errorMessage(qr.error)}{" "}
           <Button variant="link" className="h-auto p-0" onClick={() => qr.refetch()}>
             Réessayer
@@ -375,7 +407,10 @@ export function QrManager({ rid }: { rid: string }) {
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   <Badge
                     variant={d.is_active ? "default" : "destructive"}
-                    className={cn(d.is_active && "border-transparent bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200")}
+                    className={cn(
+                      d.is_active &&
+                        "border-transparent bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200",
+                    )}
                   >
                     {d.is_active ? "Actif" : "Désactivé"}
                   </Badge>
@@ -391,19 +426,39 @@ export function QrManager({ rid }: { rid: string }) {
                 <CardTitle>Télécharger et imprimer</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-2">
-                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("png", "image.png?size=2048&download=true", `qr-${slug}.png`)}>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!!busy}
+                  onClick={() => download("png", "image.png?size=2048&download=true", `qr-${slug}.png`)}
+                >
                   {spin("png", Download)}
                   Image PNG (haute définition)
                 </Button>
-                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("svg", "image.svg", `qr-${slug}.svg`)}>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!!busy}
+                  onClick={() => download("svg", "image.svg", `qr-${slug}.svg`)}
+                >
                   {spin("svg", Download)}
                   Image SVG (vectorielle)
                 </Button>
-                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("a4", "print.pdf?page=A4", `affiche-qr-${slug}-A4.pdf`)}>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!!busy}
+                  onClick={() => download("a4", "print.pdf?page=A4", `affiche-qr-${slug}-A4.pdf`)}
+                >
                   {spin("a4", FileText)}
                   Affiche A4 (PDF)
                 </Button>
-                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("a6", "print.pdf?page=A6", `chevalet-qr-${slug}-A6.pdf`)}>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!!busy}
+                  onClick={() => download("a6", "print.pdf?page=A6", `chevalet-qr-${slug}-A6.pdf`)}
+                >
                   {spin("a6", FileText)}
                   Chevalet de table A6 (PDF)
                 </Button>
@@ -420,8 +475,8 @@ export function QrManager({ rid }: { rid: string }) {
               <CardHeader>
                 <CardTitle>Lien encodé</CardTitle>
                 <CardDescription>
-                  Ce QR Code ne change jamais, même si vous modifiez votre carte, le nom ou l&apos;adresse de votre page :
-                  vos supports imprimés restent valables.
+                  Ce QR Code ne change jamais, même si vous modifiez votre carte, le nom ou l&apos;adresse de votre page
+                  : vos supports imprimés restent valables.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
@@ -429,7 +484,13 @@ export function QrManager({ rid }: { rid: string }) {
                   <Label htmlFor="qr-url" className="sr-only">
                     Lien du QR Code
                   </Label>
-                  <Input id="qr-url" readOnly value={d.url} className="font-mono text-xs" onFocus={(e) => e.target.select()} />
+                  <Input
+                    id="qr-url"
+                    readOnly
+                    value={d.url}
+                    className="font-mono text-xs"
+                    onFocus={(e) => e.target.select()}
+                  />
                   <Button variant="outline" onClick={copy} aria-label="Copier le lien">
                     {copied ? <Check /> : <Copy />}
                     <span className="hidden sm:inline">Copier</span>
@@ -458,6 +519,7 @@ export function QrManager({ rid }: { rid: string }) {
               rid={rid}
               hasLogo={!!restaurant.data?.logo_media_id}
               onSave={save}
+              editable={can("qr.manage")}
             />
           </div>
         </div>

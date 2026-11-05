@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
-from app.core.deps import AnyMember, Can, Session
+from app.core.deps import Can, Session
 from app.core.errors import NotFound, Unprocessable
 from app.core.permissions import Perm
 from app.core.realtime import publish, restaurant_channel
@@ -297,7 +297,7 @@ async def _notify(rid: uuid.UUID) -> None:
 
 
 @router.get("", response_model=list[CategoryOut])
-async def get_menu(ctx: AnyMember, session: Session):
+async def get_menu(ctx: Can(Perm.MENU_VIEW), session: Session):
     return await load_menu(session, ctx.restaurant.id, public=False)
 
 
@@ -422,7 +422,14 @@ PRICE_FIELDS = ("price", "promo_price", "promo_starts_at", "promo_ends_at")
 
 def _touches_prices(p: Product, data: dict, groups: list[OptionGroupIn] | None) -> bool:
     """La modification change-t-elle un prix, une promotion ou le prix d'un supplément ?"""
-    if any(k in data and data[k] != getattr(p, k) for k in PRICE_FIELDS):
+
+    def differs(new, old) -> bool:
+        # Les dates de promotion des formulaires sont arrondies à la minute : comparaison à la minute près.
+        if isinstance(new, datetime) and isinstance(old, datetime):
+            return abs((new - old).total_seconds()) >= 60
+        return new != old
+
+    if any(k in data and differs(data[k], getattr(p, k)) for k in PRICE_FIELDS):
         return True
     if groups is None:
         return False

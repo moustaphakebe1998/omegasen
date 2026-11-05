@@ -77,6 +77,15 @@ async function refreshOnce(): Promise<string | null> {
 
 const retryable = new WeakMap<Request, Request>();
 
+const PASSWORD_CHANGE_PATH = "/changer-mot-de-passe";
+
+/** 403 `password_change_required` : le mot de passe initial doit d'abord être changé. */
+async function redirectIfPasswordChangeRequired(response: Response) {
+  if (typeof window === "undefined" || window.location.pathname === PASSWORD_CHANGE_PATH) return;
+  const err = await toApiError(response);
+  if (err.code === "password_change_required") window.location.assign(PASSWORD_CHANGE_PATH);
+}
+
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
     retryable.set(request, request.clone());
@@ -84,6 +93,10 @@ const authMiddleware: Middleware = {
     return request;
   },
   async onResponse({ request, response }) {
+    if (response.status === 403) {
+      await redirectIfPasswordChangeRequired(response);
+      return response;
+    }
     if (response.status !== 401 || request.url.includes("/api/auth/")) return response;
     const original = retryable.get(request);
     if (!original) return response;

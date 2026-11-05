@@ -4,7 +4,14 @@ import { Banknote, Clock, CreditCard, Loader2, MoreHorizontal, Smartphone } from
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatMoney, moneyInput, parseMoney } from "@/lib/format";
@@ -152,7 +159,9 @@ export function PaymentDialog({
               aria-live="polite"
               className={cn(
                 "rounded-xl p-3 text-center text-xl font-bold",
-                invalid ? "bg-destructive/10 text-destructive" : "bg-green-100 text-green-900 dark:bg-green-950 dark:text-green-100",
+                invalid
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-green-100 text-green-900 dark:bg-green-950 dark:text-green-100",
               )}
             >
               {tenderedAmount === null

@@ -191,7 +191,7 @@ export default function AdminRestaurantPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="space-y-6">
           <section className="space-y-3 rounded-2xl border bg-card p-5 shadow-xs">
             <h2 className="font-semibold">Informations</h2>

@@ -7,18 +7,20 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, errorMessage, type Schemas, unwrap } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 
 import { ConfirmDialog } from "./confirm-dialog";
+import { SectionTitle } from "./fields";
 import { useStations } from "./use-restaurant";
 
 const nameSchema = z.string().trim().min(1, "Nom requis").max(60, "60 caractères maximum");
 
-export function StationsSection({ rid }: { rid: string }) {
+export function StationsSection({ rid, editable = true }: { rid: string; editable?: boolean }) {
   const qc = useQueryClient();
   const stations = useStations(rid);
   const [name, setName] = useState("");
@@ -51,7 +53,7 @@ export function StationsSection({ rid }: { rid: string }) {
       setName("");
       toast.success("Poste ajouté");
     } catch (err) {
-      setError(errorMessage(err));
+      setError(actionErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -72,7 +74,7 @@ export function StationsSection({ rid }: { rid: string }) {
       toast.success("Poste supprimé");
       return true;
     } catch (err) {
-      toast.error(errorMessage(err));
+      toast.error(actionErrorMessage(err));
       return false;
     }
   };
@@ -80,35 +82,37 @@ export function StationsSection({ rid }: { rid: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Postes de cuisine</CardTitle>
+        <SectionTitle readOnly={!editable}>Postes de cuisine</SectionTitle>
         <CardDescription>
           Ex. Grill, Bar, Pâtisserie. Chaque produit peut être rattaché à un poste pour filtrer l&apos;écran cuisine.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={create} noValidate className="grid gap-1.5">
-          <Label htmlFor="station-name">Nouveau poste</Label>
-          <div className="flex gap-2">
-            <Input
-              id="station-name"
-              value={name}
-              maxLength={60}
-              placeholder="Nom du poste"
-              aria-invalid={!!error}
-              aria-describedby={error ? "station-name-err" : undefined}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Button type="submit" disabled={busy}>
-              {busy ? <Loader2 className="animate-spin" /> : <Plus />}
-              Ajouter
-            </Button>
-          </div>
-          {error && (
-            <p id="station-name-err" className="text-xs text-destructive" role="alert">
-              {error}
-            </p>
-          )}
-        </form>
+        {editable && (
+          <form onSubmit={create} noValidate className="grid gap-1.5">
+            <Label htmlFor="station-name">Nouveau poste</Label>
+            <div className="flex gap-2">
+              <Input
+                id="station-name"
+                value={name}
+                maxLength={60}
+                placeholder="Nom du poste"
+                aria-invalid={!!error}
+                aria-describedby={error ? "station-name-err" : undefined}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <Button type="submit" disabled={busy}>
+                {busy ? <Loader2 className="animate-spin" /> : <Plus />}
+                Ajouter
+              </Button>
+            </div>
+            {error && (
+              <p id="station-name-err" className="text-xs text-destructive" role="alert">
+                {error}
+              </p>
+            )}
+          </form>
+        )}
         {stations.isPending ? (
           <Skeleton className="h-20" />
         ) : stations.isError ? (
@@ -123,11 +127,18 @@ export function StationsSection({ rid }: { rid: string }) {
         ) : (
           <ul className="divide-y rounded-md border">
             {list.map((s) => (
-              <li key={s.id} className="flex items-center justify-between gap-2 px-3 py-2">
+              <li key={s.id} className="flex min-h-11 items-center justify-between gap-2 px-3 py-2">
                 <span className="font-medium">{s.name}</span>
-                <Button variant="ghost" size="icon-sm" aria-label={`Supprimer le poste ${s.name}`} onClick={() => setToDelete(s)}>
-                  <Trash2 />
-                </Button>
+                {editable && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Supprimer le poste ${s.name}`}
+                    onClick={() => setToDelete(s)}
+                  >
+                    <Trash2 />
+                  </Button>
+                )}
               </li>
             ))}
           </ul>

@@ -45,31 +45,4 @@ test("réservation : demande en ligne, confirmation par le restaurant, suivi cli
   await expect(page.getByText(/confirmée/i).first()).toBeVisible();
 });
 
-test("équipe : invitation d'un membre avec lien d'activation et invitation en attente", async ({ page }) => {
-  const { rid } = await demoRestaurant();
-  const email = `e2e-${Date.now()}@example.com`;
-
-  await login(page, "owner@demo.example.com");
-  await page.goto(`/manage/${rid}/team`);
-  await page.getByRole("button", { name: "Ajouter un membre" }).click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText(/invitation est envoyée par email/)).toBeVisible();
-  await expect(dialog.getByLabel(/mot de passe/i)).toHaveCount(0);
-  await dialog.getByLabel("Email").fill(email);
-  await dialog.getByLabel("Nom complet").fill("Invité E2E");
-  await dialog.getByRole("button", { name: "Inviter" }).click();
-
-  // En développement, aucun SMTP : le lien est affiché pour être transmis.
-  const link = dialog.getByRole("textbox", { name: "Lien d'activation" });
-  await expect(link).toBeVisible();
-  await expect(link).toHaveValue(/\/activate\//);
-  await expect(dialog.getByRole("button", { name: "Copier" })).toBeVisible();
-  await dialog.getByRole("button", { name: "Terminé" }).click();
-
-  const row = page.getByRole("listitem").filter({ hasText: email });
-  await expect(row.getByText("Invitation en attente")).toBeVisible();
-  await row.getByRole("button", { name: "Renvoyer l'invitation" }).click();
-  await expect(page.getByRole("dialog", { name: "Invitation renvoyée" }).getByRole("textbox")).toHaveValue(
-    /\/activate\//,
-  );
-});
+// L'invitation d'équipe est couverte par e2e/team.spec.ts.

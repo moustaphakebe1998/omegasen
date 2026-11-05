@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { type Role, useAuth } from "@/lib/auth";
+import { can, type Perm } from "@/lib/permissions";
 
 export function FullPageSpinner({ label = "Chargement…" }: { label?: string }) {
   return (
@@ -64,6 +65,25 @@ export function RequireRestaurantRole({
       )}
     </RequireAuth>
   );
+}
+
+/**
+ * Exige une permission dans le restaurant donné (permissions effectives de l'adhésion ;
+ * le super admin passe toujours). Confort d'interface : le backend revérifie chaque route.
+ */
+export function RequireRestaurantPerm({
+  restaurantId,
+  perm,
+  message,
+  children,
+}: {
+  restaurantId: string;
+  perm: Perm;
+  message?: string;
+  children: React.ReactNode;
+}) {
+  const { user } = useAuth();
+  return <RequireAuth>{can(user, restaurantId, perm) ? children : <Forbidden message={message} />}</RequireAuth>;
 }
 
 export function RequireSuperAdmin({ children }: { children: React.ReactNode }) {

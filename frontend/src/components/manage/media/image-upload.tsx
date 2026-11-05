@@ -5,7 +5,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { errorMessage, type Schemas, uploadFile } from "@/lib/api/client";
+import { type Schemas, uploadFile } from "@/lib/api/client";
+import { actionErrorMessage } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 export type Media = Schemas["MediaOut"];
@@ -32,11 +33,23 @@ export function uploadMedia(rid: string, file: File, kind: MediaKind, alt?: stri
 }
 
 /** Aperçu d'image tolérant : affiche une icône si l'image ne peut pas être chargée. */
-export function ImagePreview({ src, alt, className }: { src: string | null | undefined; alt: string; className?: string }) {
+export function ImagePreview({
+  src,
+  alt,
+  className,
+}: {
+  src: string | null | undefined;
+  alt: string;
+  className?: string;
+}) {
   const [failed, setFailed] = useState<string | null>(null);
   if (!src || failed === src) {
     return (
-      <div className={cn("flex items-center justify-center bg-muted text-muted-foreground", className)} role="img" aria-label={src ? `${alt} (aperçu indisponible)` : `${alt} : aucune image`}>
+      <div
+        className={cn("flex items-center justify-center bg-muted text-muted-foreground", className)}
+        role="img"
+        aria-label={src ? `${alt} (aperçu indisponible)` : `${alt} : aucune image`}
+      >
         <ImageIcon className="size-6" />
       </div>
     );
@@ -58,6 +71,8 @@ export function ImageUpload({
   onRemove,
   aspect = "square",
   disabled = false,
+  readOnly = false,
+  readOnlyHint,
 }: {
   rid: string;
   kind: MediaKind;
@@ -68,6 +83,10 @@ export function ImageUpload({
   onRemove?: () => Promise<void> | void;
   aspect?: "square" | "wide";
   disabled?: boolean;
+  /** Affiche l'image sans les boutons d'envoi / de retrait (pas de permission `media.manage`). */
+  readOnly?: boolean;
+  /** Texte affiché sous l'image en lecture seule. */
+  readOnlyHint?: string;
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -95,8 +114,8 @@ export function ImageUpload({
       // L'aperçu local reste lisible même si le stockage n'est pas accessible depuis le navigateur.
       setLocalUrl(URL.createObjectURL(file));
     } catch (e) {
-      setError(errorMessage(e));
-      toast.error(errorMessage(e));
+      setError(actionErrorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -110,7 +129,7 @@ export function ImageUpload({
       await onRemove();
       setLocalUrl(null);
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(actionErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -130,30 +149,41 @@ export function ImageUpload({
             aspect === "wide" ? "aspect-video w-full rounded-lg sm:w-56" : "size-24 rounded-xl",
           )}
         />
-        <div className="flex flex-wrap gap-2">
-          <input
-            ref={inputRef}
-            id={inputId}
-            type="file"
-            accept={ACCEPTED_IMAGE_TYPES}
-            className="sr-only"
-            disabled={disabled || busy}
-            onChange={(e) => onFile(e.target.files?.[0])}
-          />
-          <Button type="button" variant="outline" size="sm" disabled={disabled || busy} onClick={() => inputRef.current?.click()}>
-            {busy ? <Loader2 className="animate-spin" /> : <Upload />}
-            {shown ? "Remplacer" : "Choisir une image"}
-          </Button>
-          {shown && onRemove && (
-            <Button type="button" variant="ghost" size="sm" disabled={disabled || busy} onClick={remove}>
-              <Trash2 />
-              Retirer
+        {!readOnly && (
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={inputRef}
+              id={inputId}
+              type="file"
+              accept={ACCEPTED_IMAGE_TYPES}
+              className="sr-only"
+              disabled={disabled || busy}
+              onChange={(e) => onFile(e.target.files?.[0])}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={disabled || busy}
+              onClick={() => inputRef.current?.click()}
+            >
+              {busy ? <Loader2 className="animate-spin" /> : <Upload />}
+              {shown ? "Remplacer" : "Choisir une image"}
             </Button>
-          )}
-        </div>
+            {shown && onRemove && (
+              <Button type="button" variant="ghost" size="sm" disabled={disabled || busy} onClick={remove}>
+                <Trash2 />
+                Retirer
+              </Button>
+            )}
+          </div>
+        )}
+        {readOnly && !shown && <p className="text-sm text-muted-foreground">Aucune image.</p>}
       </div>
       <p className="text-xs text-muted-foreground">
-        {description ? `${description} ` : ""}JPEG, PNG ou WebP, {MAX_UPLOAD_MB} Mo maximum.
+        {readOnly
+          ? (readOnlyHint ?? "Vous n'avez pas la permission de modifier les images.")
+          : `${description ? `${description} ` : ""}JPEG, PNG ou WebP, ${MAX_UPLOAD_MB} Mo maximum.`}
       </p>
       {error && (
         <p className="text-sm text-destructive" role="alert">
