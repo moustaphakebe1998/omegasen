@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
+  CalendarDays,
   ChefHat,
   ExternalLink,
   LayoutDashboard,
@@ -41,6 +42,8 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
         queryClient.invalidateQueries({ queryKey: ["orders", rid] });
       } else if (e.event === "order.updated") {
         queryClient.invalidateQueries({ queryKey: ["orders", rid] });
+      } else if (e.event.startsWith("reservation.")) {
+        queryClient.invalidateQueries({ queryKey: ["reservations", rid] });
       } else if (e.event === "menu.updated") {
         queryClient.invalidateQueries({ queryKey: ["menu", rid] });
       }
@@ -56,6 +59,7 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
     () => [
       { href: `/manage/${rid}`, label: "Vue d'ensemble", icon: LayoutDashboard, exact: true },
       { href: `/manage/${rid}/orders`, label: "Commandes", icon: Receipt },
+      { href: `/manage/${rid}/reservations`, label: "Réservations", icon: CalendarDays },
       { href: `/manage/${rid}/menu`, label: "Menu", icon: UtensilsCrossed },
       { href: `/manage/${rid}/qr`, label: "QR Code", icon: QrCode },
       { href: `/manage/${rid}/settings`, label: "Établissement", icon: Settings },

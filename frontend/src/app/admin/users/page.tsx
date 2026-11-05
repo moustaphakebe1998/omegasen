@@ -1,179 +1,216 @@
 "use client";
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Users } from "lucide-react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { ChevronRight, Loader2, Plus, ShieldCheck, Users } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { PAGE_SIZE, Pagination, SearchInput, useDebounced } from "@/components/admin/common";
+import { CreateUserDialog, useAdminRestaurants } from "@/components/admin/create-user-dialog";
+import { InitialsAvatar, roleLabel, type UserStatus, UserStatusBadge } from "@/components/admin/status";
 import { EmptyState, PageHeader } from "@/components/shared/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ApiError, api, errorMessage, type Schemas, unwrap } from "@/lib/api/client";
+import { api, errorMessage, type Schemas, unwrap } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type AdminUser = Schemas["AdminUser"];
-type Patch = Schemas["AdminUserUpdate"];
+type AccountType = Schemas["AccountType"];
+
+const ALL = "ALL";
+
+const STATUS_FILTERS: { value: UserStatus | typeof ALL; label: string }[] = [
+  { value: ALL, label: "Tous" },
+  { value: "PENDING", label: "En attente d'activation" },
+  { value: "ACTIVE", label: "Actifs" },
+  { value: "DISABLED", label: "Désactivés" },
+];
 
 export default function AdminUsersPage() {
-  const qc = useQueryClient();
   const { user: me } = useAuth();
   const [q, setQ] = useState("");
+  const [status, setStatus] = useState<UserStatus | typeof ALL>(ALL);
+  const [type, setType] = useState<AccountType | typeof ALL>(ALL);
+  const [restaurant, setRestaurant] = useState<string>(ALL);
   const [page, setPage] = useState(1);
+  const [createOpen, setCreateOpen] = useState(false);
   const search = useDebounced(q.trim());
-  const key = ["admin", "users", search, page] as const;
+  const restaurants = useAdminRestaurants();
 
   const list = useQuery({
-    queryKey: key,
+    queryKey: ["admin", "users", search, status, type, restaurant, page],
     queryFn: () =>
       unwrap(
         api.GET("/api/admin/users", {
           params: {
-            query: { q: search || undefined, page, page_size: PAGE_SIZE },
+            query: {
+              q: search || undefined,
+              status: status === ALL ? undefined : status,
+              account_type: type === ALL ? undefined : type,
+              restaurant_id: restaurant === ALL ? undefined : restaurant,
+              page,
+              page_size: PAGE_SIZE,
+            },
           },
         }),
       ),
     placeholderData: keepPreviousData,
   });
 
-  const update = useMutation({
-    mutationFn: ({ user, patch }: { user: AdminUser; patch: Patch }) =>
-      unwrap(
-        api.PATCH("/api/admin/users/{user_id}", {
-          params: { path: { user_id: user.id } },
-          body: patch,
-        }),
-      ),
-    onMutate: async ({ user, patch }) => {
-      await qc.cancelQueries({ queryKey: key });
-      const previous = qc.getQueryData<Schemas["Page_AdminUser_"]>(key);
-      qc.setQueryData<Schemas["Page_AdminUser_"]>(key, (d) =>
-        d
-          ? {
-              ...d,
-              items: d.items.map((u) =>
-                u.id === user.id
-                  ? {
-                      ...u,
-                      is_active: patch.is_active ?? u.is_active,
-                      is_superadmin: patch.is_superadmin ?? u.is_superadmin,
-                    }
-                  : u,
-              ),
-            }
-          : d,
-      );
-      return { previous };
-    },
-    onError: (e, _v, ctx) => {
-      if (ctx?.previous) qc.setQueryData(key, ctx.previous);
-      toast.error(
-        e instanceof ApiError && e.code === "self_demotion"
-          ? "Vous ne pouvez pas retirer vos propres droits ni désactiver votre compte."
-          : errorMessage(e),
-      );
-    },
-    onSuccess: (u, { patch }) => {
-      if (patch.is_active !== undefined) toast.success(u.is_active ? `${u.email} réactivé` : `${u.email} désactivé`);
-      else toast.success(u.is_superadmin ? `${u.email} est super admin` : `${u.email} n'est plus super admin`);
-    },
-    onSettled: () => void qc.invalidateQueries({ queryKey: ["admin", "users"] }),
-  });
-
-  const pendingFor = (id: string) => update.isPending && update.variables?.user.id === id;
+  const filtered = !!search || status !== ALL || type !== ALL || restaurant !== ALL;
+  const reset =
+    <T,>(set: (v: T) => void) =>
+    (v: T) => {
+      set(v);
+      setPage(1);
+    };
 
   return (
     <>
-      <PageHeader title="Utilisateurs" description="Comptes de la plateforme : activation et droits super admin." />
-      <div className="mb-4 flex items-center gap-3">
-        <SearchInput
-          value={q}
-          onChange={(v) => {
-            setQ(v);
-            setPage(1);
-          }}
-          placeholder="Email ou nom…"
-          label="Rechercher un utilisateur"
-        />
-        {list.isFetching && !list.isLoading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+      <PageHeader
+        title="Utilisateurs"
+        description="Comptes de la plateforme : création, activation, rattachement aux restaurants et droits."
+        actions={
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus aria-hidden />
+            Créer un utilisateur
+          </Button>
+        }
+      />
+
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <SearchInput value={q} onChange={reset(setQ)} placeholder="Email ou nom…" label="Rechercher un utilisateur" />
+          <div className="grid grid-cols-2 gap-3 sm:flex">
+            <Select value={type} onValueChange={(v) => reset(setType)(v as AccountType | typeof ALL)}>
+              <SelectTrigger className="w-full sm:w-40" aria-label="Type de compte">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Tous les comptes</SelectItem>
+                <SelectItem value="STAFF">Personnel</SelectItem>
+                <SelectItem value="CUSTOMER">Clients</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={restaurant} onValueChange={reset(setRestaurant)}>
+              <SelectTrigger className="w-full sm:w-52" aria-label="Restaurant">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Tous les restaurants</SelectItem>
+                {restaurants.data?.items.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {list.isFetching && !list.isLoading && (
+            <Loader2 className="size-4 animate-spin text-muted-foreground" aria-label="Chargement" />
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filtrer par statut">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              role="tab"
+              aria-selected={status === f.value}
+              onClick={() => reset(setStatus)(f.value)}
+              className={cn(
+                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                status === f.value
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "bg-background hover:bg-muted",
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {list.isError ? (
         <p className="text-destructive">{errorMessage(list.error)}</p>
       ) : list.isLoading ? (
-        <Skeleton className="h-64" />
+        <div className="space-y-3" aria-busy="true" aria-label="Chargement des utilisateurs">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-2xl" />
+          ))}
+        </div>
       ) : list.data && list.data.items.length === 0 ? (
         <EmptyState
           icon={Users}
           title="Aucun utilisateur"
-          description={search ? "Aucun résultat pour cette recherche." : undefined}
+          description={filtered ? "Aucun résultat pour ces filtres." : undefined}
         />
       ) : (
-        <div className="rounded-lg border bg-background">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Utilisateur</TableHead>
-                <TableHead className="text-right">Restaurants</TableHead>
-                <TableHead>Dernière connexion</TableHead>
-                <TableHead>Inscription</TableHead>
-                <TableHead>Actif</TableHead>
-                <TableHead>Super admin</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.data?.items.map((u) => {
-                const self = u.id === me?.id;
-                const busy = pendingFor(u.id);
-                return (
-                  <TableRow key={u.id} className={u.is_active ? undefined : "opacity-60"}>
-                    <TableCell>
-                      <div className="flex items-center gap-2 font-medium">
-                        {u.full_name}
-                        {self && <Badge variant="secondary">Vous</Badge>}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{u.email}</div>
-                    </TableCell>
-                    <TableCell className="tabular text-right">{u.restaurants}</TableCell>
-                    <TableCell className="text-sm">
-                      {u.last_login_at ? formatDateTime(u.last_login_at) : "Jamais"}
-                    </TableCell>
-                    <TableCell className="text-sm">{formatDateTime(u.created_at)}</TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={u.is_active}
-                        disabled={busy || self}
-                        onCheckedChange={(v) => update.mutate({ user: u, patch: { is_active: v } })}
-                        aria-label={`Compte actif : ${u.email}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={u.is_superadmin}
-                        disabled={busy || (self && u.is_superadmin)}
-                        onCheckedChange={(v) =>
-                          update.mutate({
-                            user: u,
-                            patch: { is_superadmin: v },
-                          })
-                        }
-                        aria-label={`Super admin : ${u.email}`}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <ul className={cn("space-y-3", list.isPlaceholderData && "opacity-60")} aria-label="Utilisateurs">
+          {list.data?.items.map((u) => (
+            <UserRow key={u.id} user={u} self={u.id === me?.id} />
+          ))}
+        </ul>
       )}
       {list.data && <Pagination page={page} total={list.data.total} onPage={setPage} />}
-      <p className="mt-2 text-xs text-muted-foreground">
-        Par sécurité, vous ne pouvez ni désactiver votre propre compte ni retirer vos propres droits super admin.
-      </p>
+
+      <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
     </>
+  );
+}
+
+function UserRow({ user: u, self }: { user: AdminUser; self: boolean }) {
+  return (
+    <li>
+      <Link
+        href={`/admin/users/${u.id}`}
+        className={cn(
+          "flex items-start gap-3 rounded-2xl border bg-card p-4 shadow-xs transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:items-center sm:gap-4",
+          !u.is_active && "opacity-70",
+        )}
+        aria-label={`${u.full_name} (${u.email})`}
+      >
+        <InitialsAvatar name={u.full_name} />
+        <div className="min-w-0 flex-1 space-y-2 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem] lg:items-center lg:gap-4 lg:space-y-0">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="truncate font-semibold">{u.full_name}</span>
+              {self && <Badge variant="secondary">Vous</Badge>}
+            </div>
+            <p className="truncate text-sm text-muted-foreground">{u.email}</p>
+          </div>
+          <div className="flex min-w-0 flex-wrap gap-1.5">
+            <UserStatusBadge status={u.status} />
+            {u.is_superadmin && (
+              <Badge className="border-transparent bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200">
+                <ShieldCheck aria-hidden />
+                Super admin
+              </Badge>
+            )}
+            {u.account_type === "CUSTOMER" && <Badge variant="outline">Client</Badge>}
+            {u.memberships.map((m) => (
+              <Badge
+                key={m.id}
+                variant="outline"
+                className={cn("max-w-full truncate", !m.is_active && "text-muted-foreground line-through")}
+                title={`${m.restaurant_name} · ${roleLabel(m.role)}${m.is_active ? "" : " (suspendu)"}`}
+              >
+                <span className="truncate">
+                  {m.restaurant_name} · {roleLabel(m.role)}
+                </span>
+              </Badge>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground lg:text-right">
+            {u.last_login_at ? `Connecté le ${formatDateTime(u.last_login_at)}` : "Jamais connecté"}
+          </p>
+        </div>
+        <ChevronRight className="mt-2 size-5 shrink-0 text-muted-foreground sm:mt-0" aria-hidden />
+      </Link>
+    </li>
   );
 }

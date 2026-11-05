@@ -242,15 +242,20 @@ async def me(user: CurrentUser, session: Session):
 
 
 @router.post("/change-password", status_code=204)
-async def change_password(body: ChangePasswordIn, user: CurrentUser, session: Session):
+async def change_password(body: ChangePasswordIn, request: Request, user: CurrentUser, session: Session):
     if not verify_password(body.current_password, user.password_hash):
         raise Unprocessable("Mot de passe actuel incorrect", code="invalid_password")
     user.password_hash = hash_password(body.new_password)
-    # Déconnecte toutes les autres sessions.
-    await session.execute(
-        update(RefreshToken)
-        .where(RefreshToken.user_id == user.id, RefreshToken.revoked_at.is_(None))
-        .values(revoked_at=datetime.now(UTC))
+    # Déconnecte toutes les AUTRES sessions ; l'appareil courant reste connecté.
+    raw = request.cookies.get(REFRESH_COOKIE)
+    current = (
+        await session.scalar(select(RefreshToken.family_id).where(RefreshToken.token_hash == hash_token(raw)))
+        if raw
+        else None
     )
+    cond = [RefreshToken.user_id == user.id, RefreshToken.revoked_at.is_(None)]
+    if current:
+        cond.append(RefreshToken.family_id != current)
+    await session.execute(update(RefreshToken).where(*cond).values(revoked_at=datetime.now(UTC)))
     audit(session, "user.password_changed", actor_id=user.id)
     await session.commit()

@@ -1,10 +1,11 @@
 "use client";
 
-import { ChefHat, LogOut, Menu, Shield, Store, UserRound } from "lucide-react";
+import { ChefHat, CircleUserRound, LogOut, Menu, Shield, Store, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { NotificationsBell } from "@/components/shared/notifications-bell";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -75,6 +76,13 @@ function UserMenu() {
           <div className="font-medium">{user.full_name}</div>
           <div className="truncate text-xs text-muted-foreground">{user.email}</div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/compte">
+            <CircleUserRound className="size-4" />
+            Mon compte
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {user.memberships.map((m) => (
           <DropdownMenuItem key={m.restaurant_id} asChild>
@@ -174,6 +182,7 @@ export function AppShell({
           <span className="min-w-0 truncate font-semibold lg:hidden">{title}</span>
           <div className="ml-auto flex shrink-0 items-center gap-2">
             {actions}
+            <NotificationsBell />
             <UserMenu />
           </div>
         </header>

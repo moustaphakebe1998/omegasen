@@ -57,6 +57,7 @@ class PublicRestaurant(PublicRestaurantCard):
     takeaway_enabled: bool
     require_prepayment: bool
     reservations_enabled: bool
+    timezone: str
     opening_hours: list[HoursSlot]
     gallery: list[MediaOut]
     menu: list[CategoryOut]
@@ -143,6 +144,7 @@ async def get_restaurant(slug: str, session: Session):
         takeaway_enabled=r.takeaway_enabled,
         require_prepayment=r.require_prepayment,
         reservations_enabled=r.reservations_enabled,
+        timezone=r.timezone,
         opening_hours=[
             HoursSlot(day_of_week=h.day_of_week, opens_at=h.opens_at, closes_at=h.closes_at) for h in r.opening_hours
         ],

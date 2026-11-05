@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Banknote, Inbox, QrCode, ReceiptText, ShoppingBag, Store, Users } from "lucide-react";
+import { ArrowRight, Inbox, QrCode, ReceiptText, ShoppingBag, Store, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 
+import { fillDays, RevenueSparkline } from "@/components/admin/revenue-charts";
 import { PageHeader } from "@/components/shared/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,7 +48,6 @@ export default function AdminOverviewPage() {
     queryFn: () => unwrap(api.GET("/api/admin/stats")),
   });
   const s = stats.data;
-  const revenue = Object.entries(s?.revenue_30d_by_currency ?? {}).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <>
@@ -121,31 +121,65 @@ export default function AdminOverviewPage() {
               tone="bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-300"
             />
           </div>
-          <Card className="rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Chiffre d&apos;affaires TTC (30 jours)</CardTitle>
-              <Banknote className="size-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {revenue.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Aucun encaissement sur la période.</p>
-              ) : (
-                <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {revenue.map(([currency, amount]) => (
-                    <div key={currency} className="rounded-lg border p-4">
-                      <dt className="text-xs font-medium text-muted-foreground">{currency}</dt>
-                      <dd className="tabular text-2xl font-bold">{formatMoney(amount, currency)}</dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
-              <p className="mt-3 text-xs text-muted-foreground">
-                Les devises ne sont pas converties : chaque montant est présenté dans sa devise d&apos;origine.
-              </p>
-            </CardContent>
-          </Card>
+          <RevenueSummary />
         </div>
       )}
     </>
+  );
+}
+
+/** Résumé compact du chiffre d'affaires sur 30 jours (une mini-courbe par devise), vers la page dédiée. */
+function RevenueSummary() {
+  const report = useQuery({
+    queryKey: ["admin", "revenue", 30],
+    queryFn: () => unwrap(api.GET("/api/admin/revenue", { params: { query: { days: 30 } } })),
+  });
+  const data = report.data;
+  const currencies = Object.keys(data?.totals_by_currency ?? {}).sort();
+  return (
+    <Card className="gap-3 rounded-2xl">
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-300">
+            <TrendingUp className="size-4" aria-hidden />
+          </span>
+          <CardTitle className="text-base">Chiffre d&apos;affaires TTC (30 jours)</CardTitle>
+        </div>
+        <Link
+          href="/admin/revenue"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
+        >
+          Détails <ArrowRight className="size-4" aria-hidden />
+        </Link>
+      </CardHeader>
+      <CardContent>
+        {report.isError ? (
+          <p className="text-sm text-destructive">{errorMessage(report.error)}</p>
+        ) : !data ? (
+          <Skeleton className="h-24" />
+        ) : currencies.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun encaissement sur la période.</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {currencies.map((c) => (
+              <div key={c} className="rounded-xl border p-4">
+                <p className="text-xs font-medium text-muted-foreground">{c}</p>
+                <p className="tabular truncate text-2xl font-bold">{formatMoney(data.totals_by_currency[c], c)}</p>
+                <RevenueSparkline
+                  currency={c}
+                  data={fillDays(
+                    data.series.filter((p) => p.currency === c),
+                    30,
+                  )}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          Les devises ne sont pas converties : chaque montant est présenté dans sa devise d&apos;origine.
+        </p>
+      </CardContent>
+    </Card>
   );
 }

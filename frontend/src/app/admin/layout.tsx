@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox, LayoutDashboard, ScrollText, Store, Users } from "lucide-react";
+import { Inbox, LayoutDashboard, ScrollText, Store, TrendingUp, Users } from "lucide-react";
 
 import { AppShell, type NavItem } from "@/components/shared/app-shell";
 import { RequireSuperAdmin } from "@/components/shared/guards";
@@ -15,6 +15,7 @@ const NAV: NavItem[] = [
   { href: "/admin/requests", label: "Demandes", icon: Inbox },
   { href: "/admin/restaurants", label: "Restaurants", icon: Store },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
+  { href: "/admin/revenue", label: "Chiffre d'affaires", icon: TrendingUp },
   { href: "/admin/audit", label: "Journal d'audit", icon: ScrollText },
 ];
 

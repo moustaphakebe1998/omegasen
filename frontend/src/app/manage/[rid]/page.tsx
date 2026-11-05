@@ -27,6 +27,7 @@ import { localIsoDate, type Order, useRestaurant } from "@/components/manage/lay
 import { IconChip, KpiCard } from "@/components/manage/layout/kpi-card";
 import { OrderDetailSheet } from "@/components/manage/orders/order-detail-sheet";
 import { OrdersTable } from "@/components/manage/orders/orders-table";
+import { TodayReservationsCard } from "@/components/manage/reservations/today-card";
 import { EmptyState, PageHeader } from "@/components/shared/app-shell";
 import {
   AlertDialog,
@@ -133,7 +134,8 @@ export default function OverviewPage() {
         <div
           className={cn(
             "mb-6 flex items-start gap-4 rounded-2xl border bg-card p-4 shadow-sm sm:items-center sm:p-5",
-            !restaurant.accepting_orders && "border-amber-300 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20",
+            !restaurant.accepting_orders &&
+              "border-amber-300 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20",
           )}
         >
           <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -217,7 +219,7 @@ export default function OverviewPage() {
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
         <section
           aria-labelledby="active-title"
-          className="flex flex-col rounded-2xl border bg-card p-4 shadow-sm sm:p-5 lg:col-span-2"
+          className="flex flex-col self-start rounded-2xl border bg-card p-4 shadow-sm sm:p-5 lg:col-span-2"
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 id="active-title" className="font-semibold">
@@ -242,9 +244,15 @@ export default function OverviewPage() {
               return (
                 <li
                   key={status}
-                  className={cn("flex items-center gap-3 rounded-xl border p-3 sm:flex-col sm:items-start sm:justify-between sm:p-4", t.tile)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border p-3 sm:flex-col sm:items-start sm:justify-between sm:p-4",
+                    t.tile,
+                  )}
                 >
-                  <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", t.chip)} aria-hidden>
+                  <span
+                    className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", t.chip)}
+                    aria-hidden
+                  >
                     <Icon className="size-4.5" />
                   </span>
                   <div className="flex min-w-0 flex-1 items-baseline justify-between gap-2 sm:w-full sm:flex-none sm:flex-col-reverse sm:items-start sm:gap-0.5">
@@ -256,48 +264,65 @@ export default function OverviewPage() {
             })}
           </ul>
         </section>
-        <section aria-labelledby="quick-title" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
-          <h2 id="quick-title" className="mb-3 font-semibold">
-            Accès rapides
-          </h2>
-          <ul className="grid gap-2">
-            {[
-              { href: `/manage/${rid}/qr`, label: "QR Code", hint: "Télécharger et imprimer", icon: QrCode, tone: "violet" as const },
-              { href: `/manage/${rid}/menu`, label: "Menu", hint: "Produits, prix et disponibilités", icon: UtensilsCrossed, tone: "orange" as const },
-            ].map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-                >
-                  <IconChip icon={l.icon} tone={l.tone} className="size-9" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium">{l.label}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{l.hint}</span>
-                  </span>
-                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </li>
-            ))}
-            {restaurant && (
-              <li>
-                <a
-                  href={`/r/${restaurant.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-                >
-                  <IconChip icon={ExternalLink} tone="blue" className="size-9" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium">Page publique</span>
-                    <span className="block truncate text-xs text-muted-foreground">Voir ce que voient vos clients</span>
-                  </span>
-                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                </a>
-              </li>
-            )}
-          </ul>
-        </section>
+        <div className="grid min-w-0 grid-cols-1 content-start gap-4 [&>*]:min-w-0">
+          {restaurant && <TodayReservationsCard rid={rid} timeZone={restaurant.timezone} />}
+          <section aria-labelledby="quick-title" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
+            <h2 id="quick-title" className="mb-3 font-semibold">
+              Accès rapides
+            </h2>
+            <ul className="grid gap-2">
+              {[
+                {
+                  href: `/manage/${rid}/qr`,
+                  label: "QR Code",
+                  hint: "Télécharger et imprimer",
+                  icon: QrCode,
+                  tone: "violet" as const,
+                },
+                {
+                  href: `/manage/${rid}/menu`,
+                  label: "Menu",
+                  hint: "Produits, prix et disponibilités",
+                  icon: UtensilsCrossed,
+                  tone: "orange" as const,
+                },
+              ].map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                  >
+                    <IconChip icon={l.icon} tone={l.tone} className="size-9" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium">{l.label}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{l.hint}</span>
+                    </span>
+                    <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </li>
+              ))}
+              {restaurant && (
+                <li>
+                  <a
+                    href={`/r/${restaurant.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                  >
+                    <IconChip icon={ExternalLink} tone="blue" className="size-9" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium">Page publique</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        Voir ce que voient vos clients
+                      </span>
+                    </span>
+                    <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </a>
+                </li>
+              )}
+            </ul>
+          </section>
+        </div>
       </div>
 
       <Card className="gap-0 overflow-hidden rounded-2xl pb-0">
@@ -333,12 +358,7 @@ export default function OverviewPage() {
         )}
       </Card>
 
-      <OrderDetailSheet
-        rid={rid}
-        order={selected}
-        currency={currency}
-        onOpenChange={(o) => !o && setSelected(null)}
-      />
+      <OrderDetailSheet rid={rid} order={selected} currency={currency} onOpenChange={(o) => !o && setSelected(null)} />
 
       <AlertDialog open={confirmOff} onOpenChange={setConfirmOff}>
         <AlertDialogContent>

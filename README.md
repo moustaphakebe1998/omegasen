@@ -34,8 +34,21 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 ### Principes métier
 
 - **Multi-tenant** : chaque ressource porte un `restaurant_id`. Toute route `/api/restaurants/{id}/…` passe par `require_roles`, qui vérifie l'appartenance de l'utilisateur au restaurant. Un restaurant tiers renvoie 404. Des tests couvrent l'isolation.
-- **Ouverture des restaurants** : seul le **super admin** crée un restaurant. Un restaurateur envoie une **demande d'ouverture** (`/demande`), que le super admin accepte ou refuse dans `/admin/requests`. À l'acceptation, le restaurant (et son QR Code) est créé et, si le propriétaire n'a pas encore de compte, un **lien d'activation** à usage unique (7 jours) est affiché pour lui être transmis : il y choisit son mot de passe (`/activate/{jeton}`). Il n'y a pas d'inscription libre ; les employés sont ajoutés par le propriétaire ou le gérant.
-- **Rôles par restaurant** : `OWNER`, `MANAGER`, `CASHIER`, `KITCHEN`. Le super admin est un drapeau global.
+- **Ouverture des restaurants** : seul le **super admin** crée un restaurant. Un restaurateur envoie une **demande d'ouverture** (`/demande`) ; les super admins sont notifiés et l'acceptent ou la refusent dans `/admin/requests` (le demandeur reçoit la réponse par email). Statuts d'un restaurant : `PENDING` (en préparation, invisible du public), `ACTIVE`, `SUSPENDED`, `CLOSED`.
+- **Comptes et mots de passe** : jamais de mot de passe provisoire. Tout compte créé (propriétaire, employé invité par son gérant, utilisateur créé par le super admin, client) reçoit par email un **lien d'activation** unique, à usage unique et temporaire (`ACTIVATION_TTL_HOURS`, 72 h par défaut) pour choisir son mot de passe (Argon2id) ; l'activation vaut vérification de l'email. Renvoyer un lien invalide les précédents. **Mot de passe oublié** : lien de réinitialisation (`RESET_TTL_MINUTES`, 60 min) qui ferme toutes les sessions. Page **Mon compte** (`/compte`) : profil, changement de mot de passe, sessions actives (révocation), et pour les clients l'historique des commandes et réservations.
+- **Emails** : envoyés par SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_STARTTLS`/`SMTP_SSL`, `EMAIL_FROM`). Sans `SMTP_HOST` (développement), l'email est seulement écrit dans `.dev-logs/api.log` et l'interface affiche le lien d'activation à copier.
+- **Rôles et permissions (RBAC)** : `backend/app/core/permissions.py` est la table unique des permissions par rôle ; les contrôles d'accès du backend en dérivent et `/api/auth/me` expose les permissions à l'interface.
+
+  | Rôle | Accès |
+  |---|---|
+  | Super admin OmegaSen | Toute la plateforme : demandes, restaurants, utilisateurs, chiffre d'affaires, journal d'activité |
+  | Propriétaire (administrateur du restaurant) | Tout son restaurant, y compris nommer d'autres propriétaires |
+  | Responsable (`MANAGER`) | Tout son restaurant : menu, plats, équipe (invitations), réservations, statistiques |
+  | Caisse | Prise de commande, encaissement, suivi des commandes, réservations, ruptures |
+  | Cuisine | Écran cuisine (préparation) et ruptures uniquement |
+  | Client | Compte facultatif : historique de ses commandes et réservations |
+- **Notifications** : centre de notifications (cloche dans les espaces) alimenté en temps réel (`/api/ws/me`) : nouvelle demande d'ouverture, compte activé, nouvelle commande, commande prête, changement de statut d'un restaurant, réservations.
+- **Réservations** : demande depuis la page du restaurant (horaires d'ouverture vérifiés, 30 min à 90 jours à l'avance), suivi et annulation via `/reservation/{jeton}` ; le restaurant confirme, refuse (motif obligatoire), note l'arrivée ou l'absence, et saisit les réservations téléphoniques. Désactivables par restaurant.
 - **Montants** : entiers en unités mineures (centimes pour EUR, francs pour XOF). La devise est propre à chaque restaurant. Les prix sont saisis **TTC** et la TVA est **extraite**, jamais ajoutée.
 - **QR Code permanent** : il est créé avec le restaurant et encode `PUBLIC_APP_URL/q/{code}`. Il ne change pas quand le nom, le slug ou le menu changent. Seul un super admin peut le régénérer. Il peut être téléchargé en PNG, en SVG et en PDF imprimable (A4 ou chevalet A6), avec le logo au centre, et le nombre de scans est compté.
 - **Moteur de commandes unique** (`place_order`) pour les quatre canaux : prix recalculés côté serveur, promotions datées, options obligatoires et nombre min/max de choix vérifiés, nom et prix figés dans la commande, numéro du jour attribué par un compteur verrouillé, idempotence.
@@ -111,6 +124,10 @@ Les comptes cuisine et caisse sont redirigés automatiquement vers leur écran a
 
 **Comptes de démonstration** (mot de passe `Demo!2026pass`) : `owner@demo.example.com`, `manager@demo.example.com`, `caisse@demo.example.com`, `cuisine@demo.example.com`. Restaurant : `/r/le-baobab-demo`.
 Super admin : définir `SUPERADMIN_EMAIL` et `SUPERADMIN_PASSWORD`, puis lancer `python -m app.cli bootstrap`.
+
+## Démo
+
+La page `/demo` présente chaque espace avec de vraies captures du restaurant de démonstration. Pour les régénérer après une évolution de l'interface (application lancée) : `cd frontend && npm run demo:screens` (crée un peu d'activité, capture, convertit en WebP dans `public/demo/`, puis supprime l'activité créée).
 
 ## Tests
 

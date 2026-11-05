@@ -21,6 +21,7 @@ const schema = z.object({
   dine_in_enabled: z.boolean(),
   takeaway_enabled: z.boolean(),
   require_prepayment: z.boolean(),
+  reservations_enabled: z.boolean(),
   late_after_minutes: z
     .string()
     .trim()
@@ -68,6 +69,7 @@ function defaults(r: Restaurant): Values {
     dine_in_enabled: r.dine_in_enabled,
     takeaway_enabled: r.takeaway_enabled,
     require_prepayment: r.require_prepayment,
+    reservations_enabled: r.reservations_enabled,
     late_after_minutes: String(r.late_after_minutes),
     vat: vatInput(r.vat_rate_bp),
     timezone: r.timezone,
@@ -94,6 +96,7 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
         dine_in_enabled: v.dine_in_enabled,
         takeaway_enabled: v.takeaway_enabled,
         require_prepayment: v.require_prepayment,
+        reservations_enabled: v.reservations_enabled,
         late_after_minutes: Number(v.late_after_minutes),
         vat_rate_bp: parseVatPercent(v.vat) ?? undefined,
         timezone: v.timezone.trim(),
@@ -105,11 +108,17 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
     }
   });
 
-  const sw = (name: "accepting_orders" | "dine_in_enabled" | "takeaway_enabled" | "require_prepayment", label: string, hint: string) => (
+  const sw = (
+    name: "accepting_orders" | "dine_in_enabled" | "takeaway_enabled" | "require_prepayment" | "reservations_enabled",
+    label: string,
+    hint: string,
+  ) => (
     <Controller
       control={control}
       name={name}
-      render={({ field }) => <SwitchRow id={`ord-${name}`} label={label} hint={hint} checked={field.value} onChange={field.onChange} />}
+      render={({ field }) => (
+        <SwitchRow id={`ord-${name}`} label={label} hint={hint} checked={field.value} onChange={field.onChange} />
+      )}
     />
   );
 
@@ -118,11 +127,15 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
       <form onSubmit={onSubmit} noValidate>
         <CardHeader>
           <CardTitle>Commande</CardTitle>
-          <CardDescription>Modes de service, paiement et suivi en cuisine.</CardDescription>
+          <CardDescription>Modes de service, réservations, paiement et suivi en cuisine.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 pt-6">
           <div className="grid gap-3 sm:grid-cols-2">
-            {sw("accepting_orders", "Commandes ouvertes", "Désactivez pour suspendre temporairement toutes les commandes clients.")}
+            {sw(
+              "accepting_orders",
+              "Commandes ouvertes",
+              "Désactivez pour suspendre temporairement toutes les commandes clients.",
+            )}
             {sw(
               "require_prepayment",
               "Paiement au comptoir avant préparation",
@@ -130,9 +143,17 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
             )}
             {sw("dine_in_enabled", "Sur place", "Le client peut commander pour manger sur place.")}
             {sw("takeaway_enabled", "À emporter", "Le client peut commander à emporter.")}
+            {sw(
+              "reservations_enabled",
+              "Réservations en ligne",
+              "Affiche le bouton « Réserver une table » sur votre page publique. Les demandes arrivent dans Réservations.",
+            )}
           </div>
           {!dineIn && !takeaway && (
-            <p className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100" role="status">
+            <p
+              className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
+              role="status"
+            >
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
               Aucun mode de service actif : vos clients ne pourront pas commander.
             </p>
@@ -144,21 +165,50 @@ export function OrdersForm({ restaurant }: { restaurant: Restaurant }) {
               hint="Au-delà, la commande est signalée en cuisine."
               error={errors.late_after_minutes?.message}
             >
-              <Input inputMode="numeric" {...aria("ord-late", errors.late_after_minutes?.message, true)} {...register("late_after_minutes")} />
+              <Input
+                inputMode="numeric"
+                {...aria("ord-late", errors.late_after_minutes?.message, true)}
+                {...register("late_after_minutes")}
+              />
             </Field>
-            <Field id="ord-vat" label="TVA par défaut (%)" hint="Appliquée aux produits sans taux spécifique. Prix TTC." error={errors.vat?.message}>
+            <Field
+              id="ord-vat"
+              label="TVA par défaut (%)"
+              hint="Appliquée aux produits sans taux spécifique. Prix TTC."
+              error={errors.vat?.message}
+            >
               <Input inputMode="decimal" {...aria("ord-vat", errors.vat?.message, true)} {...register("vat")} />
             </Field>
-            <Field id="ord-tz" label="Fuseau horaire" hint="Utilisé pour les horaires d'ouverture et les rapports." error={errors.timezone?.message}>
-              <Input list="ord-tz-list" autoComplete="off" {...aria("ord-tz", errors.timezone?.message, true)} {...register("timezone")} />
+            <Field
+              id="ord-tz"
+              label="Fuseau horaire"
+              hint="Utilisé pour les horaires d'ouverture et les rapports."
+              error={errors.timezone?.message}
+            >
+              <Input
+                list="ord-tz-list"
+                autoComplete="off"
+                {...aria("ord-tz", errors.timezone?.message, true)}
+                {...register("timezone")}
+              />
               <datalist id="ord-tz-list">
                 {tzList.map((tz) => (
                   <option key={tz} value={tz} />
                 ))}
               </datalist>
             </Field>
-            <Field id="ord-currency" label="Devise" hint="Définie à la création du restaurant ; elle ne peut pas être modifiée.">
-              <Input id="ord-currency" value={restaurant.currency} readOnly disabled aria-describedby="ord-currency-hint" />
+            <Field
+              id="ord-currency"
+              label="Devise"
+              hint="Définie à la création du restaurant ; elle ne peut pas être modifiée."
+            >
+              <Input
+                id="ord-currency"
+                value={restaurant.currency}
+                readOnly
+                disabled
+                aria-describedby="ord-currency-hint"
+              />
             </Field>
           </div>
           <FormError message={error} />

@@ -11,6 +11,9 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
+  // Un seul worker : tous les tests partagent le restaurant de démo (commandes, notifications du
+  // propriétaire, limitation de débit) ; en parallèle ils se perturberaient mutuellement.
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
   use: {

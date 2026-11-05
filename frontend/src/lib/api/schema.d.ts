@@ -21,40 +21,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/activation/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Activation Info */
-        get: operations["activation_info_api_auth_activation__token__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/activate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Activate */
-        post: operations["activate_api_auth_activate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/auth/refresh": {
         parameters: {
             query?: never;
@@ -103,7 +69,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update Profile */
+        patch: operations["update_profile_api_auth_me_patch"];
         trace?: never;
     };
     "/api/auth/change-password": {
@@ -193,6 +160,23 @@ export interface paths {
         put?: never;
         /** Add Member */
         post: operations["add_member_api_restaurants__restaurant_id__members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/restaurants/{restaurant_id}/members/{member_id}/resend-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend Invite */
+        post: operations["resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -845,7 +829,11 @@ export interface paths {
         /** List Users */
         get: operations["list_users_api_admin_users_get"];
         put?: never;
-        post?: never;
+        /**
+         * Create User
+         * @description Crée un compte (personnel ou super admin) : l'utilisateur reçoit un lien pour choisir son mot de passe.
+         */
+        post: operations["create_user_api_admin_users_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -859,7 +847,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get User */
+        get: operations["get_user_api_admin_users__user_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -867,6 +856,95 @@ export interface paths {
         head?: never;
         /** Update User */
         patch: operations["update_user_api_admin_users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/admin/users/{user_id}/resend-activation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend Activation */
+        post: operations["resend_activation_api_admin_users__user_id__resend_activation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{user_id}/memberships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Membership */
+        post: operations["add_membership_api_admin_users__user_id__memberships_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{user_id}/memberships/{membership_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Membership */
+        delete: operations["remove_membership_api_admin_users__user_id__memberships__membership_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Membership */
+        patch: operations["update_membership_api_admin_users__user_id__memberships__membership_id__patch"];
+        trace?: never;
+    };
+    "/api/admin/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Revenue
+         * @description Chiffre d'affaires TTC encaissé (commandes payées, non annulées), par jour, devise et restaurant.
+         */
+        get: operations["revenue_api_admin_revenue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/restaurants/{restaurant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Restaurant Detail */
+        get: operations["restaurant_detail_api_admin_restaurants__restaurant_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/admin/audit-logs": {
@@ -954,6 +1032,336 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/activation/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Activation Info */
+        get: operations["activation_info_api_auth_activation__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate */
+        post: operations["activate_api_auth_activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forgot Password
+         * @description Répond toujours 202 (ne révèle pas si l'adresse existe).
+         */
+        post: operations["forgot_password_api_auth_forgot_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/reset/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reset Info */
+        get: operations["reset_info_api_auth_reset__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Password */
+        post: operations["reset_password_api_auth_reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Customer Signup
+         * @description Compte client facultatif : envoie un lien d'activation (choix du mot de passe = email vérifié).
+         */
+        post: operations["customer_signup_api_auth_signup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sessions */
+        get: operations["list_sessions_api_auth_sessions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sessions/{family_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Session */
+        delete: operations["revoke_session_api_auth_sessions__family_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sessions/revoke-others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke Other Sessions */
+        post: operations["revoke_other_sessions_api_auth_sessions_revoke_others_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Orders */
+        get: operations["my_orders_api_me_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Reservations */
+        get: operations["my_reservations_api_me_reservations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Notifications */
+        get: operations["list_notifications_api_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Read */
+        post: operations["mark_read_api_notifications__notification_id__read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark All Read */
+        post: operations["mark_all_read_api_notifications_read_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/restaurants/{slug}/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Reservation */
+        post: operations["request_reservation_api_public_restaurants__slug__reservations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/reservations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Track Reservation */
+        get: operations["track_reservation_api_public_reservations__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/reservations/{token}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Reservation */
+        post: operations["cancel_reservation_api_public_reservations__token__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/restaurants/{restaurant_id}/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reservations */
+        get: operations["list_reservations_api_restaurants__restaurant_id__reservations_get"];
+        put?: never;
+        /** Create Reservation */
+        post: operations["create_reservation_api_restaurants__restaurant_id__reservations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/restaurants/{restaurant_id}/reservations/{reservation_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Status */
+        post: operations["set_status_api_restaurants__restaurant_id__reservations__reservation_id__status_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -975,19 +1383,28 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** ActivateIn */
-        ActivateIn: {
-            /** Token */
-            token: string;
-            /** Password */
-            password: string;
-        };
-        /** ActivationInfo */
-        ActivationInfo: {
-            /** Email */
-            email: string;
-            /** Full Name */
-            full_name: string;
+        /**
+         * AccountType
+         * @enum {string}
+         */
+        AccountType: "STAFF" | "CUSTOMER";
+        /** AdminMembership */
+        AdminMembership: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Restaurant Id
+             * Format: uuid
+             */
+            restaurant_id: string;
+            /** Restaurant Name */
+            restaurant_name: string;
+            role: components["schemas"]["MemberRole"];
+            /** Is Active */
+            is_active: boolean;
         };
         /** AdminRestaurant */
         AdminRestaurant: {
@@ -1022,6 +1439,8 @@ export interface components {
             orders_30d: number;
             /** Activation Url */
             activation_url: string | null;
+            /** Email Sent */
+            email_sent: boolean | null;
         };
         /** AdminRestaurantCreate */
         AdminRestaurantCreate: {
@@ -1065,8 +1484,68 @@ export interface components {
             owner_email: string;
             /** Owner Full Name */
             owner_full_name?: string | null;
-            /** Owner Password */
-            owner_password?: string | null;
+            /** @default ACTIVE */
+            status: components["schemas"]["RestaurantStatus"];
+        };
+        /** AdminRestaurantDetail */
+        AdminRestaurantDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** City */
+            city: string | null;
+            /** Currency */
+            currency: string;
+            status: components["schemas"]["RestaurantStatus"];
+            /** Accepting Orders */
+            accepting_orders: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Qr Code */
+            qr_code: string | null;
+            /** Qr Active */
+            qr_active: boolean | null;
+            /** Owners */
+            owners: string[];
+            /** Orders 30D */
+            orders_30d: number;
+            /** Activation Url */
+            activation_url: string | null;
+            /** Email Sent */
+            email_sent: boolean | null;
+            /** Cuisine */
+            cuisine: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Email */
+            email: string | null;
+            /** Address Line */
+            address_line: string | null;
+            /** Logo Url */
+            logo_url: string | null;
+            /** Cover Url */
+            cover_url: string | null;
+            /** Members */
+            members: components["schemas"]["AdminMembership"][];
+            /** Staff */
+            staff: components["schemas"]["StaffRow"][];
+            /** Products */
+            products: number;
+            /** Categories */
+            categories: number;
+            /** Revenue 30D */
+            revenue_30d: number;
+            /** Reservations Upcoming */
+            reservations_upcoming: number;
         };
         /** AdminUser */
         AdminUser: {
@@ -1079,6 +1558,10 @@ export interface components {
             email: string;
             /** Full Name */
             full_name: string;
+            /** Phone */
+            phone: string | null;
+            account_type: components["schemas"]["AccountType"];
+            status: components["schemas"]["UserStatus"];
             /** Is Superadmin */
             is_superadmin: boolean;
             /** Is Active */
@@ -1092,9 +1575,42 @@ export interface components {
             created_at: string;
             /** Restaurants */
             restaurants: number;
+            /**
+             * Memberships
+             * @default []
+             */
+            memberships: components["schemas"]["AdminMembership"][];
+            /** Activation Url */
+            activation_url: string | null;
+            /** Email Sent */
+            email_sent: boolean | null;
+        };
+        /** AdminUserCreate */
+        AdminUserCreate: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /** Phone */
+            phone?: string | null;
+            /**
+             * Is Superadmin
+             * @default false
+             */
+            is_superadmin: boolean;
+            /** Restaurant Id */
+            restaurant_id?: string | null;
+            role?: components["schemas"]["MemberRole"] | null;
         };
         /** AdminUserUpdate */
         AdminUserUpdate: {
+            /** Full Name */
+            full_name?: string | null;
+            /** Phone */
+            phone?: string | null;
             /** Is Active */
             is_active?: boolean | null;
             /** Is Superadmin */
@@ -1133,6 +1649,8 @@ export interface components {
             owner_email: string;
             /** Activation Url */
             activation_url: string | null;
+            /** Email Sent */
+            email_sent: boolean | null;
         };
         /** AuditOut */
         AuditOut: {
@@ -1249,6 +1767,14 @@ export interface components {
             redirect_url: string;
             /** External Ref */
             external_ref: string;
+        };
+        /** ForgotIn */
+        ForgotIn: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1369,7 +1895,10 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
-        /** MemberCreate */
+        /**
+         * MemberCreate
+         * @description Pas de mot de passe : la personne reçoit un lien d'activation pour choisir le sien.
+         */
         MemberCreate: {
             /**
              * Email
@@ -1379,8 +1908,6 @@ export interface components {
             /** Full Name */
             full_name: string;
             role: components["schemas"]["MemberRole"];
-            /** Password */
-            password?: string | null;
             /** Phone */
             phone?: string | null;
         };
@@ -1405,11 +1932,17 @@ export interface components {
             role: components["schemas"]["MemberRole"];
             /** Is Active */
             is_active: boolean;
+            /** Activated */
+            activated: boolean;
             /**
              * Created At
              * Format: date-time
              */
             created_at: string;
+            /** Activation Url */
+            activation_url: string | null;
+            /** Email Sent */
+            email_sent: boolean | null;
         };
         /**
          * MemberRole
@@ -1422,6 +1955,15 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** MembershipIn */
+        MembershipIn: {
+            /**
+             * Restaurant Id
+             * Format: uuid
+             */
+            restaurant_id: string;
+            role: components["schemas"]["MemberRole"];
+        };
         /** MembershipOut */
         MembershipOut: {
             /**
@@ -1433,7 +1975,93 @@ export interface components {
             restaurant_name: string;
             /** Restaurant Slug */
             restaurant_slug: string;
+            restaurant_status: components["schemas"]["RestaurantStatus"];
             role: components["schemas"]["MemberRole"];
+            /** Permissions */
+            permissions: components["schemas"]["Perm"][];
+        };
+        /** MembershipPatch */
+        MembershipPatch: {
+            role?: components["schemas"]["MemberRole"] | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
+        /** MyOrder */
+        MyOrder: {
+            /** Reference */
+            reference: string;
+            /** Display Number */
+            display_number: string;
+            /** Restaurant Name */
+            restaurant_name: string;
+            /** Restaurant Slug */
+            restaurant_slug: string;
+            /** Total */
+            total: number;
+            /** Currency */
+            currency: string;
+            status: components["schemas"]["OrderStatus"];
+            payment_status: components["schemas"]["PaymentStatus"];
+            /** Tracking Token */
+            tracking_token: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** MyReservation */
+        MyReservation: {
+            /** Restaurant Name */
+            restaurant_name: string;
+            /** Restaurant Slug */
+            restaurant_slug: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Party Size */
+            party_size: number;
+            status: components["schemas"]["ReservationStatus"];
+            /** Tracking Token */
+            tracking_token: string;
+        };
+        /** NotificationOut */
+        NotificationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Type */
+            type: string;
+            /** Title */
+            title: string;
+            /** Body */
+            body: string | null;
+            /** Link */
+            link: string | null;
+            /** Restaurant Id */
+            restaurant_id: string | null;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Read At */
+            read_at: string | null;
+        };
+        /** NotificationPage */
+        NotificationPage: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Unread */
+            unread: number;
         };
         /** OptionGroupIn */
         OptionGroupIn: {
@@ -1667,6 +2295,11 @@ export interface components {
          * @enum {string}
          */
         PaymentStatus: "UNPAID" | "PARTIALLY_PAID" | "PAID" | "REFUNDED";
+        /**
+         * Perm
+         * @enum {string}
+         */
+        Perm: "restaurant.view" | "restaurant.edit" | "menu.manage" | "stock.manage" | "qr.manage" | "team.manage" | "orders.history" | "orders.create" | "orders.prepare" | "orders.cancel" | "payments.record" | "payments.refund" | "reservations.manage" | "stats.view";
         /** PlacedOrderOut */
         PlacedOrderOut: {
             /** Reference */
@@ -1904,6 +2537,13 @@ export interface components {
             /** Option Groups */
             option_groups?: components["schemas"]["OptionGroupIn"][] | null;
         };
+        /** ProfileIn */
+        ProfileIn: {
+            /** Full Name */
+            full_name?: string | null;
+            /** Phone */
+            phone?: string | null;
+        };
         /** PublicOrderIn */
         PublicOrderIn: {
             service_mode: components["schemas"]["ServiceMode"];
@@ -1926,6 +2566,31 @@ export interface components {
              * @enum {string}
              */
             channel: "QR" | "ONLINE" | "KIOSK";
+        };
+        /** PublicReservationOut */
+        PublicReservationOut: {
+            /** Restaurant Name */
+            restaurant_name: string;
+            /** Restaurant Slug */
+            restaurant_slug: string;
+            /** Restaurant Timezone */
+            restaurant_timezone: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Party Size */
+            party_size: number;
+            /** Customer Name */
+            customer_name: string;
+            status: components["schemas"]["ReservationStatus"];
+            /** Staff Note */
+            staff_note: string | null;
+            /** Tracking Token */
+            tracking_token: string;
+            /** Can Cancel */
+            can_cancel: boolean;
         };
         /** PublicRestaurant */
         PublicRestaurant: {
@@ -1971,6 +2636,10 @@ export interface components {
             takeaway_enabled: boolean;
             /** Require Prepayment */
             require_prepayment: boolean;
+            /** Reservations Enabled */
+            reservations_enabled: boolean;
+            /** Timezone */
+            timezone: string;
             /** Opening Hours */
             opening_hours: components["schemas"]["HoursSlot"][];
             /** Gallery */
@@ -2137,6 +2806,62 @@ export interface components {
          * @enum {string}
          */
         RequestStatus: "PENDING" | "APPROVED" | "REJECTED";
+        /** ReservationIn */
+        ReservationIn: {
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Party Size */
+            party_size: number;
+            /** Customer Name */
+            customer_name: string;
+            /** Customer Phone */
+            customer_phone: string;
+            /** Customer Email */
+            customer_email?: string | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** ReservationOut */
+        ReservationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Party Size */
+            party_size: number;
+            /** Customer Name */
+            customer_name: string;
+            /** Customer Phone */
+            customer_phone: string;
+            /** Customer Email */
+            customer_email: string | null;
+            /** Note */
+            note: string | null;
+            status: components["schemas"]["ReservationStatus"];
+            /** Staff Note */
+            staff_note: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Allowed Transitions */
+            allowed_transitions: components["schemas"]["ReservationStatus"][];
+        };
+        /**
+         * ReservationStatus
+         * @enum {string}
+         */
+        ReservationStatus: "PENDING" | "CONFIRMED" | "DECLINED" | "CANCELLED" | "SEATED" | "NO_SHOW";
         /** RestaurantCreate */
         RestaurantCreate: {
             /** Description */
@@ -2230,6 +2955,8 @@ export interface components {
             require_prepayment: boolean;
             /** Late After Minutes */
             late_after_minutes: number;
+            /** Reservations Enabled */
+            reservations_enabled: boolean;
             /** Logo Media Id */
             logo_media_id: string | null;
             /** Cover Media Id */
@@ -2252,7 +2979,7 @@ export interface components {
          * RestaurantStatus
          * @enum {string}
          */
-        RestaurantStatus: "ACTIVE" | "SUSPENDED";
+        RestaurantStatus: "PENDING" | "ACTIVE" | "SUSPENDED" | "CLOSED";
         /** RestaurantUpdate */
         RestaurantUpdate: {
             /** Description */
@@ -2293,16 +3020,139 @@ export interface components {
             require_prepayment?: boolean | null;
             /** Late After Minutes */
             late_after_minutes?: number | null;
+            /** Reservations Enabled */
+            reservations_enabled?: boolean | null;
             /** Logo Media Id */
             logo_media_id?: string | null;
             /** Cover Media Id */
             cover_media_id?: string | null;
+        };
+        /** RevenueByRestaurant */
+        RevenueByRestaurant: {
+            /**
+             * Restaurant Id
+             * Format: uuid
+             */
+            restaurant_id: string;
+            /** Restaurant Name */
+            restaurant_name: string;
+            /** Currency */
+            currency: string;
+            /** Revenue */
+            revenue: number;
+            /** Orders */
+            orders: number;
+        };
+        /** RevenuePoint */
+        RevenuePoint: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Currency */
+            currency: string;
+            /** Revenue */
+            revenue: number;
+            /** Orders */
+            orders: number;
+        };
+        /** RevenueReport */
+        RevenueReport: {
+            /** Days */
+            days: number;
+            /** Series */
+            series: components["schemas"]["RevenuePoint"][];
+            /** Totals By Currency */
+            totals_by_currency: {
+                [key: string]: number;
+            };
+            /** By Restaurant */
+            by_restaurant: components["schemas"]["RevenueByRestaurant"][];
         };
         /**
          * ServiceMode
          * @enum {string}
          */
         ServiceMode: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
+        /** SessionOut */
+        SessionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** User Agent */
+            user_agent: string | null;
+            /** Ip Address */
+            ip_address: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Last Used At
+             * Format: date-time
+             */
+            last_used_at: string;
+            /** Current */
+            current: boolean;
+        };
+        /** SetPasswordIn */
+        SetPasswordIn: {
+            /** Token */
+            token: string;
+            /** Password */
+            password: string;
+        };
+        /** SignupIn */
+        SignupIn: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /** Phone */
+            phone?: string | null;
+        };
+        /**
+         * StaffReservationIn
+         * @description Réservation saisie par le restaurant (ex. par téléphone) : confirmée directement.
+         */
+        StaffReservationIn: {
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Party Size */
+            party_size: number;
+            /** Customer Name */
+            customer_name: string;
+            /** Customer Phone */
+            customer_phone: string;
+            /** Customer Email */
+            customer_email?: string | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** StaffRow */
+        StaffRow: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            role: components["schemas"]["MemberRole"];
+            status: components["schemas"]["UserStatus"];
+        };
         /** StationIn */
         StationIn: {
             /** Name */
@@ -2366,6 +3216,13 @@ export interface components {
             top_products: components["schemas"]["TopProduct"][];
             /** Qr Scans Total */
             qr_scans_total: number;
+        };
+        /** TokenInfo */
+        TokenInfo: {
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
         };
         /** TokenOut */
         TokenOut: {
@@ -2443,9 +3300,15 @@ export interface components {
             phone: string | null;
             /** Is Superadmin */
             is_superadmin: boolean;
+            account_type: components["schemas"]["AccountType"];
             /** Memberships */
             memberships: components["schemas"]["MembershipOut"][];
         };
+        /**
+         * UserStatus
+         * @enum {string}
+         */
+        UserStatus: "PENDING" | "ACTIVE" | "DISABLED";
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -2464,6 +3327,12 @@ export interface components {
             status: components["schemas"]["OrderStatus"];
             /** Reason */
             reason?: string | null;
+        };
+        /** StatusIn */
+        app__modules__reservations__StatusIn: {
+            status: components["schemas"]["ReservationStatus"];
+            /** Staff Note */
+            staff_note?: string | null;
         };
     };
     responses: never;
@@ -2484,70 +3353,6 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LoginIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    activation_info_api_auth_activation__token__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ActivationInfo"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    activate_api_auth_activate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ActivateIn"];
             };
         };
         responses: {
@@ -2625,6 +3430,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    update_profile_api_auth_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2842,6 +3680,38 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: string;
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4365,6 +5235,9 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
+                status?: components["schemas"]["UserStatus"] | null;
+                account_type?: components["schemas"]["AccountType"] | null;
+                restaurant_id?: string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -4381,6 +5254,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_AdminUser_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_user_api_admin_users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_api_admin_users__user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
                 };
             };
             /** @description Validation Error */
@@ -4416,6 +5353,202 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_activation_api_admin_users__user_id__resend_activation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_membership_api_admin_users__user_id__memberships_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MembershipIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_membership_api_admin_users__user_id__memberships__membership_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_membership_api_admin_users__user_id__memberships__membership_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MembershipPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revenue_api_admin_revenue_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevenueReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restaurant_detail_api_admin_restaurants__restaurant_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRestaurantDetail"];
                 };
             };
             /** @description Validation Error */
@@ -4586,6 +5719,590 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RequestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activation_info_api_auth_activation__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_api_auth_activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forgot_password_api_auth_forgot_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_info_api_auth_reset__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_api_auth_reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    customer_signup_api_auth_signup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sessions_api_auth_sessions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionOut"][];
+                };
+            };
+        };
+    };
+    revoke_session_api_auth_sessions__family_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                family_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_other_sessions_api_auth_sessions_revoke_others_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    my_orders_api_me_orders_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyOrder"][];
+                };
+            };
+        };
+    };
+    my_reservations_api_me_reservations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyReservation"][];
+                };
+            };
+        };
+    };
+    list_notifications_api_notifications_get: {
+        parameters: {
+            query?: {
+                unread_only?: boolean;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_read_api_notifications__notification_id__read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_all_read_api_notifications_read_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    request_reservation_api_public_restaurants__slug__reservations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReservationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicReservationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    track_reservation_api_public_reservations__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicReservationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_reservation_api_public_reservations__token__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicReservationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reservations_api_restaurants__restaurant_id__reservations_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ReservationStatus"] | null;
+                /** @description Jour (heure locale du restaurant) */
+                day?: string | null;
+                upcoming?: boolean;
+            };
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_reservation_api_restaurants__restaurant_id__reservations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffReservationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_status_api_restaurants__restaurant_id__reservations__reservation_id__status_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: string;
+                restaurant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__reservations__StatusIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationOut"];
                 };
             };
             /** @description Validation Error */

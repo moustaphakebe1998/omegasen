@@ -20,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ActivationLink } from "@/components/admin/activation-link";
+import { ActivationResult } from "@/components/admin/activation-link";
+import { RESTAURANT_STATUS, RESTAURANT_STATUSES } from "@/components/admin/status";
 import { ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
 
 const schema = z.object({
@@ -29,11 +30,7 @@ const schema = z.object({
   city: z.string().trim().max(120).optional(),
   owner_email: z.string().trim().email("Adresse email invalide"),
   owner_full_name: z.string().trim().max(120).optional(),
-  owner_password: z
-    .string()
-    .max(200)
-    .optional()
-    .refine((v) => !v || v.length >= 10, "10 caractères minimum"),
+  status: z.enum(["PENDING", "ACTIVE", "SUSPENDED", "CLOSED"]),
 });
 type Values = z.infer<typeof schema>;
 
@@ -50,8 +47,9 @@ export function AdminCreateRestaurantDialog({
   const [submitting, setSubmitting] = useState(false);
   const [needsOwnerDetails, setNeedsOwnerDetails] = useState(false);
   const [activation, setActivation] = useState<{
-    url: string;
+    url: string | null;
     email: string;
+    sent: boolean;
   } | null>(null);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -61,7 +59,7 @@ export function AdminCreateRestaurantDialog({
       city: "",
       owner_email: "",
       owner_full_name: "",
-      owner_password: "",
+      status: "ACTIVE",
     },
   });
   const errors = form.formState.errors;
@@ -85,17 +83,18 @@ export function AdminCreateRestaurantDialog({
             city: orNull(v.city),
             owner_email: v.owner_email.trim().toLowerCase(),
             owner_full_name: orNull(v.owner_full_name),
-            owner_password: orNull(v.owner_password),
+            status: v.status,
           },
         }),
       );
       toast.success(`Restaurant « ${r.name} » créé`);
       void qc.invalidateQueries({ queryKey: ["admin"] });
-      // Nouveau compte sans mot de passe : afficher le lien d'activation à transmettre.
-      if (r.activation_url)
+      // Nouveau compte : l'email d'activation est parti, sinon on affiche le lien à transmettre.
+      if (r.activation_url || r.email_sent)
         setActivation({
           url: r.activation_url,
           email: v.owner_email.trim().toLowerCase(),
+          sent: !!r.email_sent,
         });
       else onOpenChange(false);
     } catch (e) {
@@ -118,11 +117,11 @@ export function AdminCreateRestaurantDialog({
           <DialogTitle>Créer un restaurant</DialogTitle>
           <DialogDescription>
             Le restaurant est rattaché à un propriétaire. Si l&apos;email ne correspond à aucun compte, un compte est
-            créé : sans mot de passe provisoire, vous obtenez un lien d&apos;activation à lui transmettre.
+            créé et il reçoit un lien d&apos;activation pour choisir lui-même son mot de passe.
           </DialogDescription>
         </DialogHeader>
         {activation ? (
-          <ActivationLink url={activation.url} email={activation.email} />
+          <ActivationResult url={activation.url} email={activation.email} emailSent={activation.sent} />
         ) : (
           <form id="admin-create-restaurant" onSubmit={onSubmit} className="space-y-4" noValidate>
             <div className="space-y-1.5">
@@ -154,6 +153,30 @@ export function AdminCreateRestaurantDialog({
                 <Input id="acr-city" {...form.register("city")} />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="acr-status">Statut initial</Label>
+              <Controller
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="acr-status" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RESTAURANT_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {RESTAURANT_STATUS[s].label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <p className="text-xs text-muted-foreground">
+                « En préparation » : le restaurant n&apos;est pas encore visible du public.
+              </p>
+            </div>
             <fieldset className="space-y-4 rounded-lg border p-4">
               <legend className="px-1 text-sm font-semibold">Propriétaire</legend>
               <div className="space-y-1.5">
@@ -170,7 +193,7 @@ export function AdminCreateRestaurantDialog({
               <p className="text-xs text-muted-foreground">
                 {needsOwnerDetails
                   ? "Aucun compte n'existe pour cet email : renseignez au moins le nom complet."
-                  : "Nom (et mot de passe facultatif) : uniquement si le propriétaire n'a pas encore de compte."}
+                  : "Nom complet : uniquement si le propriétaire n'a pas encore de compte."}
               </p>
               <div className="space-y-1.5">
                 <Label htmlFor="acr-owner-name">Nom complet</Label>
@@ -180,17 +203,6 @@ export function AdminCreateRestaurantDialog({
                   aria-invalid={!!errors.owner_full_name}
                 />
                 {errors.owner_full_name && <p className="text-sm text-destructive">{errors.owner_full_name.message}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="acr-owner-password">Mot de passe provisoire (facultatif)</Label>
-                <Input
-                  id="acr-owner-password"
-                  type="password"
-                  autoComplete="new-password"
-                  {...form.register("owner_password")}
-                  aria-invalid={!!errors.owner_password}
-                />
-                {errors.owner_password && <p className="text-sm text-destructive">{errors.owner_password.message}</p>}
               </div>
             </fieldset>
           </form>

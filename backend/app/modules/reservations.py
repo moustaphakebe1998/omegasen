@@ -19,6 +19,7 @@ from app.core.deps import OptionalUser, ReservationStaff, Session
 from app.core.errors import NotFound, Unprocessable
 from app.core.mailer import build, send_email
 from app.core.ratelimit import client_ip, hit
+from app.core.realtime import publish, restaurant_channel
 from app.core.schema import Schema
 from app.core.security import new_refresh_token
 from app.models import Reservation, Restaurant
@@ -82,6 +83,7 @@ class ReservationOut(Schema):
 class PublicReservationOut(Schema):
     restaurant_name: str
     restaurant_slug: str
+    restaurant_timezone: str
     starts_at: datetime
     party_size: int
     customer_name: str
@@ -107,6 +109,7 @@ def _public_out(r: Reservation, restaurant: Restaurant) -> PublicReservationOut:
     return PublicReservationOut(
         restaurant_name=restaurant.name,
         restaurant_slug=restaurant.slug,
+        restaurant_timezone=restaurant.timezone,
         starts_at=r.starts_at,
         party_size=r.party_size,
         customer_name=r.customer_name,
@@ -130,6 +133,11 @@ def _validate_slot(restaurant: Restaurant, starts_at: datetime) -> datetime:
     if not is_open_at(restaurant, starts_at):
         raise Unprocessable("Le restaurant est fermé à cet horaire", code="restaurant_closed_at")
     return starts_at.astimezone(UTC)
+
+
+async def _broadcast(r: Reservation, event: str) -> None:
+    """Écrans de l'équipe (gérant, caisse) : rafraîchissent leur liste de réservations."""
+    await publish(restaurant_channel(r.restaurant_id), event, {"id": str(r.id), "status": r.status})
 
 
 def _local(restaurant: Restaurant, dt: datetime) -> str:
@@ -193,6 +201,7 @@ async def request_reservation(slug: str, body: ReservationIn, request: Request, 
     audit(session, "reservation.requested", restaurant_id=restaurant.id, entity="Reservation", entity_id=r.id)
     await session.commit()
     await publish_pending(session)
+    await _broadcast(r, "reservation.created")
     await _email_customer(
         r,
         restaurant,
@@ -238,6 +247,7 @@ async def cancel_reservation(token: str, session: Session):
     )
     await session.commit()
     await publish_pending(session)
+    await _broadcast(r, "reservation.updated")
     return _public_out(r, restaurant)
 
 
@@ -295,6 +305,7 @@ async def create_reservation(body: StaffReservationIn, ctx: ReservationStaff, se
         entity_id=r.id,
     )
     await session.commit()
+    await _broadcast(r, "reservation.created")
     return _out(r)
 
 
@@ -332,6 +343,7 @@ async def set_status(reservation_id: uuid.UUID, body: StatusIn, ctx: Reservation
     )
     await session.commit()
     await publish_pending(session)
+    await _broadcast(r, "reservation.updated")
     if body.status == R.CONFIRMED:
         await _email_customer(
             r,

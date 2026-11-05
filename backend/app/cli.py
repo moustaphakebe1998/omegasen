@@ -268,7 +268,7 @@ async def purge_e2e(since: str | None = None, emails: str = E2E_EMAILS) -> None:
 
     from sqlalchemy import delete
 
-    from app.models import Order, Payment, RestaurantRequest
+    from app.models import Notification, Order, Payment, Reservation, RestaurantRequest
 
     if get_settings().is_production:
         raise SystemExit("purge-e2e est interdit en production")
@@ -302,13 +302,27 @@ async def purge_e2e(since: str | None = None, emails: str = E2E_EMAILS) -> None:
                 await session.execute(delete(Payment).where(Payment.order_id.in_(order_ids)))
                 await session.execute(delete(Order).where(Order.id.in_(order_ids)))
                 n_orders += len(order_ids)
+        n_res = 0
+        if since and demo_id:
+            res = await session.execute(
+                delete(Reservation).where(
+                    Reservation.restaurant_id == demo_id, Reservation.created_at >= datetime.fromisoformat(since)
+                )
+            )
+            n_res = res.rowcount or 0
+        if since:
+            # Notifications produites par l'activité de test (commandes, demandes, réservations…).
+            await session.execute(delete(Notification).where(Notification.created_at >= datetime.fromisoformat(since)))
         await session.execute(delete(RestaurantRequest).where(RestaurantRequest.email.like(emails)))
         if restaurant_ids:
             await session.execute(delete(Restaurant).where(Restaurant.id.in_(restaurant_ids)))
         if user_ids:
             await session.execute(delete(User).where(User.id.in_(user_ids)))
         await session.commit()
-    print(f"purge-e2e : {len(restaurant_ids)} restaurant(s), {len(user_ids)} compte(s), {n_orders} commande(s)")
+    print(
+        f"purge-e2e : {len(restaurant_ids)} restaurant(s), {len(user_ids)} compte(s), "
+        f"{n_orders} commande(s), {n_res} réservation(s)"
+    )
 
 
 def backup_media(target: str) -> None:

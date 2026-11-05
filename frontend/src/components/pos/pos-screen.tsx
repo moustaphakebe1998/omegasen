@@ -1,20 +1,39 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChefHat, ClipboardList, Loader2, LogOut, Plus, Printer, ReceiptText, WifiOff } from "lucide-react";
+import {
+  CalendarDays,
+  ChefHat,
+  ClipboardList,
+  Loader2,
+  LogOut,
+  Plus,
+  Printer,
+  ReceiptText,
+  WifiOff,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { useReservations } from "@/components/manage/reservations/use-reservations";
 import { ProductDialog } from "@/components/shared/product-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { api, ApiError, errorMessage, unwrap } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 import { buildLine, type Product, toOrderItems, useCart } from "@/lib/cart";
 import { formatMoney } from "@/lib/format";
 import { type RealtimeEvent, useRestaurantSocket } from "@/lib/realtime";
+import { todayIn } from "@/lib/reservations";
 import { cn } from "@/lib/utils";
 
 import { staffMenuQuery } from "../kitchen/stock-sheet";
@@ -22,6 +41,7 @@ import { type Order, useNow, useTransitionRules } from "../kitchen/orders";
 import { OrdersSheet, printReceipt } from "./orders-sheet";
 import { type PosPayment, PaymentDialog } from "./payment-dialog";
 import { ProductGrid } from "./product-grid";
+import { ReservationsSheet } from "./reservations-sheet";
 import { serviceModesFor, Ticket, type TicketDetails } from "./ticket";
 
 const EMPTY_DETAILS: Omit<TicketDetails, "serviceMode"> = { customerName: "", tableLabel: "", note: "" };
@@ -29,7 +49,7 @@ const orNull = (s: string) => (s.trim() ? s.trim() : null);
 
 export function PosScreen({ rid }: { rid: string }) {
   const qc = useQueryClient();
-  const { user, logout } = useAuth();
+  const { user, logout, roleIn } = useAuth();
   const transitionRules = useTransitionRules(rid);
   const now = useNow(1000);
   const cart = useCart(null);
@@ -51,12 +71,21 @@ export function PosScreen({ rid }: { rid: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ order: Order; change: number } | null>(null);
   const [ordersOpen, setOrdersOpen] = useState(false);
+  const [reservationsOpen, setReservationsOpen] = useState(false);
+  // KITCHEN n'a pas la permission reservations.manage.
+  const canReserve = !!restaurant.data && (roleIn(rid) !== "KITCHEN" || !!user?.is_superadmin);
+  const reservations = useReservations(rid, { day: todayIn(restaurant.data?.timezone) }, canReserve);
+  const pendingReservations = (reservations.data ?? []).filter((r) => r.status === "PENDING").length;
 
   // ── Commandes en cours (temps réel) ──────────────────
   const onEvent = useCallback(
     (e: RealtimeEvent) => {
       if (e.event === "menu.updated") {
         void qc.invalidateQueries({ queryKey: ["staff-menu", rid] });
+        return;
+      }
+      if (e.event.startsWith("reservation.")) {
+        void qc.invalidateQueries({ queryKey: ["reservations", rid] });
         return;
       }
       if (e.event !== "order.created" && e.event !== "order.updated") return;
@@ -85,9 +114,7 @@ export function PosScreen({ rid }: { rid: string }) {
   const active = useQuery({
     queryKey: ["pos-active", rid],
     queryFn: () =>
-      unwrap(
-        api.GET("/api/restaurants/{restaurant_id}/orders/active", { params: { path: { restaurant_id: rid } } }),
-      ),
+      unwrap(api.GET("/api/restaurants/{restaurant_id}/orders/active", { params: { path: { restaurant_id: rid } } })),
     refetchInterval: poll,
   });
   const awaiting = useQuery({
@@ -200,6 +227,25 @@ export function PosScreen({ rid }: { rid: string }) {
             </span>
           )}
         </Button>
+        {canReserve && (
+          <Button
+            variant="outline"
+            className="relative h-12 min-w-12 shrink-0 px-3 text-base"
+            aria-label="Réservations"
+            onClick={() => setReservationsOpen(true)}
+          >
+            <CalendarDays className="size-5" />
+            <span className="hidden sm:inline">Réservations</span>
+            {pendingReservations > 0 && (
+              <span
+                className="tabular absolute -top-2 -right-2 flex min-w-6 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-bold text-black"
+                aria-label={`${pendingReservations} réservation(s) à confirmer`}
+              >
+                {pendingReservations}
+              </span>
+            )}
+          </Button>
+        )}
         <Button asChild variant="outline" className="h-12 min-w-12 shrink-0 px-3 text-base">
           <Link href={`/kitchen/${rid}`} aria-label="Écran cuisine">
             <ChefHat className="size-5" />
@@ -212,7 +258,10 @@ export function PosScreen({ rid }: { rid: string }) {
       </header>
 
       {connection === "closed" && (
-        <div role="status" className="flex items-center gap-2 bg-amber-500 px-3 py-1.5 text-sm font-semibold text-black">
+        <div
+          role="status"
+          className="flex items-center gap-2 bg-amber-500 px-3 py-1.5 text-sm font-semibold text-black"
+        >
           <WifiOff className="size-4" aria-hidden />
           Connexion temps réel perdue — actualisation automatique toutes les 15 s.
         </div>
@@ -323,6 +372,15 @@ export function PosScreen({ rid }: { rid: string }) {
         awaiting={awaiting}
         now={now}
       />
+
+      {canReserve && restaurant.data && (
+        <ReservationsSheet
+          restaurant={restaurant.data}
+          open={reservationsOpen}
+          onOpenChange={setReservationsOpen}
+          list={reservations}
+        />
+      )}
     </div>
   );
 }

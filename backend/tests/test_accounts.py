@@ -144,3 +144,13 @@ async def test_me_exposes_permissions(client, owner, restaurant):
     assert "orders.prepare" in perms and "menu.manage" not in perms and "team.manage" not in perms
     owner_perms = (await owner.get("/api/auth/me")).json()["memberships"][0]["permissions"]
     assert {"menu.manage", "team.manage", "stats.view"} <= set(owner_perms)
+
+
+async def test_change_password_keeps_current_session(client):
+    api = await make_user(client, "garde@example.com")
+    r = await api.post(
+        "/api/auth/change-password", json={"current_password": "Password!123", "new_password": "Nouveau!2026x"}
+    )
+    assert r.status_code == 204
+    # L'appareil courant reste connecté (le cookie de session est toujours valide).
+    assert (await client.post("/api/auth/refresh")).status_code == 200

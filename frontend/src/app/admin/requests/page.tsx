@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { ActivationLink } from "@/components/admin/activation-link";
+import { ActivationResult } from "@/components/admin/activation-link";
 import { PAGE_SIZE, Pagination } from "@/components/admin/common";
 import { EmptyState, PageHeader } from "@/components/shared/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -287,8 +287,8 @@ function ApproveDialog({ req, onClose, onDone }: { req: Req | null; onClose: () 
         </DialogHeader>
 
         {result ? (
-          result.activation_url ? (
-            <ActivationLink url={result.activation_url} email={result.owner_email} />
+          result.activation_url || result.email_sent ? (
+            <ActivationResult url={result.activation_url} email={result.owner_email} emailSent={result.email_sent} />
           ) : (
             <p className="rounded-lg bg-muted p-3 text-sm">
               Ce propriétaire avait déjà un compte : il retrouve le restaurant en se connectant.

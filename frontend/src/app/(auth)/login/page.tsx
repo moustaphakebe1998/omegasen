@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { CircleCheck, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -24,12 +24,24 @@ function safeNext(next: string | null): string | null {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
 }
 
+/** Email pré-rempli depuis `?email=` (liens de la page de démo), seulement s'il est valide. */
+function prefillEmail(raw: string | null): string {
+  const v = raw?.trim() ?? "";
+  return v && schema.shape.email.safeParse(v).success ? v : "";
+}
+
 function LoginForm() {
   const { login, user, loading } = useAuth();
   const router = useRouter();
-  const next = safeNext(useSearchParams().get("next"));
+  const params = useSearchParams();
+  const next = safeNext(params.get("next"));
+  const resetDone = params.get("reset") === "1";
+  const initialEmail = prefillEmail(params.get("email"));
   const [error, setError] = useState<string | null>(null);
-  const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) });
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: initialEmail, password: "" },
+  });
 
   useEffect(() => {
     if (!loading && user) router.replace(next ?? homeFor(user));
@@ -53,13 +65,22 @@ function LoginForm() {
       </CardHeader>
       <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-4">
+          {resetDone && (
+            <p
+              role="status"
+              className="flex items-start gap-2 rounded-xl bg-green-50 p-3 text-sm text-green-800 dark:bg-green-950/60 dark:text-green-200"
+            >
+              <CircleCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
+              Mot de passe modifié. Connectez-vous avec votre nouveau mot de passe.
+            </p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               autoComplete="email"
-              autoFocus
+              autoFocus={!initialEmail}
               className="h-11"
               aria-invalid={!!form.formState.errors.email}
               {...form.register("email")}
@@ -69,11 +90,20 @@ function LoginForm() {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Link
+                href="/mot-de-passe-oublie"
+                className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
               autoComplete="current-password"
+              autoFocus={!!initialEmail}
               className="h-11"
               aria-invalid={!!form.formState.errors.password}
               {...form.register("password")}
@@ -97,6 +127,12 @@ function LoginForm() {
             Vous avez un restaurant ?{" "}
             <Link href="/demande" className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline">
               Demander l&apos;ouverture
+            </Link>
+          </p>
+          <p className="text-center text-xs text-muted-foreground">
+            Vous êtes client ?{" "}
+            <Link href="/inscription" className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline">
+              Créer un compte client
             </Link>
           </p>
         </CardFooter>

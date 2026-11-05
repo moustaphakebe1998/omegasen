@@ -8,6 +8,8 @@ import type { Schemas } from "@/lib/api/client";
 import { DAYS } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+import { ReserveTable } from "./reservation-dialog";
+
 type Restaurant = Schemas["PublicRestaurant"];
 
 const hhmm = (t: string) => t.slice(0, 5);
@@ -122,6 +124,15 @@ export function RestaurantHeader({ restaurant: r, kiosk }: { restaurant: Restaur
             )}
           </div>
         </div>
+        {r.reservations_enabled && !kiosk && (
+          <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-primary/30 bg-primary/5 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+            <p className="text-sm">
+              <span className="font-semibold">Envie de venir sur place ?</span>{" "}
+              <span className="text-muted-foreground">Réservez votre table en ligne, le restaurant vous confirme.</span>
+            </p>
+            <ReserveTable restaurant={r} />
+          </div>
+        )}
         {r.description && !kiosk && (
           <p className="mt-4 max-w-2xl text-sm text-muted-foreground sm:text-base">{r.description}</p>
         )}

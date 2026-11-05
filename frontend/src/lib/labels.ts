@@ -50,8 +50,8 @@ export const PAYMENT_METHOD: Record<PaymentMethod, string> = {
 };
 
 export const ROLE: Record<MemberRole, string> = {
-  OWNER: "Propriétaire",
-  MANAGER: "Gérant",
-  CASHIER: "Caissier",
+  OWNER: "Administrateur du restaurant",
+  MANAGER: "Responsable",
+  CASHIER: "Caisse",
   KITCHEN: "Cuisine",
 };

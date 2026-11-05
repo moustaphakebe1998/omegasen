@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ActivationResult } from "@/components/admin/activation-link";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { api, ApiError, errorMessage, unwrap, type Schemas } from "@/lib/api/client";
+import { api, errorMessage, unwrap, type Schemas } from "@/lib/api/client";
 import { ROLE, type MemberRole } from "@/lib/labels";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,17 +41,17 @@ export function AddMemberDialog(props: Props) {
 function AddMemberForm({ rid, onOpenChange, grantableRoles, onAdded }: Props) {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState<MemberRole>(grantableRoles.includes("CASHIER") ? "CASHIER" : grantableRoles[0]);
-  const [password, setPassword] = useState("");
-  const [needPassword, setNeedPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [added, setAdded] = useState<Schemas["MemberOut"] | null>(null);
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (!EMAIL_RE.test(email.trim())) e.email = "Adresse email invalide";
     if (fullName.trim().length < 2) e.full_name = "Nom requis";
-    if (needPassword && password.length < 10) e.password = "10 caractères minimum";
+    if (phone.trim() && !/^[0-9+ ().-]{6,32}$/.test(phone.trim())) e.phone = "Numéro de téléphone invalide";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -63,35 +64,49 @@ function AddMemberForm({ rid, onOpenChange, grantableRoles, onAdded }: Props) {
       const m = await unwrap(
         api.POST("/api/restaurants/{restaurant_id}/members", {
           params: { path: { restaurant_id: rid } },
-          body: {
-            email: email.trim(),
-            full_name: fullName.trim(),
-            role,
-            password: needPassword ? password : null,
-          },
+          body: { email: email.trim(), full_name: fullName.trim(), role, phone: phone.trim() || null },
         }),
       );
-      toast.success(`${m.full_name} a rejoint l'équipe`);
       onAdded(m);
-      onOpenChange(false);
-    } catch (e) {
-      if (e instanceof ApiError && e.code === "password_required") {
-        setNeedPassword(true);
-        setErrors({ password: "Aucun compte n'existe pour cet email : définissez un mot de passe initial." });
+      if (m.activation_url || m.email_sent) {
+        setAdded(m);
       } else {
-        toast.error(errorMessage(e));
+        toast.success(`${m.full_name} a rejoint l'équipe`);
+        onOpenChange(false);
       }
+    } catch (e) {
+      toast.error(errorMessage(e));
     } finally {
       setBusy(false);
     }
   };
+
+  if (added) {
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle>{added.full_name} a été ajouté·e</DialogTitle>
+          <DialogDescription>
+            {ROLE[added.role]} · son accès sera actif dès qu&apos;elle ou il aura choisi son mot de passe.
+          </DialogDescription>
+        </DialogHeader>
+        <ActivationResult url={added.activation_url} email={added.email} emailSent={added.email_sent} />
+        <DialogFooter>
+          <Button type="button" onClick={() => onOpenChange(false)} autoFocus>
+            Terminé
+          </Button>
+        </DialogFooter>
+      </>
+    );
+  }
 
   return (
     <>
       <DialogHeader>
         <DialogTitle>Ajouter un membre</DialogTitle>
         <DialogDescription>
-          Si la personne a déjà un compte OmegaSen, elle retrouvera ce restaurant à sa prochaine connexion.
+          Une invitation est envoyée par email : la personne choisit elle-même son mot de passe. Si elle a déjà un
+          compte OmegaSen, elle retrouvera ce restaurant à sa prochaine connexion.
         </DialogDescription>
       </DialogHeader>
       <form onSubmit={submit} noValidate className="space-y-4">
@@ -104,10 +119,7 @@ function AddMemberForm({ rid, onOpenChange, grantableRoles, onAdded }: Props) {
             autoFocus
             value={email}
             aria-invalid={!!errors.email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setNeedPassword(false);
-            }}
+            onChange={(e) => setEmail(e.target.value)}
           />
           {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
         </div>
@@ -122,46 +134,49 @@ function AddMemberForm({ rid, onOpenChange, grantableRoles, onAdded }: Props) {
           />
           {errors.full_name && <p className="text-sm text-destructive">{errors.full_name}</p>}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="am-role">Rôle</Label>
-          <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
-            <SelectTrigger id="am-role" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {grantableRoles.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {ROLE[r]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {needPassword && (
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="am-password">Mot de passe initial</Label>
-            <Input
-              id="am-password"
-              type="password"
-              autoComplete="new-password"
-              autoFocus
-              value={password}
-              aria-invalid={!!errors.password}
-              aria-describedby="am-password-help"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <p id="am-password-help" className={errors.password ? "text-sm text-destructive" : "text-xs text-muted-foreground"}>
-              {errors.password ?? "Communiquez-le à la personne ; elle pourra le changer ensuite."}
-            </p>
+            <Label htmlFor="am-role">Rôle</Label>
+            <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
+              <SelectTrigger id="am-role" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {grantableRoles.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {ROLE[r]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
+          <div className="space-y-2">
+            <Label htmlFor="am-phone">
+              Téléphone <span className="font-normal text-muted-foreground">(facultatif)</span>
+            </Label>
+            <Input
+              id="am-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              value={phone}
+              aria-invalid={!!errors.phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+          </div>
+        </div>
+        <p className="flex items-start gap-2 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
+          <Mail className="mt-0.5 size-4 shrink-0" aria-hidden />
+          Le lien d&apos;invitation est valable 7 jours. Vous pourrez le renvoyer depuis la liste de l&apos;équipe.
+        </p>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
           <Button type="submit" disabled={busy}>
             {busy && <Loader2 className="animate-spin" />}
-            Ajouter
+            Inviter
           </Button>
         </DialogFooter>
       </form>

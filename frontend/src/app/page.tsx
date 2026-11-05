@@ -29,8 +29,6 @@ import { Logo } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const DEMO_SLUG = process.env.NEXT_PUBLIC_DEMO_SLUG ?? "le-baobab-demo";
-
 const FEATURES = [
   {
     icon: QrCode,
@@ -168,7 +166,7 @@ export default function Home() {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-6 text-base">
-                  <Link href={`/r/${DEMO_SLUG}`}>
+                  <Link href="/demo">
                     <Play className="fill-current" aria-hidden /> Voir la démo
                   </Link>
                 </Button>

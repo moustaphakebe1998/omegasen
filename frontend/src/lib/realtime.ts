@@ -105,3 +105,29 @@ export function useOrderSocket(trackingToken: string | null, onEvent: (e: Realti
   }, [trackingToken]);
   return useSocket(builder, onEvent);
 }
+
+/**
+ * Canal personnel de l'utilisateur connecté (notifications). `userId` null = pas de connexion.
+ * Événement poussé : `{"event": "notification.created", "data": NotificationOut}`.
+ */
+export function useUserSocket(
+  userId: string | null,
+  onEvent: (e: RealtimeEvent) => void,
+  onReconnect?: () => void,
+) {
+  const [builder, setBuilder] = useState<(() => Promise<string | null>) | null>(null);
+  useEffect(() => {
+    if (!userId) {
+      setBuilder(null);
+      return;
+    }
+    setBuilder(() => async () => {
+      // Jeton d'accès frais à chaque connexion (durée de vie courte).
+      const fresh = await refreshSession().catch(() => null);
+      const token = fresh?.access_token ?? getAccessToken();
+      if (!token) return null;
+      return `${wsBase()}/api/ws/me?token=${encodeURIComponent(token)}`;
+    });
+  }, [userId]);
+  return useSocket(builder, onEvent, onReconnect);
+}

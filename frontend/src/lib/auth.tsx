@@ -92,6 +92,7 @@ export function useAuth() {
 
 /** Page d'accueil par défaut selon le profil de l'utilisateur. */
 export function homeFor(user: User): string {
+  if (user.account_type === "CUSTOMER" && !user.is_superadmin && user.memberships.length === 0) return "/compte";
   if (user.is_superadmin && user.memberships.length === 0) return "/admin";
   if (user.memberships.length === 1) {
     const m = user.memberships[0];

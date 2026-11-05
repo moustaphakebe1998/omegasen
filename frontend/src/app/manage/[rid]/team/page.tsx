@@ -1,11 +1,12 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2, UserPlus, Users } from "lucide-react";
+import { Loader2, MailWarning, RefreshCw, Trash2, UserPlus, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ActivationResult } from "@/components/admin/activation-link";
 import { AddMemberDialog } from "@/components/manage/team/add-member-dialog";
 import { EmptyState, PageHeader } from "@/components/shared/app-shell";
 import {
@@ -21,6 +22,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -54,6 +63,7 @@ export default function TeamPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [toRemove, setToRemove] = useState<Member | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [resent, setResent] = useState<Member | null>(null);
 
   const key = ["members", rid];
   const members = useQuery({
@@ -77,6 +87,23 @@ export default function TeamPage() {
       replace(updated);
       toast.success(success);
       if (m.user_id === user?.id) await reload();
+    } catch (e) {
+      toast.error(errorMessage(e));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const resend = async (m: Member) => {
+    setBusyId(m.id);
+    try {
+      const out = await unwrap(
+        api.POST("/api/restaurants/{restaurant_id}/members/{member_id}/resend-invite", {
+          params: { path: { restaurant_id: rid, member_id: m.id } },
+        }),
+      );
+      replace(out);
+      setResent(out);
     } catch (e) {
       toast.error(errorMessage(e));
     } finally {
@@ -176,6 +203,26 @@ export default function TeamPage() {
                           )}
                         </p>
                         <p className="truncate text-sm text-muted-foreground">{m.email}</p>
+                        {!m.activated && (
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <Badge className="border-transparent bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                              <MailWarning aria-hidden />
+                              Invitation en attente
+                            </Badge>
+                            {!locked && (
+                              <Button
+                                variant="link"
+                                size="xs"
+                                className="h-6 px-0"
+                                disabled={busy}
+                                onClick={() => resend(m)}
+                              >
+                                {busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+                                Renvoyer l&apos;invitation
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="order-last col-span-2 flex items-center justify-between gap-3 md:order-none md:col-span-1 md:block">
@@ -183,7 +230,11 @@ export default function TeamPage() {
                         value={m.role}
                         disabled={locked || busy}
                         onValueChange={(v) =>
-                          update(m, { role: v as MemberRole }, `${m.full_name} est maintenant ${ROLE[v as MemberRole].toLowerCase()}`)
+                          update(
+                            m,
+                            { role: v as MemberRole },
+                            `${m.full_name} est maintenant ${ROLE[v as MemberRole].toLowerCase()}`,
+                          )
                         }
                       >
                         <SelectTrigger size="sm" className="w-40 md:w-full" aria-label={`Rôle de ${m.full_name}`}>
@@ -204,7 +255,11 @@ export default function TeamPage() {
                           disabled={locked || busy}
                           aria-label={`${m.is_active ? "Désactiver" : "Activer"} ${m.full_name}`}
                           onCheckedChange={(v) =>
-                            update(m, { is_active: v }, v ? `${m.full_name} est réactivé` : `${m.full_name} est désactivé`)
+                            update(
+                              m,
+                              { is_active: v },
+                              v ? `${m.full_name} est réactivé` : `${m.full_name} est désactivé`,
+                            )
                           }
                         />
                         <label htmlFor={switchId} className="text-xs text-muted-foreground">
@@ -218,7 +273,11 @@ export default function TeamPage() {
                         disabled={locked || busy}
                         aria-label={`${m.is_active ? "Désactiver" : "Activer"} ${m.full_name}`}
                         onCheckedChange={(v) =>
-                          update(m, { is_active: v }, v ? `${m.full_name} est réactivé` : `${m.full_name} est désactivé`)
+                          update(
+                            m,
+                            { is_active: v },
+                            v ? `${m.full_name} est réactivé` : `${m.full_name} est désactivé`,
+                          )
                         }
                       />
                     </div>
@@ -240,7 +299,8 @@ export default function TeamPage() {
         )}
       </Card>
       <p className="mt-3 text-xs text-muted-foreground">
-        Un membre désactivé ne peut plus accéder au restaurant mais reste dans l&apos;historique.
+        Un membre désactivé ne peut plus accéder au restaurant mais reste dans l&apos;historique. Une invitation en
+        attente signifie que la personne n&apos;a pas encore choisi son mot de passe.
         {!isOwner && " Seul un propriétaire peut nommer ou modifier un propriétaire."}
       </p>
 
@@ -251,6 +311,23 @@ export default function TeamPage() {
         grantableRoles={grantable}
         onAdded={(m) => queryClient.setQueryData<Member[]>(key, (cur) => (cur ? [...cur, m] : [m]))}
       />
+
+      <Dialog open={!!resent} onOpenChange={(o) => !o && setResent(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invitation renvoyée</DialogTitle>
+            <DialogDescription>
+              Un nouveau lien a été créé pour {resent?.full_name} ; les liens précédents ne sont plus valables.
+            </DialogDescription>
+          </DialogHeader>
+          {resent && (
+            <ActivationResult url={resent.activation_url} email={resent.email} emailSent={resent.email_sent} />
+          )}
+          <DialogFooter>
+            <Button onClick={() => setResent(null)}>Terminé</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
         <AlertDialogContent>
