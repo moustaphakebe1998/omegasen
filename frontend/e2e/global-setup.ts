@@ -11,6 +11,7 @@ export default async function globalSetup() {
   const { access_token, user } = await res.json();
   const rid: string = user.memberships[0].restaurant_id;
   const qr = await (await ctx.get(`/api/restaurants/${rid}/qr`, { headers: { Authorization: `Bearer ${access_token}` } })).json();
-  writeFileSync(STATE_FILE, JSON.stringify({ rid, qrCode: qr.code }));
+  // startedAt : global-teardown supprime les commandes créées pendant la série de tests.
+  writeFileSync(STATE_FILE, JSON.stringify({ rid, qrCode: qr.code, startedAt: new Date().toISOString() }));
   await ctx.dispose();
 }

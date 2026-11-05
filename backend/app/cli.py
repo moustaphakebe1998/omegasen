@@ -2,6 +2,7 @@
 
 python -m app.cli bootstrap   # crée le super admin défini par SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD
 python -m app.cli seed-demo   # restaurant de démonstration + menu + comptes employés
+python -m app.cli purge-e2e [--since ISO] [--emails MOTIF]   # nettoie les données des tests e2e (hors production)
 """
 
 import asyncio
@@ -251,6 +252,62 @@ async def sync_demo_media() -> None:
         await session.commit()
 
 
+E2E_EMAILS = "e2e-%@example.com"
+
+
+async def purge_e2e(since: str | None = None, emails: str = E2E_EMAILS) -> None:
+    """Supprime les données laissées par les tests de bout en bout (jamais en production).
+
+    - restaurants, demandes et comptes créés avec une adresse correspondant à `emails` (motif SQL LIKE) ;
+    - commandes du restaurant de démo créées depuis `since` (date ISO du début de la série de tests).
+    """
+    from datetime import datetime
+
+    from sqlalchemy import delete
+
+    from app.models import Order, Payment, RestaurantRequest
+
+    if get_settings().is_production:
+        raise SystemExit("purge-e2e est interdit en production")
+    async with SessionLocal() as session:
+        user_ids = list(await session.scalars(select(User.id).where(User.email.like(emails))))
+        restaurant_ids = set(
+            await session.scalars(
+                select(RestaurantRequest.restaurant_id).where(
+                    RestaurantRequest.email.like(emails), RestaurantRequest.restaurant_id.is_not(None)
+                )
+            )
+        )
+        if user_ids:
+            restaurant_ids |= set(
+                await session.scalars(
+                    select(Membership.restaurant_id).where(
+                        Membership.user_id.in_(user_ids), Membership.role == MemberRole.OWNER
+                    )
+                )
+            )
+        demo_id = await session.scalar(select(Restaurant.id).where(Restaurant.slug == DEMO_SLUG))
+        restaurant_ids.discard(demo_id)  # le restaurant de démo n'est jamais supprimé
+
+        order_filter = [Order.restaurant_id.in_(restaurant_ids)] if restaurant_ids else []
+        if since and demo_id:
+            order_filter.append((Order.restaurant_id == demo_id) & (Order.created_at >= datetime.fromisoformat(since)))
+        n_orders = 0
+        for cond in order_filter:
+            order_ids = list(await session.scalars(select(Order.id).where(cond)))
+            if order_ids:
+                await session.execute(delete(Payment).where(Payment.order_id.in_(order_ids)))
+                await session.execute(delete(Order).where(Order.id.in_(order_ids)))
+                n_orders += len(order_ids)
+        await session.execute(delete(RestaurantRequest).where(RestaurantRequest.email.like(emails)))
+        if restaurant_ids:
+            await session.execute(delete(Restaurant).where(Restaurant.id.in_(restaurant_ids)))
+        if user_ids:
+            await session.execute(delete(User).where(User.id.in_(user_ids)))
+        await session.commit()
+    print(f"purge-e2e : {len(restaurant_ids)} restaurant(s), {len(user_ids)} compte(s), {n_orders} commande(s)")
+
+
 def backup_media(target: str) -> None:
     """Copie incrémentale du bucket (fichiers nouveaux ou modifiés uniquement)."""
     from pathlib import Path
@@ -280,6 +337,10 @@ COMMANDS = {"bootstrap": bootstrap, "seed-demo": seed_demo}
 if __name__ == "__main__":
     if len(sys.argv) == 3 and sys.argv[1] == "backup-media":
         backup_media(sys.argv[2])
+    elif len(sys.argv) >= 2 and sys.argv[1] == "purge-e2e":
+        # python -m app.cli purge-e2e [--since ISO] [--emails MOTIF_LIKE]
+        opts = dict(zip(sys.argv[2::2], sys.argv[3::2], strict=False))
+        asyncio.run(purge_e2e(opts.get("--since"), opts.get("--emails", E2E_EMAILS)))
     elif len(sys.argv) == 2 and sys.argv[1] in COMMANDS:
         asyncio.run(COMMANDS[sys.argv[1]]())
     else:
