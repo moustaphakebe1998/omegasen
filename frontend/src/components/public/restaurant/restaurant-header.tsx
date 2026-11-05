@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ChevronDown,
-  Clock,
-  Mail,
-  MapPin,
-  Phone,
-  UtensilsCrossed,
-} from "lucide-react";
+import { ChevronDown, Clock, Mail, MapPin, Phone, UtensilsCrossed } from "lucide-react";
 import { useId, useState } from "react";
 
 import { OpenBadge } from "@/components/public/restaurant-search";
@@ -58,24 +51,12 @@ function OpeningHours({ hours }: { hours: Schemas["HoursSlot"][] }) {
             {todaySlots.length ? todaySlots.join(", ") : "fermé"}
           </span>
         </span>
-        <ChevronDown
-          className={cn(
-            "size-4 shrink-0 transition-transform",
-            open && "rotate-180",
-          )}
-          aria-hidden
-        />
+        <ChevronDown className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")} aria-hidden />
       </button>
       {open && (
-        <dl
-          id={id}
-          className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 border-t px-3 py-3 text-sm"
-        >
+        <dl id={id} className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 border-t px-3 py-3 text-sm">
           {DAYS.map((day, d) => (
-            <div
-              key={day}
-              className={cn("contents", d === today && "font-semibold")}
-            >
+            <div key={day} className={cn("contents", d === today && "font-semibold")}>
               <dt>{day}</dt>
               <dd className="tabular text-right text-muted-foreground">
                 {days[d].length ? days[d].join(", ") : "Fermé"}
@@ -88,16 +69,8 @@ function OpeningHours({ hours }: { hours: Schemas["HoursSlot"][] }) {
   );
 }
 
-export function RestaurantHeader({
-  restaurant: r,
-  kiosk,
-}: {
-  restaurant: Restaurant;
-  kiosk: boolean;
-}) {
-  const address = [r.address_line, r.postal_code, r.city]
-    .filter(Boolean)
-    .join(", ");
+export function RestaurantHeader({ restaurant: r, kiosk }: { restaurant: Restaurant; kiosk: boolean }) {
+  const address = [r.address_line, r.postal_code, r.city].filter(Boolean).join(", ");
   const mapsUrl =
     r.latitude != null && r.longitude != null
       ? `https://www.google.com/maps/search/?api=1&query=${r.latitude},${r.longitude}`
@@ -115,10 +88,7 @@ export function RestaurantHeader({
         {r.cover_url ? (
           <img src={r.cover_url} alt="" className="size-full object-cover" />
         ) : (
-          <UtensilsCrossed
-            className="absolute inset-0 m-auto size-12 text-white/60"
-            aria-hidden
-          />
+          <UtensilsCrossed className="absolute inset-0 m-auto size-12 text-white/60" aria-hidden />
         )}
       </div>
       <div className="mx-auto w-full max-w-5xl px-4">
@@ -126,11 +96,7 @@ export function RestaurantHeader({
         <div className="relative z-10 -mt-14 flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-lg sm:-mt-16 sm:gap-5 sm:p-5">
           <div className="size-16 shrink-0 overflow-hidden rounded-xl border bg-muted sm:size-20">
             {r.logo_url ? (
-              <img
-                src={r.logo_url}
-                alt={`Logo ${r.name}`}
-                className="size-full object-cover"
-              />
+              <img src={r.logo_url} alt={`Logo ${r.name}`} className="size-full object-cover" />
             ) : (
               <span className="flex size-full items-center justify-center bg-primary/10 text-2xl font-black text-primary">
                 {r.name.charAt(0).toUpperCase()}
@@ -157,9 +123,7 @@ export function RestaurantHeader({
           </div>
         </div>
         {r.description && !kiosk && (
-          <p className="mt-4 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {r.description}
-          </p>
+          <p className="mt-4 max-w-2xl text-sm text-muted-foreground sm:text-base">{r.description}</p>
         )}
 
         {!kiosk && (
@@ -171,14 +135,9 @@ export function RestaurantHeader({
                 rel="noopener noreferrer"
                 className="flex min-h-11 items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
-                <MapPin
-                  className="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
+                <MapPin className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="min-w-0 break-words">{address}</span>
-                <span className="sr-only">
-                  (ouvre une carte dans un nouvel onglet)
-                </span>
+                <span className="sr-only">(ouvre une carte dans un nouvel onglet)</span>
               </a>
             )}
             {r.phone && (
@@ -186,10 +145,7 @@ export function RestaurantHeader({
                 href={`tel:${r.phone.replace(/[^\d+]/g, "")}`}
                 className="flex min-h-11 items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
-                <Phone
-                  className="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
+                <Phone className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span>{r.phone}</span>
               </a>
             )}
@@ -198,10 +154,7 @@ export function RestaurantHeader({
                 href={`mailto:${r.email}`}
                 className="flex min-h-11 items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
-                <Mail
-                  className="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
+                <Mail className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="truncate">{r.email}</span>
               </a>
             )}

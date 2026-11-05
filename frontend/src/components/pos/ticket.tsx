@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, ShoppingBag, Trash2, Utensils } from "lucide-react";
+import { Minus, Plus, ReceiptText, ShoppingBag, Trash2, Utensils } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,12 @@ export function Ticket({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {cart.lines.length === 0 ? (
-          <p className="p-8 text-center text-muted-foreground">Touchez un produit pour l&apos;ajouter.</p>
+          <div className="flex flex-col items-center gap-3 p-10 text-center text-muted-foreground">
+            <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary" aria-hidden>
+              <ReceiptText className="size-7" />
+            </span>
+            <p>Touchez un produit pour l&apos;ajouter.</p>
+          </div>
         ) : (
           <ul className="divide-y">
             {cart.lines.map((l) => (

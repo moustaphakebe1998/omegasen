@@ -24,13 +24,25 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, errorMessage, unwrap, type Schemas } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 import { ROLE, type MemberRole } from "@/lib/labels";
+import { cn } from "@/lib/utils";
 
 type Member = Schemas["MemberOut"];
 const ALL_ROLES: MemberRole[] = ["OWNER", "MANAGER", "CASHIER", "KITCHEN"];
+
+const ROLE_TONE: Record<MemberRole, string> = {
+  OWNER: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
+  MANAGER: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
+  CASHIER: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  KITCHEN: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+};
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase() || "?";
+}
 
 export default function TeamPage() {
   const { rid } = useParams<{ rid: string }>();
@@ -103,7 +115,7 @@ export default function TeamPage() {
         }
       />
 
-      <Card className="gap-0 overflow-hidden py-0">
+      <Card className="gap-0 overflow-hidden rounded-2xl py-0">
         {members.isPending ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -122,35 +134,51 @@ export default function TeamPage() {
             <EmptyState icon={Users} title="Aucun membre" />
           </div>
         ) : (
-          <Table className="min-w-[640px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Rôle</TableHead>
-                <TableHead>Actif</TableHead>
-                <TableHead className="text-right">
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            <div className="hidden grid-cols-[minmax(0,1fr)_11rem_5rem_2.5rem] gap-4 border-b bg-muted/40 px-5 py-2.5 text-xs font-medium text-muted-foreground md:grid">
+              <span>Membre</span>
+              <span>Rôle</span>
+              <span>Actif</span>
+              <span className="sr-only">Actions</span>
+            </div>
+            <ul className="divide-y">
               {members.data.map((m) => {
                 const locked = m.role === "OWNER" && !isOwner;
                 const busy = busyId === m.id;
                 const self = m.user_id === user?.id;
+                const switchId = `active-${m.id}`;
                 return (
-                  <TableRow key={m.id} className={m.is_active ? undefined : "text-muted-foreground"}>
-                    <TableCell className="font-medium">
-                      {m.full_name}
-                      {self && (
-                        <Badge variant="secondary" className="ml-2">
-                          Vous
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-56 truncate">{m.email}</TableCell>
-                    <TableCell>
+                  <li
+                    key={m.id}
+                    className={cn(
+                      "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 px-4 py-3.5 md:grid-cols-[minmax(0,1fr)_11rem_5rem_2.5rem] md:px-5",
+                      !m.is_active && "bg-muted/30 text-muted-foreground",
+                    )}
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
+                          ROLE_TONE[m.role],
+                          !m.is_active && "opacity-50",
+                        )}
+                      >
+                        {initials(m.full_name)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-2 font-medium">
+                          <span className="truncate">{m.full_name}</span>
+                          {self && (
+                            <Badge variant="secondary" className="shrink-0">
+                              Vous
+                            </Badge>
+                          )}
+                        </p>
+                        <p className="truncate text-sm text-muted-foreground">{m.email}</p>
+                      </div>
+                    </div>
+                    <div className="order-last col-span-2 flex items-center justify-between gap-3 md:order-none md:col-span-1 md:block">
                       <Select
                         value={m.role}
                         disabled={locked || busy}
@@ -158,7 +186,7 @@ export default function TeamPage() {
                           update(m, { role: v as MemberRole }, `${m.full_name} est maintenant ${ROLE[v as MemberRole].toLowerCase()}`)
                         }
                       >
-                        <SelectTrigger size="sm" className="w-40" aria-label={`Rôle de ${m.full_name}`}>
+                        <SelectTrigger size="sm" className="w-40 md:w-full" aria-label={`Rôle de ${m.full_name}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -169,8 +197,22 @@ export default function TeamPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                    </TableCell>
-                    <TableCell>
+                      <div className="flex items-center gap-2 md:hidden">
+                        <Switch
+                          id={switchId}
+                          checked={m.is_active}
+                          disabled={locked || busy}
+                          aria-label={`${m.is_active ? "Désactiver" : "Activer"} ${m.full_name}`}
+                          onCheckedChange={(v) =>
+                            update(m, { is_active: v }, v ? `${m.full_name} est réactivé` : `${m.full_name} est désactivé`)
+                          }
+                        />
+                        <label htmlFor={switchId} className="text-xs text-muted-foreground">
+                          Actif
+                        </label>
+                      </div>
+                    </div>
+                    <div className="hidden items-center md:flex">
                       <Switch
                         checked={m.is_active}
                         disabled={locked || busy}
@@ -179,23 +221,22 @@ export default function TeamPage() {
                           update(m, { is_active: v }, v ? `${m.full_name} est réactivé` : `${m.full_name} est désactivé`)
                         }
                       />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        disabled={locked || busy}
-                        aria-label={`Retirer ${m.full_name}`}
-                        onClick={() => setToRemove(m)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="justify-self-end text-muted-foreground hover:text-destructive"
+                      disabled={locked || busy}
+                      aria-label={`Retirer ${m.full_name}`}
+                      onClick={() => setToRemove(m)}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </li>
                 );
               })}
-            </TableBody>
-          </Table>
+            </ul>
+          </>
         )}
       </Card>
       <p className="mt-3 text-xs text-muted-foreground">

@@ -11,9 +11,9 @@ from app.core.audit import audit
 from app.core.deps import Session, SuperAdmin
 from app.core.errors import NotFound, Unprocessable
 from app.core.schema import Schema
-from app.core.security import hash_password
-from app.models import AuditLog, Membership, Order, QrCode, Restaurant, User
-from app.models.enums import MemberRole, OrderStatus, PaymentStatus, RestaurantStatus
+from app.models import AuditLog, Membership, Order, QrCode, Restaurant, RestaurantRequest, User
+from app.models.enums import MemberRole, OrderStatus, PaymentStatus, RequestStatus, RestaurantStatus
+from app.modules.auth import ensure_account
 from app.modules.restaurants import RestaurantCreate, create_restaurant
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -27,6 +27,7 @@ class PlatformStats(Schema):
     orders_30d: int
     revenue_30d_by_currency: dict[str, int]
     qr_scans_total: int
+    pending_requests: int
 
 
 class AdminRestaurant(Schema):
@@ -42,6 +43,8 @@ class AdminRestaurant(Schema):
     qr_active: bool | None
     owners: list[str]
     orders_30d: int
+    # Renseigné uniquement à la création, si le propriétaire n'avait pas de compte : à lui transmettre.
+    activation_url: str | None = None
 
 
 class AdminRestaurantCreate(RestaurantCreate):
@@ -117,6 +120,10 @@ async def platform_stats(_: SuperAdmin, session: Session):
         orders_30d=await session.scalar(select(func.count()).select_from(Order).where(Order.created_at >= since)) or 0,
         revenue_30d_by_currency={c: int(v) for c, v in rev},
         qr_scans_total=await session.scalar(select(func.coalesce(func.sum(QrCode.scan_count), 0))) or 0,
+        pending_requests=await session.scalar(
+            select(func.count()).select_from(RestaurantRequest).where(RestaurantRequest.status == RequestStatus.PENDING)
+        )
+        or 0,
     )
 
 
@@ -176,15 +183,7 @@ async def list_restaurants(
 @router.post("/restaurants", response_model=AdminRestaurant, status_code=201)
 async def create(body: AdminRestaurantCreate, admin: SuperAdmin, session: Session):
     email = body.owner_email.lower()
-    owner = await session.scalar(select(User).where(User.email == email))
-    if not owner:
-        if not body.owner_password or not body.owner_full_name:
-            raise Unprocessable(
-                "Nom et mot de passe requis pour créer le compte du propriétaire", code="owner_details_required"
-            )
-        owner = User(email=email, full_name=body.owner_full_name, password_hash=hash_password(body.owner_password))
-        session.add(owner)
-        await session.flush()
+    owner, activation_url = await ensure_account(session, email, body.owner_full_name, password=body.owner_password)
     data = RestaurantCreate(**body.model_dump(exclude={"owner_email", "owner_full_name", "owner_password"}))
     r = await create_restaurant(session, data, owner)
     audit(
@@ -197,7 +196,9 @@ async def create(body: AdminRestaurantCreate, admin: SuperAdmin, session: Sessio
         data={"owner": email},
     )
     await session.commit()
-    return await _admin_restaurant(session, r)
+    out = await _admin_restaurant(session, r)
+    out.activation_url = activation_url
+    return out
 
 
 @router.post("/restaurants/{restaurant_id}/status", response_model=AdminRestaurant)

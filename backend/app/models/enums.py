@@ -70,3 +70,9 @@ class TransactionStatus(StrEnum):
     FAILED = "FAILED"
     REFUNDED = "REFUNDED"
     CANCELLED = "CANCELLED"
+
+
+class RequestStatus(StrEnum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"

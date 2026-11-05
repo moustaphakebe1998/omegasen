@@ -58,3 +58,19 @@ class RefreshToken(UUIDPk, Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     user_agent: Mapped[str | None] = mapped_column(String(255))
     ip_address: Mapped[str | None] = mapped_column(String(64))
+
+
+class ActivationToken(UUIDPk, Base):
+    """Lien à usage unique permettant à un compte créé par un administrateur de choisir son mot de passe."""
+
+    __tablename__ = "activation_tokens"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship()

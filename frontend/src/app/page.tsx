@@ -37,11 +37,7 @@ const FEATURES = [
     title: "QR Code Restaurant",
     subtitle: "Un QR Code unique par restaurant",
     image: "/landing/qr.webp",
-    points: [
-      "Accès direct au menu",
-      "Commande en quelques clics",
-      "QR Code personnalisable",
-    ],
+    points: ["Accès direct au menu", "Commande en quelques clics", "QR Code personnalisable"],
     tone: "blue",
   },
   {
@@ -49,11 +45,7 @@ const FEATURES = [
     title: "Interface Cuisine",
     subtitle: "Suivez et préparez les commandes",
     image: "/landing/kitchen.webp",
-    points: [
-      "Mises à jour en temps réel",
-      "Alertes sonores",
-      "Gestion des statuts",
-    ],
+    points: ["Mises à jour en temps réel", "Alertes sonores", "Gestion des statuts"],
     tone: "green",
   },
   {
@@ -61,11 +53,7 @@ const FEATURES = [
     title: "Interface Caisse",
     subtitle: "Prenez les commandes rapidement",
     image: "/landing/pos.webp",
-    points: [
-      "Commande rapide",
-      "Encaissement et rendu de monnaie",
-      "Simple et intuitive",
-    ],
+    points: ["Commande rapide", "Encaissement et rendu de monnaie", "Simple et intuitive"],
     tone: "violet",
   },
   {
@@ -73,11 +61,7 @@ const FEATURES = [
     title: "Espace Restaurateur",
     subtitle: "Gérez votre établissement",
     image: "/landing/manager.webp",
-    points: [
-      "Gestion des menus",
-      "Suivi des commandes",
-      "Statistiques détaillées",
-    ],
+    points: ["Gestion des menus", "Suivi des commandes", "Statistiques détaillées"],
     tone: "orange",
   },
   {
@@ -151,16 +135,11 @@ export default function Home() {
             </a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="hidden sm:inline-flex"
-            >
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="/login">Se connecter</Link>
             </Button>
             <Button asChild size="sm">
-              <Link href="/register">Créer mon restaurant</Link>
+              <Link href="/demande">Ouvrir mon restaurant</Link>
             </Button>
           </div>
         </div>
@@ -172,45 +151,29 @@ export default function Home() {
           <div className="mx-auto grid w-full max-w-7xl gap-12 px-4 pt-12 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:pt-20 lg:pb-24">
             <div className="max-w-xl">
               <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                <QrCode className="size-4" aria-hidden /> Un QR Code, toutes vos
-                commandes
+                <QrCode className="size-4" aria-hidden /> Un QR Code, toutes vos commandes
               </p>
               <h1 className="mt-5 text-4xl leading-[1.1] font-black tracking-tight text-balance sm:text-5xl">
-                La plateforme intelligente de gestion des{" "}
-                <span className="text-primary">restaurants</span>
+                La plateforme intelligente de gestion des <span className="text-primary">restaurants</span>
               </h1>
               <p className="mt-5 text-lg text-muted-foreground">
-                Une solution{" "}
-                <strong className="text-foreground">complète</strong> et{" "}
-                <strong className="text-foreground">moderne</strong> pour gérer
-                votre restaurant, vos commandes et votre cuisine en toute
-                simplicité.
+                Une solution <strong className="text-foreground">complète</strong> et{" "}
+                <strong className="text-foreground">moderne</strong> pour gérer votre restaurant, vos commandes et votre
+                cuisine en toute simplicité.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button
-                  asChild
-                  size="lg"
-                  className="h-12 rounded-full px-6 text-base shadow-lg shadow-primary/25"
-                >
-                  <Link href="/register">
-                    Commencer gratuitement <ArrowRight aria-hidden />
+                <Button asChild size="lg" className="h-12 rounded-full px-6 text-base shadow-lg shadow-primary/25">
+                  <Link href="/demande">
+                    Demander l&apos;ouverture <ArrowRight aria-hidden />
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="h-12 rounded-full px-6 text-base"
-                >
+                <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-6 text-base">
                   <Link href={`/r/${DEMO_SLUG}`}>
                     <Play className="fill-current" aria-hidden /> Voir la démo
                   </Link>
                 </Button>
               </div>
-              <ul
-                className="mt-8 flex flex-wrap gap-2"
-                aria-label="Technologies"
-              >
+              <ul className="mt-8 flex flex-wrap gap-2" aria-label="Technologies">
                 {STACK.map((t) => (
                   <li
                     key={t}
@@ -235,17 +198,10 @@ export default function Home() {
         </section>
 
         {/* ── Fonctionnalités ────────────────────────────── */}
-        <section
-          id="fonctionnalites"
-          aria-labelledby="features-title"
-          className="scroll-mt-20 py-16"
-        >
+        <section id="fonctionnalites" aria-labelledby="features-title" className="scroll-mt-20 py-16">
           <div className="mx-auto w-full max-w-7xl px-4">
             <div className="mx-auto max-w-2xl text-center">
-              <h2
-                id="features-title"
-                className="text-3xl font-bold tracking-tight sm:text-4xl"
-              >
+              <h2 id="features-title" className="text-3xl font-bold tracking-tight sm:text-4xl">
                 Tout votre restaurant, connecté
               </h2>
               <p className="mt-3 text-muted-foreground">
@@ -273,29 +229,17 @@ export default function Home() {
                         <f.icon className="size-5" aria-hidden />
                       </span>
                       <div className="min-w-0">
-                        <h3 className="font-semibold leading-tight">
-                          {f.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {f.subtitle}
-                        </p>
+                        <h3 className="font-semibold leading-tight">{f.title}</h3>
+                        <p className="text-xs text-muted-foreground">{f.subtitle}</p>
                       </div>
                     </div>
                     <div className="mx-4 aspect-[4/3] overflow-hidden rounded-xl bg-muted">
-                      <img
-                        src={f.image}
-                        alt=""
-                        loading="lazy"
-                        className="size-full object-cover"
-                      />
+                      <img src={f.image} alt="" loading="lazy" className="size-full object-cover" />
                     </div>
                     <ul className="space-y-2 p-4 text-sm">
                       {f.points.map((p) => (
                         <li key={p} className="flex items-start gap-2">
-                          <CircleCheck
-                            className={cn("mt-0.5 size-4 shrink-0", tone.check)}
-                            aria-hidden
-                          />
+                          <CircleCheck className={cn("mt-0.5 size-4 shrink-0", tone.check)} aria-hidden />
                           {p}
                         </li>
                       ))}
@@ -308,24 +252,14 @@ export default function Home() {
         </section>
 
         {/* ── Comment ça marche (clients) ────────────────── */}
-        <section
-          id="comment"
-          aria-labelledby="steps-title"
-          className="scroll-mt-20 bg-muted/40 py-16"
-        >
+        <section id="comment" aria-labelledby="steps-title" className="scroll-mt-20 bg-muted/40 py-16">
           <div className="mx-auto w-full max-w-7xl px-4">
-            <h2
-              id="steps-title"
-              className="text-center text-3xl font-bold tracking-tight"
-            >
+            <h2 id="steps-title" className="text-center text-3xl font-bold tracking-tight">
               Commander, côté client
             </h2>
             <ol className="mt-10 grid gap-5 md:grid-cols-3">
               {STEPS.map((s, i) => (
-                <li
-                  key={s.title}
-                  className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm"
-                >
+                <li key={s.title} className="flex items-start gap-4 rounded-2xl border bg-card p-5 shadow-sm">
                   <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                     <s.icon className="size-6" aria-hidden />
                   </span>
@@ -333,9 +267,7 @@ export default function Home() {
                     <p className="text-lg font-semibold">
                       {i + 1}. {s.title}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {s.text}
-                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
                   </div>
                 </li>
               ))}
@@ -349,32 +281,22 @@ export default function Home() {
         </div>
 
         {/* ── Bandeau final ──────────────────────────────── */}
-        <section
-          aria-labelledby="cta-title"
-          className="mx-auto w-full max-w-7xl px-4 pb-16"
-        >
+        <section aria-labelledby="cta-title" className="mx-auto w-full max-w-7xl px-4 pb-16">
           <div className="flex flex-col items-start gap-5 rounded-2xl bg-neutral-900 p-6 text-white sm:p-8 md:flex-row md:items-center md:justify-between dark:bg-neutral-800">
             <div className="flex items-start gap-4">
-              <Zap
-                className="mt-1 size-7 shrink-0 fill-amber-400 text-amber-400"
-                aria-hidden
-              />
+              <Zap className="mt-1 size-7 shrink-0 fill-amber-400 text-amber-400" aria-hidden />
               <div>
-                <h2
-                  id="cta-title"
-                  className="text-xl font-semibold sm:text-2xl"
-                >
+                <h2 id="cta-title" className="text-xl font-semibold sm:text-2xl">
                   OmegaSen, l&apos;allié de votre restaurant
                 </h2>
                 <p className="mt-1 text-neutral-300">
-                  Une gestion simple, efficace et moderne. Prêt en quelques
-                  minutes.
+                  Une gestion simple, efficace et moderne. Prêt en quelques minutes.
                 </p>
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/register">Créer mon restaurant</Link>
+                <Link href="/demande">Ouvrir mon restaurant</Link>
               </Button>
               <Button
                 asChild
@@ -390,8 +312,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} OmegaSen · Gestion et commande en ligne
-        pour restaurants
+        © {new Date().getFullYear()} OmegaSen · Gestion et commande en ligne pour restaurants
       </footer>
     </div>
   );
@@ -464,9 +385,7 @@ const PREVIEW_ORDERS = [
 const TODAY = [70, 62, 55, 58, 40, 46, 30, 36, 22, 28, 12, 18];
 const YESTERDAY = [78, 74, 70, 66, 62, 64, 55, 58, 50, 52, 45, 48];
 const toPath = (ys: number[]) =>
-  ys
-    .map((y, i) => `${i === 0 ? "M" : "L"}${(i / (ys.length - 1)) * 300},${y}`)
-    .join(" ");
+  ys.map((y, i) => `${i === 0 ? "M" : "L"}${(i / (ys.length - 1)) * 300},${y}`).join(" ");
 
 function DashboardPreview() {
   return (
@@ -498,11 +417,7 @@ function DashboardPreview() {
           <div className="mb-3 flex items-center justify-between gap-2 text-xs">
             <span className="truncate font-semibold">Le Baobab</span>
             <span className="flex shrink-0 items-center gap-1 text-green-700 dark:text-green-400">
-              <span
-                className="size-1.5 rounded-full bg-green-500"
-                aria-hidden
-              />{" "}
-              En ligne
+              <span className="size-1.5 rounded-full bg-green-500" aria-hidden /> En ligne
             </span>
           </div>
 
@@ -510,21 +425,14 @@ function DashboardPreview() {
             {PREVIEW_KPIS.map((k) => (
               <div key={k.label} className="rounded-xl border bg-card p-2.5">
                 <div className="flex items-start justify-between gap-1">
-                  <p className="text-[10px] leading-tight text-muted-foreground">
-                    {k.label}
-                  </p>
+                  <p className="text-[10px] leading-tight text-muted-foreground">{k.label}</p>
                   <span
-                    className={cn(
-                      "hidden size-6 shrink-0 items-center justify-center rounded-full sm:flex",
-                      k.tone,
-                    )}
+                    className={cn("hidden size-6 shrink-0 items-center justify-center rounded-full sm:flex", k.tone)}
                   >
                     <k.icon className="size-3" aria-hidden />
                   </span>
                 </div>
-                <p className="tabular mt-1 text-base font-bold sm:text-lg">
-                  {k.value}
-                </p>
+                <p className="tabular mt-1 text-base font-bold sm:text-lg">{k.value}</p>
                 <p className="flex items-center gap-0.5 text-[10px] font-medium text-green-600">
                   <TrendingUp className="size-3" aria-hidden /> {k.delta}
                 </p>
@@ -538,39 +446,20 @@ function DashboardPreview() {
                 <span className="font-semibold">Évolution des commandes</span>
                 <span className="flex items-center gap-2 text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <span
-                      className="size-2 rounded-sm bg-primary"
-                      aria-hidden
-                    />
+                    <span className="size-2 rounded-sm bg-primary" aria-hidden />
                     Aujourd&apos;hui
                   </span>
                   <span className="flex items-center gap-1">
-                    <span
-                      className="size-2 rounded-sm bg-neutral-300"
-                      aria-hidden
-                    />
+                    <span className="size-2 rounded-sm bg-neutral-300" aria-hidden />
                     Hier
                   </span>
                 </span>
               </div>
-              <svg
-                viewBox="0 0 300 100"
-                className="mt-2 h-24 w-full"
-                preserveAspectRatio="none"
-                aria-hidden
-              >
+              <svg viewBox="0 0 300 100" className="mt-2 h-24 w-full" preserveAspectRatio="none" aria-hidden>
                 <defs>
                   <linearGradient id="preview-fill" x1="0" x2="0" y1="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--primary)"
-                      stopOpacity="0.25"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--primary)"
-                      stopOpacity="0"
-                    />
+                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <path
@@ -580,10 +469,7 @@ function DashboardPreview() {
                   strokeWidth="2"
                   vectorEffect="non-scaling-stroke"
                 />
-                <path
-                  d={`${toPath(TODAY)} L300,100 L0,100 Z`}
-                  fill="url(#preview-fill)"
-                />
+                <path d={`${toPath(TODAY)} L300,100 L0,100 Z`} fill="url(#preview-fill)" />
                 <path
                   d={toPath(TODAY)}
                   fill="none"
@@ -597,19 +483,9 @@ function DashboardPreview() {
               <p className="text-[11px] font-semibold">Commandes récentes</p>
               <ul className="mt-2 space-y-1.5">
                 {PREVIEW_ORDERS.map((o) => (
-                  <li
-                    key={o.n}
-                    className="flex items-center justify-between gap-2 text-[11px]"
-                  >
+                  <li key={o.n} className="flex items-center justify-between gap-2 text-[11px]">
                     <span className="tabular font-medium">#{o.n}</span>
-                    <span
-                      className={cn(
-                        "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                        o.tone,
-                      )}
-                    >
-                      {o.status}
-                    </span>
+                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", o.tone)}>{o.status}</span>
                     <span className="text-muted-foreground">{o.ago}</span>
                   </li>
                 ))}

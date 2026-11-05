@@ -1,5 +1,7 @@
 "use client";
 
+import { ChefHat, Clock, ImageIcon, ShoppingBag, Store } from "lucide-react";
+
 import { PageHeader } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +15,14 @@ import { OrdersForm } from "./orders-form";
 import { StationsSection } from "./stations-section";
 import { useRestaurant } from "./use-restaurant";
 
+const TABS = [
+  { value: "info", label: "Informations", icon: Store },
+  { value: "orders", label: "Commande", icon: ShoppingBag },
+  { value: "images", label: "Images", icon: ImageIcon },
+  { value: "hours", label: "Horaires", icon: Clock },
+  { value: "stations", label: "Postes de cuisine", icon: ChefHat },
+] as const;
+
 export function SettingsView({ rid }: { rid: string }) {
   const restaurant = useRestaurant(rid);
   const r = restaurant.data;
@@ -23,7 +33,7 @@ export function SettingsView({ rid }: { rid: string }) {
       {restaurant.isPending ? (
         <div className="grid gap-4">
           <Skeleton className="h-9 w-full max-w-xl" />
-          <Skeleton className="h-96" />
+          <Skeleton className="h-96 rounded-2xl" />
         </div>
       ) : restaurant.isError || !r ? (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
@@ -34,15 +44,14 @@ export function SettingsView({ rid }: { rid: string }) {
         </div>
       ) : (
         <Tabs defaultValue="info" className="gap-4">
-          <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-            <TabsList>
-              <TabsTrigger value="info">Informations</TabsTrigger>
-              <TabsTrigger value="orders">Commande</TabsTrigger>
-              <TabsTrigger value="images">Images</TabsTrigger>
-              <TabsTrigger value="hours">Horaires</TabsTrigger>
-              <TabsTrigger value="stations">Postes de cuisine</TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-1 rounded-xl p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:w-fit">
+            {TABS.map(({ value, label, icon: Icon }) => (
+              <TabsTrigger key={value} value={value} className="h-9 flex-none rounded-lg px-3">
+                <Icon />
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           <TabsContent value="info" forceMount className="data-[state=inactive]:hidden">
             <InfoForm key={r.id} restaurant={r} />
           </TabsContent>

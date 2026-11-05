@@ -1,18 +1,31 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  Ban,
+  BarChart3,
+  CalendarRange,
+  Clock,
+  QrCode,
+  Receipt,
+  ShoppingBag,
+  Store,
+  Timer,
+  Trophy,
+  Wallet,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
 import { addDays, formatIsoDay, localIsoDate, useRestaurant } from "@/components/manage/layout/hooks";
 import { BreakdownBars, OrdersByHourChart, RevenueByDayChart } from "@/components/manage/stats/charts";
+import { IconChip, KpiCard } from "@/components/manage/layout/kpi-card";
 import { PageHeader } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
 import { formatMoney } from "@/lib/format";
 import { CHANNEL, SERVICE_MODE } from "@/lib/labels";
@@ -25,16 +38,6 @@ const PRESETS: { id: Preset; label: string }[] = [
   { id: "30d", label: "30 jours" },
   { id: "custom", label: "Personnalisé" },
 ];
-
-function Kpi({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
-  return (
-    <Card className="gap-1 p-4">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="text-2xl font-semibold tabular-nums">{value}</p>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-    </Card>
-  );
-}
 
 export default function StatsPage() {
   const { rid } = useParams<{ rid: string }>();
@@ -76,8 +79,9 @@ export default function StatsPage() {
     <>
       <PageHeader title="Statistiques" description="Chiffre d'affaires TTC des commandes payées, hors annulations." />
 
-      <Card className="mb-6 gap-3 p-4">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Période">
+      <Card className="mb-6 gap-3 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Période">
+          <CalendarRange className="mr-1 hidden size-4 text-muted-foreground sm:block" aria-hidden />
           {PRESETS.map((p) => (
             <Button
               key={p.id}
@@ -120,37 +124,51 @@ export default function StatsPage() {
       ) : !s ? (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
+            <Skeleton key={i} className="h-24 rounded-2xl" />
           ))}
         </div>
       ) : (
         <div className={cn("space-y-6", stats.isPlaceholderData && "opacity-60 transition-opacity")}>
           <section aria-label="Indicateurs clés" className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-            <Kpi label="Commandes" value={s.orders} hint="Hors annulations" />
-            <Kpi label="Chiffre d'affaires" value={formatMoney(s.revenue, currency)} hint={`dont TVA ${formatMoney(s.tax, currency)}`} />
-            <Kpi label="Panier moyen" value={formatMoney(s.average_ticket, currency)} />
-            <Kpi label="Annulées" value={s.cancelled} />
-            <Kpi
+            <KpiCard icon={Receipt} tone="blue" label="Commandes" value={s.orders} hint="Hors annulations" />
+            <KpiCard
+              icon={Wallet}
+              tone="green"
+              label="Chiffre d'affaires"
+              value={formatMoney(s.revenue, currency)}
+              hint={`dont TVA ${formatMoney(s.tax, currency)}`}
+            />
+            <KpiCard icon={ShoppingBag} tone="violet" label="Panier moyen" value={formatMoney(s.average_ticket, currency)} />
+            <KpiCard icon={Ban} tone="red" label="Annulées" value={s.cancelled} />
+            <KpiCard
+              icon={Timer}
+              tone="amber"
               label="Préparation moyenne"
               value={s.avg_preparation_minutes != null ? `${Math.round(s.avg_preparation_minutes)} min` : "—"}
             />
-            <Kpi label="Scans du QR Code" value={s.qr_scans_total} />
+            <KpiCard icon={QrCode} tone="orange" label="Scans du QR Code" value={s.qr_scans_total} />
           </section>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Chiffre d&apos;affaires par jour</CardTitle>
-                <CardDescription>Commandes payées</CardDescription>
+              <CardHeader className="flex items-center gap-3">
+                <IconChip icon={BarChart3} tone="green" className="size-9" />
+                <div className="min-w-0">
+                  <CardTitle>Chiffre d&apos;affaires par jour</CardTitle>
+                  <CardDescription className="mt-1">Commandes payées</CardDescription>
+                </div>
               </CardHeader>
               <CardContent>
                 <RevenueByDayChart buckets={s.by_day} from={s.date_from} to={s.date_to} currency={currency} />
               </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle>Commandes par heure</CardTitle>
-                <CardDescription>Cumul sur la période</CardDescription>
+              <CardHeader className="flex items-center gap-3">
+                <IconChip icon={Clock} tone="teal" className="size-9" />
+                <div className="min-w-0">
+                  <CardTitle>Commandes par heure</CardTitle>
+                  <CardDescription className="mt-1">Cumul sur la période</CardDescription>
+                </div>
               </CardHeader>
               <CardContent>
                 {s.by_hour.length ? (
@@ -161,16 +179,24 @@ export default function StatsPage() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle>Par canal</CardTitle>
+              <CardHeader className="flex items-center gap-3">
+                <IconChip icon={QrCode} tone="blue" className="size-9" />
+                <div className="min-w-0">
+                  <CardTitle>Par canal</CardTitle>
+                  
+                </div>
               </CardHeader>
               <CardContent>
                 <BreakdownBars buckets={s.by_channel} labels={CHANNEL} currency={currency} />
               </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle>Par mode de service</CardTitle>
+              <CardHeader className="flex items-center gap-3">
+                <IconChip icon={Store} tone="violet" className="size-9" />
+                <div className="min-w-0">
+                  <CardTitle>Par mode de service</CardTitle>
+                  
+                </div>
               </CardHeader>
               <CardContent>
                 <BreakdownBars buckets={s.by_service_mode} labels={SERVICE_MODE} currency={currency} />
@@ -179,33 +205,45 @@ export default function StatsPage() {
           </div>
 
           <Card className="gap-0 pb-0">
-            <CardHeader className="pb-4">
+            <CardHeader className="flex items-center gap-3 pb-4">
+              <IconChip icon={Trophy} tone="amber" className="size-9" />
               <CardTitle>Produits les plus vendus</CardTitle>
             </CardHeader>
             {s.top_products.length === 0 ? (
               <p className="px-6 pb-6 text-sm text-muted-foreground">Aucune vente sur la période.</p>
             ) : (
               <div className="border-t">
-                <Table className="min-w-[420px]">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">#</TableHead>
-                      <TableHead>Produit</TableHead>
-                      <TableHead className="text-right">Quantité</TableHead>
-                      <TableHead className="text-right">Chiffre d&apos;affaires</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {s.top_products.map((p, i) => (
-                      <TableRow key={p.name}>
-                        <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
-                        <TableCell className="font-medium">{p.name}</TableCell>
-                        <TableCell className="text-right tabular-nums">{p.quantity}</TableCell>
-                        <TableCell className="text-right tabular-nums">{formatMoney(p.revenue, currency)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="hidden grid-cols-[2.5rem_minmax(0,1fr)_6rem_9rem] gap-3 bg-muted/40 px-6 py-2.5 text-xs font-medium text-muted-foreground sm:grid">
+                  <span>#</span>
+                  <span>Produit</span>
+                  <span className="text-right">Quantité</span>
+                  <span className="text-right">Chiffre d&apos;affaires</span>
+                </div>
+                <ol className="divide-y">
+                  {s.top_products.map((p, i) => (
+                    <li
+                      key={p.name}
+                      className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_6rem_9rem] sm:px-6"
+                    >
+                      <span
+                        className={cn(
+                          "flex size-7 items-center justify-center rounded-full text-xs font-semibold tabular-nums",
+                          i === 0 ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200" : "bg-muted text-muted-foreground",
+                        )}
+                      >
+                        {i + 1}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">{p.name}</span>
+                        <span className="block text-xs text-muted-foreground tabular-nums sm:hidden">
+                          {p.quantity} vendu{p.quantity > 1 ? "s" : ""}
+                        </span>
+                      </span>
+                      <span className="hidden text-right tabular-nums sm:block">{p.quantity}</span>
+                      <span className="text-right font-medium tabular-nums">{formatMoney(p.revenue, currency)}</span>
+                    </li>
+                  ))}
+                </ol>
               </div>
             )}
           </Card>

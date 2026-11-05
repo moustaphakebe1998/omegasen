@@ -46,23 +46,38 @@ function LoginForm() {
   });
 
   return (
-    <Card>
+    <Card className="rounded-2xl shadow-md">
       <CardHeader>
-        <CardTitle>Connexion</CardTitle>
+        <CardTitle className="text-xl">Connexion</CardTitle>
         <CardDescription>Espace restaurateur, cuisine, caisse et administration.</CardDescription>
       </CardHeader>
       <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" autoComplete="email" autoFocus {...form.register("email")} />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              className="h-11"
+              aria-invalid={!!form.formState.errors.email}
+              {...form.register("email")}
+            />
             {form.formState.errors.email && (
               <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Mot de passe</Label>
-            <Input id="password" type="password" autoComplete="current-password" {...form.register("password")} />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              className="h-11"
+              aria-invalid={!!form.formState.errors.password}
+              {...form.register("password")}
+            />
             {form.formState.errors.password && (
               <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>
             )}
@@ -74,14 +89,14 @@ function LoginForm() {
           )}
         </CardContent>
         <CardFooter className="mt-6 flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+          <Button type="submit" size="lg" className="h-11 w-full" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting && <Loader2 className="animate-spin" />}
             Se connecter
           </Button>
-          <p className="text-sm text-muted-foreground">
-            Nouveau restaurateur ?{" "}
-            <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
-              Créer un compte
+          <p className="text-center text-sm text-muted-foreground">
+            Vous avez un restaurant ?{" "}
+            <Link href="/demande" className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline">
+              Demander l&apos;ouverture
             </Link>
           </p>
         </CardFooter>

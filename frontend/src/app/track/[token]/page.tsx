@@ -32,7 +32,7 @@ const FINAL: OrderStatus[] = ["COMPLETED", "CANCELLED"];
 function StatusProgress({ order }: { order: Tracking }) {
   const current = STEPS.findIndex((s) => s.status === order.status);
   return (
-    <ol className="grid grid-cols-4 gap-1" aria-label="Avancement de la commande">
+    <ol className="grid grid-cols-4 gap-1 pt-1" aria-label="Avancement de la commande">
       {STEPS.map((s, i) => {
         const done = i < current || order.status === "COMPLETED";
         const active = i === current && order.status !== "COMPLETED";
@@ -63,7 +63,9 @@ function StatusProgress({ order }: { order: Tracking }) {
             >
               <Icon className="size-5" aria-hidden />
             </span>
-            <span className={cn("text-xs leading-tight sm:text-sm", (done || active) ? "font-semibold" : "text-muted-foreground")}>
+            <span
+              className={cn("px-0.5 text-xs leading-tight sm:text-sm", done || active ? "font-semibold" : "text-muted-foreground")}
+            >
               {ORDER_STATUS[s.status].label}
               <span className="sr-only">{done ? " (terminé)" : active ? " (en cours)" : " (à venir)"}</span>
             </span>
@@ -183,10 +185,10 @@ export default function TrackPage() {
         <section
           aria-labelledby="order-number"
           className={cn(
-            "rounded-2xl border p-6 text-center shadow-sm transition-colors",
+            "relative overflow-hidden rounded-2xl border p-6 text-center shadow-sm transition-colors sm:p-8",
             ready && "border-green-600 bg-green-600 text-white",
             cancelled && "border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950",
-            !ready && !cancelled && "bg-card",
+            !ready && !cancelled && "bg-card bg-gradient-to-b from-primary/10 to-transparent to-60%",
           )}
         >
           <Link
@@ -222,15 +224,13 @@ export default function TrackPage() {
                 <p className="text-sm">{statusMessage(order)}</p>
               </div>
             ) : (
-              <p className="text-muted-foreground">
-                {statusMessage(order)}
-              </p>
+              <p className="mx-auto max-w-xs text-muted-foreground">{statusMessage(order)}</p>
             )}
           </div>
         </section>
 
         {!cancelled && (
-          <section aria-label="Suivi" className="rounded-xl border bg-card p-4">
+          <section aria-label="Suivi" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
             <StatusProgress order={order} />
             {!FINAL.includes(order.status) && (
               <p className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -247,7 +247,7 @@ export default function TrackPage() {
           </section>
         )}
 
-        <section aria-labelledby="order-details" className="rounded-xl border bg-card p-4">
+        <section aria-labelledby="order-details" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="order-details" className="font-semibold">
               Détail de la commande
@@ -259,10 +259,12 @@ export default function TrackPage() {
           </div>
           <ul className="mt-3 divide-y">
             {order.items.map((it) => (
-              <li key={it.id} className="flex gap-3 py-2.5 text-sm">
-                <span className="tabular w-8 shrink-0 font-semibold">{it.quantity}×</span>
+              <li key={it.id} className="flex items-start gap-3 py-3 text-sm">
+                <span className="tabular flex h-7 min-w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 px-1.5 text-xs font-semibold text-primary">
+                  {it.quantity}×
+                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium break-words">{it.product_name}</p>
+                  <p className="pt-1 font-medium break-words">{it.product_name}</p>
                   {it.options.length > 0 && (
                     <ul className="text-muted-foreground">
                       {it.options.map((o, i) => (
@@ -275,7 +277,7 @@ export default function TrackPage() {
                   )}
                   {it.note && <p className="text-muted-foreground italic">« {it.note} »</p>}
                 </div>
-                <span className="tabular shrink-0 font-medium">{formatMoney(it.line_total, order.currency)}</span>
+                <span className="tabular shrink-0 pt-1 font-medium">{formatMoney(it.line_total, order.currency)}</span>
               </li>
             ))}
           </ul>
@@ -289,7 +291,9 @@ export default function TrackPage() {
             </p>
           )}
           {order.payment_status === "UNPAID" && order.payment_preference === "AT_COUNTER" && !cancelled && (
-            <p className="mt-3 rounded-md bg-muted p-3 text-sm">À régler au comptoir.</p>
+            <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+              À régler au comptoir.
+            </p>
           )}
           <p className="mt-3 text-xs text-muted-foreground">
             Réf. {order.reference} · {CHANNEL[order.channel]} · passée à {formatTime(order.created_at)}
@@ -308,11 +312,11 @@ export default function TrackPage() {
   return (
     <div className="min-h-dvh bg-muted/30">
       <header className="border-b bg-background">
-        <div className="mx-auto flex h-14 max-w-lg items-center px-4">
+        <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <Logo />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-lg p-4 pb-12">{body}</main>
+      <main className="mx-auto w-full max-w-lg p-4 pt-6 pb-12">{body}</main>
     </div>
   );
 }

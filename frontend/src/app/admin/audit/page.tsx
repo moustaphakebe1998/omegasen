@@ -36,7 +36,9 @@ export default function AdminAuditPage() {
     queryFn: () =>
       unwrap(
         api.GET("/api/admin/audit-logs", {
-          params: { query: { action: prefix || undefined, page, page_size: PAGE_SIZE } },
+          params: {
+            query: { action: prefix || undefined, page, page_size: PAGE_SIZE },
+          },
         }),
       ),
     placeholderData: keepPreviousData,
@@ -50,9 +52,17 @@ export default function AdminAuditPage() {
 
   return (
     <>
-      <PageHeader title="Journal d'audit" description="Actions sensibles effectuées sur la plateforme, de la plus récente à la plus ancienne." />
+      <PageHeader
+        title="Journal d'audit"
+        description="Actions sensibles effectuées sur la plateforme, de la plus récente à la plus ancienne."
+      />
       <div className="mb-3 flex items-center gap-3">
-        <SearchInput value={action} onChange={changeAction} placeholder="Préfixe d'action (ex. order.)" label="Filtrer par action" />
+        <SearchInput
+          value={action}
+          onChange={changeAction}
+          placeholder="Préfixe d'action (ex. order.)"
+          label="Filtrer par action"
+        />
         {list.isFetching && !list.isLoading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
       </div>
       <div className="mb-4 flex flex-wrap gap-2" role="toolbar" aria-label="Filtres rapides">
@@ -119,12 +129,17 @@ export default function AdminAuditPage() {
                       <TableCell>
                         <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{a.action}</code>
                       </TableCell>
-                      <TableCell className="text-sm">{a.actor_email ?? <span className="text-muted-foreground">Système</span>}</TableCell>
+                      <TableCell className="text-sm">
+                        {a.actor_email ?? <span className="text-muted-foreground">Système</span>}
+                      </TableCell>
                       <TableCell className="text-sm">{a.restaurant_name ?? "—"}</TableCell>
                       <TableCell className="text-sm">
                         {a.entity ?? "—"}
                         {a.entity_id && (
-                          <span className="block max-w-40 truncate font-mono text-xs text-muted-foreground" title={a.entity_id}>
+                          <span
+                            className="block max-w-40 truncate font-mono text-xs text-muted-foreground"
+                            title={a.entity_id}
+                          >
                             {a.entity_id}
                           </span>
                         )}

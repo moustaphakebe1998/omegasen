@@ -42,9 +42,7 @@ export function CartPanel({
       <div className="flex flex-col items-center gap-3 px-4 py-10 text-center text-muted-foreground">
         <ShoppingBasket className="size-10" aria-hidden />
         <p className={cn(kiosk && "text-lg")}>Votre panier est vide.</p>
-        <p className="text-sm">
-          Touchez un produit du menu pour l&apos;ajouter.
-        </p>
+        <p className="text-sm">Touchez un produit du menu pour l&apos;ajouter.</p>
       </div>
     );
   }
@@ -52,12 +50,7 @@ export function CartPanel({
   if (step === "checkout") {
     return (
       <div className="space-y-4">
-        <Button
-          variant="ghost"
-          size={kiosk ? "lg" : "sm"}
-          onClick={() => onStepChange("cart")}
-          className="-ml-2"
-        >
+        <Button variant="ghost" size={kiosk ? "lg" : "sm"} onClick={() => onStepChange("cart")} className="-ml-2">
           <ArrowLeft aria-hidden /> Retour au panier
         </Button>
         <CheckoutForm
@@ -82,52 +75,27 @@ export function CartPanel({
       <ul className="divide-y" aria-label="Articles du panier">
         {cart.lines.map((l) => (
           <li key={l.key} className="flex gap-3 py-3">
-            {l.imageUrl && (
-              <img
-                src={l.imageUrl}
-                alt=""
-                className="size-14 shrink-0 rounded-md object-cover"
-              />
-            )}
+            {l.imageUrl && <img src={l.imageUrl} alt="" className="size-14 shrink-0 rounded-md object-cover" />}
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
-                <p
-                  className={cn("font-medium break-words", kiosk && "text-lg")}
-                >
-                  {l.name}
-                </p>
-                <p className="tabular shrink-0 font-semibold">
-                  {formatMoney(lineUnitPrice(l) * l.quantity, currency)}
-                </p>
+                <p className={cn("font-medium break-words", kiosk && "text-lg")}>{l.name}</p>
+                <p className="tabular shrink-0 font-semibold">{formatMoney(lineUnitPrice(l) * l.quantity, currency)}</p>
               </div>
               {l.optionLabels.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  {l.optionLabels.join(", ")}
-                </p>
+                <p className="text-sm text-muted-foreground">{l.optionLabels.join(", ")}</p>
               )}
-              {l.note && (
-                <p className="text-sm text-muted-foreground italic">
-                  « {l.note} »
-                </p>
-              )}
+              {l.note && <p className="text-sm text-muted-foreground italic">« {l.note} »</p>}
               <div className="mt-2 flex items-center gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size={btnSize}
-                  aria-label={
-                    l.quantity === 1
-                      ? `Retirer ${l.name}`
-                      : `Diminuer la quantité de ${l.name}`
-                  }
+                  aria-label={l.quantity === 1 ? `Retirer ${l.name}` : `Diminuer la quantité de ${l.name}`}
                   onClick={() => cart.setQuantity(l.key, l.quantity - 1)}
                 >
                   <Minus aria-hidden />
                 </Button>
-                <span
-                  className="tabular w-8 text-center font-semibold"
-                  aria-label={`Quantité : ${l.quantity}`}
-                >
+                <span className="tabular w-8 text-center font-semibold" aria-label={`Quantité : ${l.quantity}`}>
                   {l.quantity}
                 </span>
                 <Button
@@ -161,9 +129,7 @@ export function CartPanel({
 
       <div className="flex items-baseline justify-between border-t pt-3">
         <span className="font-semibold">Total</span>
-        <span
-          className={cn("tabular font-bold", kiosk ? "text-2xl" : "text-lg")}
-        >
+        <span className={cn("tabular font-bold", kiosk ? "text-2xl" : "text-lg")}>
           {formatMoney(cart.total, currency)}
         </span>
       </div>
@@ -172,10 +138,7 @@ export function CartPanel({
       </p>
 
       {blockedReason && (
-        <p
-          role="alert"
-          className="rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive"
-        >
+        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive">
           {blockedReason}
         </p>
       )}

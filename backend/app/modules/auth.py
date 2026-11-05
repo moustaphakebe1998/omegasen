@@ -6,11 +6,12 @@ from datetime import UTC, datetime, timedelta
 from fastapi import APIRouter, Request, Response
 from pydantic import EmailStr, Field
 from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.deps import CurrentUser, Session
-from app.core.errors import Conflict, Unauthorized, Unprocessable
+from app.core.errors import NotFound, Unauthorized, Unprocessable
 from app.core.ratelimit import client_ip, hit
 from app.core.schema import Schema
 from app.core.security import (
@@ -20,7 +21,7 @@ from app.core.security import (
     new_refresh_token,
     verify_password,
 )
-from app.models import Membership, RefreshToken, Restaurant, User
+from app.models import ActivationToken, Membership, RefreshToken, Restaurant, User
 from app.models.enums import MemberRole
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -38,11 +39,14 @@ class LoginIn(Schema):
     password: str = Field(min_length=1, max_length=200)
 
 
-class RegisterIn(Schema):
-    email: EmailStr
+class ActivateIn(Schema):
+    token: str = Field(min_length=10, max_length=200)
     password: str = Field(min_length=10, max_length=200)
-    full_name: str = Field(min_length=2, max_length=120)
-    phone: str | None = Field(default=None, max_length=32)
+
+
+class ActivationInfo(Schema):
+    email: str
+    full_name: str
 
 
 class ChangePasswordIn(Schema):
@@ -168,21 +172,74 @@ async def login(body: LoginIn, request: Request, response: Response, session: Se
     return await _issue_tokens(session, request, response, user)
 
 
-@router.post("/register", response_model=TokenOut, status_code=201)
-async def register(body: RegisterIn, request: Request, response: Response, session: Session):
-    await hit("register", client_ip(request), limit=5, window_seconds=3600)
-    email = body.email.lower()
-    if await session.scalar(select(User.id).where(User.email == email)):
-        raise Conflict("Un compte existe déjà avec cet email", code="email_taken")
+# Pas d'inscription libre : les comptes sont créés par un super admin (propriétaires, via les demandes
+# d'ouverture) ou par un gérant (employés). Un compte créé sans mot de passe reçoit un lien d'activation.
+
+ACTIVATION_TTL = timedelta(days=7)
+
+
+async def create_activation_link(session, user: User) -> str:
+    """Crée un lien d'activation à usage unique (7 jours) ; le jeton brut n'est jamais stocké."""
+    raw = new_refresh_token()
+    now = datetime.now(UTC)
+    session.add(
+        ActivationToken(user_id=user.id, token_hash=hash_token(raw), created_at=now, expires_at=now + ACTIVATION_TTL)
+    )
+    return f"{get_settings().public_app_url.rstrip('/')}/activate/{raw}"
+
+
+async def ensure_account(
+    session, email: str, full_name: str | None, *, password: str | None = None, phone: str | None = None
+) -> tuple[User, str | None]:
+    """Retourne le compte existant, ou le crée. Sans mot de passe : compte inutilisable + lien d'activation."""
+    email = email.lower()
+    user = await session.scalar(select(User).where(User.email == email))
+    if user:
+        return user, None
+    if not full_name:
+        raise Unprocessable("Nom requis pour créer le compte", code="owner_details_required")
     user = User(
         email=email,
-        password_hash=hash_password(body.password),
-        full_name=body.full_name.strip(),
-        phone=body.phone,
+        full_name=full_name.strip(),
+        phone=phone,
+        # Mot de passe aléatoire jamais communiqué : le compte ne sert qu'après activation.
+        password_hash=hash_password(new_refresh_token()) if password is None else hash_password(password),
     )
     session.add(user)
     await session.flush()
-    audit(session, "user.registered", actor_id=user.id, ip=client_ip(request))
+    return user, (await create_activation_link(session, user)) if password is None else None
+
+
+async def _valid_activation(session, token: str) -> ActivationToken:
+    row = await session.scalar(
+        select(ActivationToken)
+        .where(ActivationToken.token_hash == hash_token(token))
+        .options(selectinload(ActivationToken.user))
+    )
+    if not row or row.used_at or row.expires_at <= datetime.now(UTC) or not row.user.is_active:
+        raise NotFound("Lien d'activation invalide ou expiré", code="invalid_activation")
+    return row
+
+
+@router.get("/activation/{token}", response_model=ActivationInfo)
+async def activation_info(token: str, request: Request, session: Session):
+    await hit("activation", client_ip(request), limit=30, window_seconds=600)
+    row = await _valid_activation(session, token)
+    return ActivationInfo(email=row.user.email, full_name=row.user.full_name)
+
+
+@router.post("/activate", response_model=TokenOut)
+async def activate(body: ActivateIn, request: Request, response: Response, session: Session):
+    await hit("activation", client_ip(request), limit=30, window_seconds=600)
+    row = await _valid_activation(session, body.token)
+    now = datetime.now(UTC)
+    row.used_at = now
+    user = row.user
+    user.password_hash = hash_password(body.password)
+    user.failed_logins = 0
+    user.locked_until = None
+    user.last_login_at = now
+    audit(session, "user.activated", actor_id=user.id, ip=client_ip(request))
     return await _issue_tokens(session, request, response, user)
 
 

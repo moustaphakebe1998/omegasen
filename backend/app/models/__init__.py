@@ -6,10 +6,12 @@ from app.models.menu import KitchenStation, MenuCategory, Option, OptionGroup, P
 from app.models.orders import Order, OrderCounter, OrderItem, OrderItemOption, OrderStatusEvent
 from app.models.payments import Payment
 from app.models.qrcodes import QrCode
+from app.models.requests import RestaurantRequest
 from app.models.restaurants import OpeningHours, Restaurant
-from app.models.users import Membership, RefreshToken, User
+from app.models.users import ActivationToken, Membership, RefreshToken, User
 
 __all__ = [
+    "ActivationToken",
     "AuditLog",
     "KitchenStation",
     "Media",
@@ -28,5 +30,6 @@ __all__ = [
     "QrCode",
     "RefreshToken",
     "Restaurant",
+    "RestaurantRequest",
     "User",
 ]

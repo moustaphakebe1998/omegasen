@@ -22,6 +22,7 @@ from app.modules import (
     payments,
     public,
     qrcodes,
+    requests,
     restaurants,
     ws,
 )
@@ -66,6 +67,8 @@ def create_app() -> FastAPI:
     register_error_handlers(app)
     for module in (auth, restaurants, media, menu, qrcodes, orders, payments, public, analytics, admin, ws):
         app.include_router(module.router)
+    app.include_router(requests.public_router)
+    app.include_router(requests.admin_router)
 
     @app.get("/health", tags=["system"])
     @app.get("/api/health", tags=["system"], include_in_schema=False)

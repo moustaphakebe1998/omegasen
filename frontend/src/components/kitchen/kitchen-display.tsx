@@ -58,9 +58,9 @@ const REMINDER_AFTER_MIN = 2;
 const REMINDER_EVERY_MS = 60_000;
 
 const chip =
-  "inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
+  "inline-flex min-h-12 shrink-0 items-center whitespace-nowrap gap-2 rounded-full border px-4 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 const iconBtn =
-  "inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-lg border border-neutral-700 px-3 text-base font-semibold text-neutral-100 active:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
+  "inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-neutral-700 bg-neutral-900 px-3 text-base font-semibold whitespace-nowrap text-neutral-100 transition-colors hover:bg-neutral-800 active:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 
 export function KitchenDisplay({ rid }: { rid: string }) {
   const qc = useQueryClient();
@@ -196,39 +196,50 @@ export function KitchenDisplay({ rid }: { rid: string }) {
 
   return (
     <div className="dark flex min-h-dvh flex-col bg-neutral-950 text-neutral-50 md:h-dvh">
-      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-neutral-800 px-4 py-3">
-        <div className="mr-auto flex min-w-0 items-center gap-3">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-neutral-800 bg-neutral-950 px-4 py-3">
+        <div className="mr-auto flex min-w-0 flex-1 items-center gap-3 sm:flex-none">
           <ConnectionDot state={connection} />
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold">{restaurant.data?.name ?? "Cuisine"}</h1>
-            <p className="text-sm text-neutral-400">
+            <p className="truncate text-sm text-neutral-400">
               Écran cuisine{stationName ? ` · ${stationName}` : ""} · {user?.full_name}
             </p>
           </div>
         </div>
-        <p className="tabular text-3xl font-bold" aria-label="Heure">
+        <p
+          className="tabular shrink-0 rounded-xl bg-neutral-900 px-3 py-1 text-2xl font-bold ring-1 ring-neutral-800 sm:ml-auto sm:text-3xl"
+          aria-label="Heure"
+        >
           {new Date(now).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
         </p>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           {sound.active ? (
             <button type="button" className={iconBtn} onClick={sound.disable} aria-label="Couper le son">
               <BellRing className="size-5 text-green-400" />
               <span className="hidden lg:inline">Son activé</span>
             </button>
           ) : sound.enabled ? (
-            <button type="button" className={cn(iconBtn, "border-amber-500 text-amber-200")} onClick={sound.enable}>
+            <button
+              type="button"
+              className={cn(iconBtn, "flex-1 border-amber-500 text-amber-200 sm:flex-none")}
+              onClick={sound.enable}
+            >
               <Bell className="size-5 animate-pulse" />
               Touchez pour activer le son
             </button>
           ) : (
-            <button type="button" className={cn(iconBtn, "border-amber-500 bg-amber-500 text-black")} onClick={sound.enable}>
+            <button
+              type="button"
+              className={cn(iconBtn, "flex-1 border-amber-500 bg-amber-500 text-black hover:bg-amber-400 sm:flex-none")}
+              onClick={sound.enable}
+            >
               <BellOff className="size-5" />
               Activer le son
             </button>
           )}
-          <button type="button" className={iconBtn} onClick={() => setStockOpen(true)}>
+          <button type="button" className={cn(iconBtn, "ml-auto sm:ml-0")} onClick={() => setStockOpen(true)} aria-label="Ruptures">
             <PackageX className="size-5" />
-            Ruptures
+            <span className="hidden sm:inline">Ruptures</span>
           </button>
           <button
             type="button"
@@ -259,7 +270,11 @@ export function KitchenDisplay({ rid }: { rid: string }) {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-neutral-800 px-4 py-2" role="toolbar" aria-label="Filtres">
+      <div
+        className="flex items-center gap-2 overflow-x-auto border-b border-neutral-800 px-4 py-2 [scrollbar-width:none] md:flex-wrap md:overflow-visible"
+        role="toolbar"
+        aria-label="Filtres"
+      >
         {COLUMNS.slice(0, 3).map((c) => {
           const on = visible.includes(c.status);
           return (
@@ -272,7 +287,9 @@ export function KitchenDisplay({ rid }: { rid: string }) {
             >
               <span className={cn("size-2.5 rounded-full", c.dot)} aria-hidden />
               {c.title}
-              <span className="tabular rounded-full bg-black/10 px-2 text-sm">{counts[c.status] ?? 0}</span>
+              <span className={cn("tabular rounded-full px-2 text-sm", on ? "bg-black/10" : "bg-neutral-800")}>
+                {counts[c.status] ?? 0}
+              </span>
             </button>
           );
         })}
@@ -286,7 +303,7 @@ export function KitchenDisplay({ rid }: { rid: string }) {
           Terminées récemment
         </button>
         {(stations.data?.length ?? 0) > 0 && (
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0">
             <Select value={stationId ?? "all"} onValueChange={(v) => setStationId(v === "all" ? null : v)}>
               <SelectTrigger className="min-h-12 min-w-48 text-base" aria-label="Poste de préparation">
                 <SelectValue />
@@ -327,16 +344,16 @@ export function KitchenDisplay({ rid }: { rid: string }) {
                 <section
                   key={c.status}
                   aria-label={c.title}
-                  className="flex flex-col rounded-xl bg-neutral-900/50 ring-1 ring-neutral-800 md:min-h-0"
+                  className="flex flex-col rounded-2xl bg-neutral-900/60 ring-1 ring-neutral-800 md:min-h-0"
                 >
-                  <h2 className="flex items-center gap-2 px-3 py-2 text-lg font-bold">
+                  <h2 className="flex items-center gap-2 border-b border-neutral-800 px-4 py-3 text-lg font-bold">
                     <span className={cn("size-3 rounded-full", c.dot)} aria-hidden />
                     {c.title}
                     <span className="tabular ml-auto rounded-full bg-neutral-800 px-2.5 text-base">{list.length}</span>
                   </h2>
-                  <div className="flex flex-col gap-3 p-2 md:min-h-0 md:flex-1 md:overflow-y-auto">
+                  <div className="flex flex-col gap-3 p-3 md:min-h-0 md:flex-1 md:overflow-y-auto">
                     {sorted.length === 0 ? (
-                      <p className="py-8 text-center text-neutral-500">Aucune commande</p>
+                      <p className="rounded-xl border border-dashed border-neutral-800 py-8 text-center text-neutral-500">Aucune commande</p>
                     ) : (
                       sorted.map((o) => (
                         <KitchenOrderCard

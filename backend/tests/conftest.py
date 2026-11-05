@@ -107,12 +107,26 @@ class Api:
         return await self.client.delete(url, headers=self.h, **kw)
 
 
-async def register(client: AsyncClient, email: str | None = None, password: str = "Password!123") -> Api:
+async def make_user(
+    client: AsyncClient, email: str | None = None, password: str = "Password!123", *, superadmin: bool = False
+) -> Api:
+    """Crée un compte directement en base (pas d'inscription publique) puis se connecte."""
+    from app.core.db import SessionLocal
+    from app.core.security import hash_password
+    from app.models import User
+
     email = email or f"user-{uuid.uuid4().hex[:8]}@example.com"
-    r = await client.post("/api/auth/register", json={"email": email, "password": password, "full_name": "Test User"})
-    assert r.status_code == 201, r.text
-    data = r.json()
-    return Api(client, data["access_token"], data["user"])
+    async with SessionLocal() as s:
+        s.add(
+            User(
+                email=email.lower(),
+                full_name="Test User",
+                password_hash=hash_password(password),
+                is_superadmin=superadmin,
+            )
+        )
+        await s.commit()
+    return await login(client, email, password)
 
 
 async def login(client: AsyncClient, email: str, password: str = "Password!123") -> Api:
@@ -123,13 +137,25 @@ async def login(client: AsyncClient, email: str, password: str = "Password!123")
 
 @pytest.fixture
 async def owner(client) -> Api:
-    return await register(client)
+    return await make_user(client)
 
 
 @pytest.fixture
-async def restaurant(owner) -> dict:
-    r = await owner.post("/api/restaurants", json={"name": "Chez Awa", "currency": "XOF", "city": "Dakar"})
+async def admin(client) -> Api:
+    return await make_user(client, superadmin=True)
+
+
+@pytest.fixture
+async def restaurant(owner, admin) -> dict:
+    """Seul le super admin crée un restaurant ; `owner` en devient propriétaire."""
+    r = await admin.post(
+        "/api/admin/restaurants",
+        json={"name": "Chez Awa", "currency": "XOF", "city": "Dakar", "owner_email": owner.user["email"]},
+    )
     assert r.status_code == 201, r.text
+    assert r.json()["activation_url"] is None  # compte déjà existant
+    r = await owner.get(f"/api/restaurants/{r.json()['id']}")
+    assert r.status_code == 200, r.text
     return r.json()
 
 

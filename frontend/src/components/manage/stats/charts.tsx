@@ -9,12 +9,10 @@ import { addDays, formatIsoDay } from "../layout/hooks";
 
 type Bucket = Schemas["Bucket"];
 
-/** Graduation compacte de l'axe (affichage uniquement). */
+/** Graduation compacte de l'axe, sans symbole monétaire pour rester lisible (affichage uniquement). */
 function compactMoney(amount: number, currency: string): string {
   const exp = CURRENCY_EXPONENT[currency] ?? 2;
   return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency,
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(amount / 10 ** exp);
@@ -74,7 +72,7 @@ export function RevenueByDayChart({
   return (
     <div className="h-64 w-full" role="img" aria-label="Graphique du chiffre d'affaires par jour">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 8, right: 4, left: -4, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="key"
@@ -82,7 +80,7 @@ export function RevenueByDayChart({
             tickFormatter={(k: string) => formatIsoDay(k)}
             minTickGap={16}
           />
-          <YAxis {...axisProps} width={64} tickFormatter={(v: number) => compactMoney(v, currency)} />
+          <YAxis {...axisProps} width={48} tickFormatter={(v: number) => compactMoney(v, currency)} />
           <Tooltip
             cursor={{ fill: "var(--muted)" }}
             content={(p) => <ChartTooltip {...(p as object)} currency={currency} />}
@@ -109,10 +107,10 @@ export function OrdersByHourChart({ buckets, currency }: { buckets: Bucket[]; cu
   return (
     <div className="h-64 w-full" role="img" aria-label="Graphique du nombre de commandes par heure">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 8, right: 4, left: -4, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis dataKey="key" {...axisProps} minTickGap={8} />
-          <YAxis {...axisProps} width={40} allowDecimals={false} />
+          <YAxis {...axisProps} width={32} allowDecimals={false} />
           <Tooltip
             cursor={{ fill: "var(--muted)" }}
             content={(p) => <ChartTooltip {...(p as object)} currency={currency} />}
@@ -143,14 +141,14 @@ export function BreakdownBars({
         const pct = total ? Math.round((b.orders / total) * 100) : 0;
         return (
           <li key={b.key}>
-            <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
+            <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-sm">
               <span className="font-medium">{labels[b.key] ?? b.key}</span>
-              <span className="text-muted-foreground tabular-nums">
+              <span className="text-xs text-muted-foreground tabular-nums sm:text-sm">
                 {b.orders} cmd · {formatMoney(b.revenue, currency)} · {pct} %
               </span>
             </div>
             <div
-              className="h-2 overflow-hidden rounded-full bg-muted"
+              className="h-2.5 overflow-hidden rounded-full bg-muted"
               role="progressbar"
               aria-valuenow={pct}
               aria-valuemin={0}

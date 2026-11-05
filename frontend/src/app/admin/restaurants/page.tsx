@@ -48,7 +48,13 @@ export default function AdminRestaurantsPage() {
   const list = useQuery({
     queryKey: ["admin", "restaurants", search, page],
     queryFn: () =>
-      unwrap(api.GET("/api/admin/restaurants", { params: { query: { q: search || undefined, page, page_size: PAGE_SIZE } } })),
+      unwrap(
+        api.GET("/api/admin/restaurants", {
+          params: {
+            query: { q: search || undefined, page, page_size: PAGE_SIZE },
+          },
+        }),
+      ),
     placeholderData: keepPreviousData,
   });
 
@@ -71,7 +77,9 @@ export default function AdminRestaurantsPage() {
   const regenerate = useMutation({
     mutationFn: (r: AdminRestaurant) =>
       unwrap(
-        api.POST("/api/admin/restaurants/{restaurant_id}/qr/regenerate", { params: { path: { restaurant_id: r.id } } }),
+        api.POST("/api/admin/restaurants/{restaurant_id}/qr/regenerate", {
+          params: { path: { restaurant_id: r.id } },
+        }),
       ),
     onSuccess: (qr, r) => {
       toast.success(`Nouveau QR Code généré pour ${r.name} (${qr.code})`);
@@ -119,7 +127,11 @@ export default function AdminRestaurantsPage() {
       ) : list.isLoading ? (
         <Skeleton className="h-64" />
       ) : list.data && list.data.items.length === 0 ? (
-        <EmptyState icon={Store} title="Aucun restaurant" description={search ? "Aucun résultat pour cette recherche." : undefined} />
+        <EmptyState
+          icon={Store}
+          title="Aucun restaurant"
+          description={search ? "Aucun résultat pour cette recherche." : undefined}
+        />
       ) : (
         <div className="rounded-lg border bg-background">
           <Table>
@@ -163,7 +175,9 @@ export default function AdminRestaurantsPage() {
                     {x.qr_code ? (
                       <div className="flex items-center gap-2">
                         <code className="text-xs">{x.qr_code}</code>
-                        <Badge variant={x.qr_active ? "secondary" : "outline"}>{x.qr_active ? "Actif" : "Inactif"}</Badge>
+                        <Badge variant={x.qr_active ? "secondary" : "outline"}>
+                          {x.qr_active ? "Actif" : "Inactif"}
+                        </Badge>
                       </div>
                     ) : (
                       "—"
@@ -220,7 +234,9 @@ export default function AdminRestaurantsPage() {
           {pending?.kind === "status" && r && (
             <>
               <AlertDialogHeader>
-                <AlertDialogTitle>{r.status === "ACTIVE" ? `Suspendre ${r.name} ?` : `Réactiver ${r.name} ?`}</AlertDialogTitle>
+                <AlertDialogTitle>
+                  {r.status === "ACTIVE" ? `Suspendre ${r.name} ?` : `Réactiver ${r.name} ?`}
+                </AlertDialogTitle>
                 <AlertDialogDescription>
                   {r.status === "ACTIVE"
                     ? "Le restaurant ne sera plus visible et ne pourra plus recevoir de commandes."
@@ -250,7 +266,9 @@ export default function AdminRestaurantsPage() {
                       Un nouveau code sera créé et <strong>l&apos;ancien cessera immédiatement de fonctionner</strong> :
                       tous les QR Codes déjà imprimés (tables, vitrine, flyers) ne mèneront plus au restaurant.
                     </p>
-                    <p>Le restaurateur devra réimprimer et remplacer tous ses supports. Cette action est irréversible.</p>
+                    <p>
+                      Le restaurateur devra réimprimer et remplacer tous ses supports. Cette action est irréversible.
+                    </p>
                   </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>

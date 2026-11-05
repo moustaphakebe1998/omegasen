@@ -1,13 +1,30 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ExternalLink, QrCode, Receipt, UtensilsCrossed } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BellRing,
+  Ban,
+  ChefHat,
+  ChevronRight,
+  CircleCheck,
+  ExternalLink,
+  Inbox,
+  Power,
+  QrCode,
+  Receipt,
+  ShoppingBag,
+  UtensilsCrossed,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { localIsoDate, type Order, useRestaurant } from "@/components/manage/layout/hooks";
+import { IconChip, KpiCard } from "@/components/manage/layout/kpi-card";
 import { OrderDetailSheet } from "@/components/manage/orders/order-detail-sheet";
 import { OrdersTable } from "@/components/manage/orders/orders-table";
 import { EmptyState, PageHeader } from "@/components/shared/app-shell";
@@ -23,7 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -34,15 +51,23 @@ import { cn } from "@/lib/utils";
 
 const ACTIVE: OrderStatus[] = ["NEW", "PREPARING", "READY"];
 
-function Kpi({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
-  return (
-    <Card className="gap-1 p-4">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="text-2xl font-semibold tabular-nums">{value}</p>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-    </Card>
-  );
-}
+const STATUS_TILE: Record<string, { icon: React.ComponentType<{ className?: string }>; tile: string; chip: string }> = {
+  NEW: {
+    icon: Inbox,
+    tile: "border-blue-200 bg-blue-50/60 dark:border-blue-900 dark:bg-blue-950/30",
+    chip: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200",
+  },
+  PREPARING: {
+    icon: ChefHat,
+    tile: "border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/30",
+    chip: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200",
+  },
+  READY: {
+    icon: BellRing,
+    tile: "border-green-200 bg-green-50/60 dark:border-green-900 dark:bg-green-950/30",
+    chip: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200",
+  },
+};
 
 export default function OverviewPage() {
   const { rid } = useParams<{ rid: string }>();
@@ -105,39 +130,47 @@ export default function OverviewPage() {
       <PageHeader title="Vue d'ensemble" description="L'activité de votre restaurant aujourd'hui." />
 
       {restaurant && (
-        <Card className="mb-6">
-          <CardContent className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-3">
-              <Switch
-                id="accepting"
-                checked={restaurant.accepting_orders}
-                disabled={saving}
-                onCheckedChange={(v) => (v ? setAccepting(true) : setConfirmOff(true))}
-              />
-              <Label htmlFor="accepting" className="text-base">
-                Accepte les commandes
-              </Label>
-            </div>
-            <Badge
-              className={cn(
-                "border-transparent",
-                restaurant.is_open_now
-                  ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200"
-                  : "bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
-              )}
-            >
-              {restaurant.is_open_now ? "Ouvert actuellement" : "Fermé actuellement"}
-            </Badge>
-            {!restaurant.accepting_orders && (
-              <p className="text-sm text-muted-foreground">
-                Les clients peuvent consulter le menu mais ne peuvent pas commander.
+        <div
+          className={cn(
+            "mb-6 flex items-start gap-4 rounded-2xl border bg-card p-4 shadow-sm sm:items-center sm:p-5",
+            !restaurant.accepting_orders && "border-amber-300 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20",
+          )}
+        >
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <IconChip icon={Power} tone={restaurant.accepting_orders ? "green" : "amber"} />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <Label htmlFor="accepting" className="text-base font-semibold">
+                  Accepte les commandes
+                </Label>
+                <Badge
+                  className={cn(
+                    "border-transparent",
+                    restaurant.is_open_now
+                      ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200"
+                      : "bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+                  )}
+                >
+                  {restaurant.is_open_now ? "Ouvert actuellement" : "Fermé actuellement"}
+                </Badge>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {!restaurant.accepting_orders
+                  ? "Les clients peuvent consulter le menu mais ne peuvent pas commander."
+                  : !restaurant.is_open_now
+                    ? "En dehors des horaires d'ouverture."
+                    : "Vos clients peuvent commander via le QR Code et en ligne."}
               </p>
-            )}
-            {restaurant.accepting_orders && !restaurant.is_open_now && (
-              <p className="text-sm text-muted-foreground">En dehors des horaires d&apos;ouverture.</p>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+          <Switch
+            id="accepting"
+            className="mt-1 shrink-0 sm:mt-0"
+            checked={restaurant.accepting_orders}
+            disabled={saving}
+            onCheckedChange={(v) => (v ? setAccepting(true) : setConfirmOff(true))}
+          />
+        </div>
       )}
 
       <section aria-labelledby="kpi-title" className="mb-6">
@@ -146,19 +179,28 @@ export default function OverviewPage() {
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {stats.isPending ? (
-            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
+            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
           ) : stats.isError ? (
             <p className="col-span-full text-sm text-muted-foreground">{errorMessage(stats.error)}</p>
           ) : (
             <>
-              <Kpi label="Commandes du jour" value={stats.data.orders} />
-              <Kpi
+              <KpiCard icon={Receipt} tone="blue" label="Commandes du jour" value={stats.data.orders} />
+              <KpiCard
+                icon={Wallet}
+                tone="green"
                 label="Chiffre d'affaires"
                 value={formatMoney(stats.data.revenue, currency)}
                 hint="Commandes payées"
               />
-              <Kpi label="Panier moyen" value={formatMoney(stats.data.average_ticket, currency)} />
-              <Kpi
+              <KpiCard
+                icon={ShoppingBag}
+                tone="violet"
+                label="Panier moyen"
+                value={formatMoney(stats.data.average_ticket, currency)}
+              />
+              <KpiCard
+                icon={Ban}
+                tone="red"
                 label="Annulées"
                 value={stats.data.cancelled}
                 hint={
@@ -173,54 +215,92 @@ export default function OverviewPage() {
       </section>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Commandes en cours</CardTitle>
-            <CardDescription>
-              {lateCount > 0 ? `${lateCount} commande${lateCount > 1 ? "s" : ""} en retard` : "Aucun retard"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="grid grid-cols-3 gap-3">
-              {counts.map(({ status, count }) => (
-                <li key={status} className={cn("rounded-lg p-3", ORDER_STATUS[status].className)}>
-                  <p className="text-3xl font-semibold tabular-nums">{active.isPending ? "…" : count}</p>
-                  <p className="text-xs font-medium">{ORDER_STATUS[status].label}</p>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Accès rapides</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-2">
-            <Button asChild variant="outline" className="justify-start">
-              <Link href={`/manage/${rid}/qr`}>
-                <QrCode />
-                QR Code
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-start">
-              <Link href={`/manage/${rid}/menu`}>
-                <UtensilsCrossed />
-                Menu
-              </Link>
-            </Button>
-            {restaurant && (
-              <Button asChild variant="outline" className="justify-start">
-                <a href={`/r/${restaurant.slug}`} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink />
-                  Page publique
-                </a>
-              </Button>
+        <section
+          aria-labelledby="active-title"
+          className="flex flex-col rounded-2xl border bg-card p-4 shadow-sm sm:p-5 lg:col-span-2"
+        >
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 id="active-title" className="font-semibold">
+              Commandes en cours
+            </h2>
+            {lateCount > 0 ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-300">
+                <AlertTriangle className="size-3.5" />
+                {lateCount} commande{lateCount > 1 ? "s" : ""} en retard
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-950/50 dark:text-green-300">
+                <CircleCheck className="size-3.5" />
+                Aucun retard
+              </span>
             )}
-          </CardContent>
-        </Card>
+          </div>
+          <ul className="grid flex-1 gap-3 sm:grid-cols-3">
+            {counts.map(({ status, count }) => {
+              const t = STATUS_TILE[status];
+              const Icon = t.icon;
+              return (
+                <li
+                  key={status}
+                  className={cn("flex items-center gap-3 rounded-xl border p-3 sm:flex-col sm:items-start sm:justify-between sm:p-4", t.tile)}
+                >
+                  <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", t.chip)} aria-hidden>
+                    <Icon className="size-4.5" />
+                  </span>
+                  <div className="flex min-w-0 flex-1 items-baseline justify-between gap-2 sm:w-full sm:flex-none sm:flex-col-reverse sm:items-start sm:gap-0.5">
+                    <p className="text-sm font-medium">{ORDER_STATUS[status].label}</p>
+                    <p className="text-3xl font-semibold tabular-nums sm:text-4xl">{active.isPending ? "…" : count}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+        <section aria-labelledby="quick-title" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
+          <h2 id="quick-title" className="mb-3 font-semibold">
+            Accès rapides
+          </h2>
+          <ul className="grid gap-2">
+            {[
+              { href: `/manage/${rid}/qr`, label: "QR Code", hint: "Télécharger et imprimer", icon: QrCode, tone: "violet" as const },
+              { href: `/manage/${rid}/menu`, label: "Menu", hint: "Produits, prix et disponibilités", icon: UtensilsCrossed, tone: "orange" as const },
+            ].map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                  <IconChip icon={l.icon} tone={l.tone} className="size-9" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">{l.label}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{l.hint}</span>
+                  </span>
+                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </li>
+            ))}
+            {restaurant && (
+              <li>
+                <a
+                  href={`/r/${restaurant.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                  <IconChip icon={ExternalLink} tone="blue" className="size-9" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">Page publique</span>
+                    <span className="block truncate text-xs text-muted-foreground">Voir ce que voient vos clients</span>
+                  </span>
+                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </a>
+              </li>
+            )}
+          </ul>
+        </section>
       </div>
 
-      <Card className="gap-0 pb-0">
+      <Card className="gap-0 overflow-hidden rounded-2xl pb-0">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle>Dernières commandes</CardTitle>
           <Button asChild variant="ghost" size="sm">

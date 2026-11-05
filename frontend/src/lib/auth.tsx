@@ -3,14 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import {
-  api,
-  refreshSession,
-  setAccessToken,
-  setOnSessionLost,
-  unwrap,
-  type Schemas,
-} from "@/lib/api/client";
+import { api, refreshSession, setAccessToken, setOnSessionLost, unwrap, type Schemas } from "@/lib/api/client";
 
 export type User = Schemas["UserOut"];
 export type Role = Schemas["MemberRole"];
@@ -19,7 +12,8 @@ type AuthState = {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
-  register: (data: { email: string; password: string; full_name: string; phone?: string }) => Promise<User>;
+  /** Active un compte créé par un administrateur (lien à usage unique) et ouvre la session. */
+  activate: (token: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   reload: () => Promise<void>;
   roleIn: (restaurantId: string) => Role | null;
@@ -59,15 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data.user;
   }, []);
 
-  const register = useCallback(
-    async (body: { email: string; password: string; full_name: string; phone?: string }) => {
-      const data = await unwrap(api.POST("/api/auth/register", { body }));
-      setAccessToken(data.access_token);
-      setUser(data.user);
-      return data.user;
-    },
-    [],
-  );
+  const activate = useCallback(async (token: string, password: string) => {
+    const data = await unwrap(api.POST("/api/auth/activate", { body: { token, password } }));
+    setAccessToken(data.access_token);
+    setUser(data.user);
+    return data.user;
+  }, []);
 
   const logout = useCallback(async () => {
     await api.POST("/api/auth/logout").catch(() => undefined);
@@ -82,14 +73,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const roleIn = useCallback(
-    (restaurantId: string) =>
-      user?.memberships.find((m) => m.restaurant_id === restaurantId)?.role ?? null,
+    (restaurantId: string) => user?.memberships.find((m) => m.restaurant_id === restaurantId)?.role ?? null,
     [user],
   );
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, reload, roleIn }),
-    [user, loading, login, register, logout, reload, roleIn],
+    () => ({ user, loading, login, activate, logout, reload, roleIn }),
+    [user, loading, login, activate, logout, reload, roleIn],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

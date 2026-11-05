@@ -1,11 +1,9 @@
 "use client";
 
-import { ArrowRight, ChefHat, Plus, QrCode, Shield, Store, Wallet } from "lucide-react";
+import { ArrowRight, ChefHat, Plus, QrCode, Send, Shield, Store, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 
-import { CreateRestaurantDialog } from "@/components/manage/layout/create-restaurant-dialog";
 import { Logo } from "@/components/shared/app-shell";
 import { RequireAuth } from "@/components/shared/guards";
 import { Badge } from "@/components/ui/badge";
@@ -23,55 +21,43 @@ function hrefFor(m: Membership): string {
   return `/manage/${m.restaurant_id}`;
 }
 
-function spaceLabel(m: Membership): { label: string; icon: React.ComponentType<{ className?: string }> } {
+function spaceLabel(m: Membership): {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+} {
   if (m.role === "KITCHEN") return { label: "Écran cuisine", icon: ChefHat };
   if (m.role === "CASHIER") return { label: "Caisse", icon: Wallet };
   return { label: "Gérer", icon: ArrowRight };
 }
 
-function Onboarding({ onCreate }: { onCreate: () => void }) {
+/** Compte sans restaurant : les restaurants sont ouverts par le super admin, sur demande. */
+function NoRestaurant() {
   return (
-    <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-        <span className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <QrCode className="size-7" />
-        </span>
-        <div className="max-w-md space-y-2">
-          <h2 className="text-xl font-semibold">Créez votre premier restaurant</h2>
-          <p className="text-sm text-muted-foreground">
-            En quelques secondes, votre établissement est en ligne. Un <strong>QR Code permanent</strong> est
-            généré automatiquement : imprimez-le une seule fois, posez-le sur vos tables, et vos clients
-            consultent le menu et commandent depuis leur téléphone. Il reste valable même quand vous modifiez
-            votre carte.
-          </p>
-        </div>
-        <ol className="grid w-full max-w-lg gap-2 text-left text-sm sm:grid-cols-3">
-          {["Créez le restaurant", "Ajoutez votre menu", "Imprimez le QR Code"].map((s, i) => (
-            <li key={s} className="flex items-center gap-2 rounded-md bg-muted px-3 py-2">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                {i + 1}
-              </span>
-              {s}
-            </li>
-          ))}
-        </ol>
-        <Button size="lg" onClick={onCreate}>
-          <Plus />
-          Créer un restaurant
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed bg-card px-6 py-12 text-center">
+      <span className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <QrCode className="size-7" aria-hidden />
+      </span>
+      <div className="max-w-md space-y-2">
+        <h2 className="text-xl font-semibold">Aucun restaurant pour le moment</h2>
+        <p className="text-sm text-muted-foreground">
+          Les restaurants sont ouverts sur OmegaSen par notre équipe. Si vous êtes restaurateur, envoyez une demande
+          d&apos;ouverture. Si vous êtes employé, demandez à votre responsable de vous ajouter à son équipe.
+        </p>
+      </div>
+      <Button asChild size="lg">
+        <Link href="/demande">
+          <Send aria-hidden />
+          Demander l&apos;ouverture d&apos;un restaurant
+        </Link>
+      </Button>
+    </div>
   );
 }
 
 function ManageHome() {
   const { user } = useAuth();
-  const params = useSearchParams();
-  const isNew = params.get("new") === "1";
-  const [open, setOpen] = useState(false);
   if (!user) return null;
   const memberships = user.memberships;
-  const showOnboarding = isNew || memberships.length === 0;
 
   return (
     <div className="min-h-dvh bg-muted/30">
@@ -94,15 +80,17 @@ function ManageHome() {
             <h1 className="text-2xl font-semibold tracking-tight">Mes restaurants</h1>
             <p className="mt-1 text-sm text-muted-foreground">Bonjour {user.full_name}, choisissez un espace.</p>
           </div>
-          {memberships.length > 0 && (
-            <Button onClick={() => setOpen(true)}>
-              <Plus />
-              Créer un restaurant
+          {user.is_superadmin && (
+            <Button asChild>
+              <Link href="/admin/restaurants">
+                <Plus />
+                Créer un restaurant
+              </Link>
             </Button>
           )}
         </div>
 
-        {showOnboarding && <Onboarding onCreate={() => setOpen(true)} />}
+        {memberships.length === 0 && !user.is_superadmin && <NoRestaurant />}
 
         {memberships.length > 0 && (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,7 +125,6 @@ function ManageHome() {
           </ul>
         )}
       </main>
-      <CreateRestaurantDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

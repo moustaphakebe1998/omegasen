@@ -97,9 +97,9 @@ export default function OrdersPage() {
     <>
       <PageHeader title="Commandes" description="Historique complet, mis à jour en temps réel." />
 
-      <Card className="mb-4 gap-4 p-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+      <Card className="mb-4 gap-4 rounded-2xl p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="col-span-2 space-y-1.5 lg:col-span-1">
             <Label htmlFor="f-q">Recherche</Label>
             <div className="relative">
               <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -171,8 +171,12 @@ export default function OrdersPage() {
             </Select>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrer par statut">
-          <span className="text-sm text-muted-foreground">Statut :</span>
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Filtrer par statut"
+        >
+          <span className="shrink-0 text-sm text-muted-foreground">Statut :</span>
           {STATUSES.map((s) => {
             const active = statuses.includes(s);
             return (
@@ -182,7 +186,7 @@ export default function OrdersPage() {
                 aria-pressed={active}
                 onClick={() => toggleStatus(s)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                  "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   active ? cn("border-transparent", ORDER_STATUS[s].className) : "text-muted-foreground hover:bg-muted",
                 )}
               >
@@ -191,7 +195,7 @@ export default function OrdersPage() {
             );
           })}
           {hasFilters && (
-            <Button variant="ghost" size="sm" className="ml-auto" onClick={reset}>
+            <Button variant="ghost" size="sm" className="ml-auto shrink-0" onClick={reset}>
               <X />
               Réinitialiser
             </Button>
@@ -199,7 +203,7 @@ export default function OrdersPage() {
         </div>
       </Card>
 
-      <Card className="gap-0 overflow-hidden py-0">
+      <Card className="gap-0 overflow-hidden rounded-2xl py-0">
         {query.isPending ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -231,7 +235,7 @@ export default function OrdersPage() {
             <span className="text-muted-foreground" aria-live="polite">
               {total} commande{total > 1 ? "s" : ""} · page {page} / {pages}
             </span>
-            <div className="flex gap-2">
+            <div className="ml-auto flex gap-2">
               <Button
                 variant="outline"
                 size="sm"

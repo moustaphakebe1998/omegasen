@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fetchBlob, type Schemas, unwrap } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type Qr = Schemas["QrOut"];
 
@@ -335,8 +336,8 @@ export function QrManager({ rid }: { rid: string }) {
       />
       {qr.isPending ? (
         <div className="grid gap-4 md:grid-cols-[minmax(0,22rem)_1fr]">
-          <Skeleton className="aspect-square" />
-          <Skeleton className="h-80" />
+          <Skeleton className="aspect-square rounded-2xl" />
+          <Skeleton className="h-80 rounded-2xl" />
         </div>
       ) : qr.isError || !d ? (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
@@ -348,9 +349,13 @@ export function QrManager({ rid }: { rid: string }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-[minmax(0,22rem)_1fr]">
           <div className="grid content-start gap-4">
-            <Card>
-              <CardContent className="grid gap-4">
-                <div className="relative mx-auto aspect-square w-full max-w-80 overflow-hidden rounded-md border bg-white">
+            <Card className="gap-0 overflow-hidden py-0">
+              <div className="bg-gradient-to-br from-primary/15 via-primary/5 to-transparent px-6 pt-6 pb-5 text-center">
+                <p className="truncate text-sm font-semibold">{restaurant.data?.name}</p>
+                <p className="text-xs text-muted-foreground">Scannez pour voir le menu et commander</p>
+              </div>
+              <CardContent className="grid gap-4 px-6 pb-6">
+                <div className="relative mx-auto -mt-1 aspect-square w-full max-w-72 overflow-hidden rounded-2xl border bg-white p-3 shadow-md ring-1 ring-black/5">
                   {preview ? (
                     <img src={preview} alt="Aperçu du QR Code" className="size-full object-contain" />
                   ) : previewError ? (
@@ -368,7 +373,12 @@ export function QrManager({ rid }: { rid: string }) {
                   )}
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <Badge variant={d.is_active ? "default" : "destructive"}>{d.is_active ? "Actif" : "Désactivé"}</Badge>
+                  <Badge
+                    variant={d.is_active ? "default" : "destructive"}
+                    className={cn(d.is_active && "border-transparent bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200")}
+                  >
+                    {d.is_active ? "Actif" : "Désactivé"}
+                  </Badge>
                   <Badge variant="outline" className="font-mono">
                     {d.code}
                   </Badge>
@@ -381,23 +391,23 @@ export function QrManager({ rid }: { rid: string }) {
                 <CardTitle>Télécharger et imprimer</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-2">
-                <Button variant="outline" disabled={!!busy} onClick={() => download("png", "image.png?size=2048&download=true", `qr-${slug}.png`)}>
+                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("png", "image.png?size=2048&download=true", `qr-${slug}.png`)}>
                   {spin("png", Download)}
                   Image PNG (haute définition)
                 </Button>
-                <Button variant="outline" disabled={!!busy} onClick={() => download("svg", "image.svg", `qr-${slug}.svg`)}>
+                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("svg", "image.svg", `qr-${slug}.svg`)}>
                   {spin("svg", Download)}
                   Image SVG (vectorielle)
                 </Button>
-                <Button variant="outline" disabled={!!busy} onClick={() => download("a4", "print.pdf?page=A4", `affiche-qr-${slug}-A4.pdf`)}>
+                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("a4", "print.pdf?page=A4", `affiche-qr-${slug}-A4.pdf`)}>
                   {spin("a4", FileText)}
                   Affiche A4 (PDF)
                 </Button>
-                <Button variant="outline" disabled={!!busy} onClick={() => download("a6", "print.pdf?page=A6", `chevalet-qr-${slug}-A6.pdf`)}>
+                <Button variant="outline" className="justify-start" disabled={!!busy} onClick={() => download("a6", "print.pdf?page=A6", `chevalet-qr-${slug}-A6.pdf`)}>
                   {spin("a6", FileText)}
                   Chevalet de table A6 (PDF)
                 </Button>
-                <Button disabled={!!busy} onClick={print}>
+                <Button className="mt-1" disabled={!!busy} onClick={print}>
                   {spin("print", Printer)}
                   Imprimer l&apos;affiche
                 </Button>
@@ -425,16 +435,16 @@ export function QrManager({ rid }: { rid: string }) {
                     <span className="hidden sm:inline">Copier</span>
                   </Button>
                 </div>
-                <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-                  <div className="rounded-md bg-muted/50 p-3">
+                <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3 sm:gap-3">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/40 p-3 sm:block">
                     <dt className="text-muted-foreground">Scans</dt>
-                    <dd className="text-xl font-semibold">{d.scan_count.toLocaleString("fr-FR")}</dd>
+                    <dd className="text-xl font-semibold tabular-nums">{d.scan_count.toLocaleString("fr-FR")}</dd>
                   </div>
-                  <div className="rounded-md bg-muted/50 p-3">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/40 p-3 sm:block">
                     <dt className="text-muted-foreground">Dernier scan</dt>
                     <dd className="font-medium">{d.last_scanned_at ? formatDateTime(d.last_scanned_at) : "Jamais"}</dd>
                   </div>
-                  <div className="rounded-md bg-muted/50 p-3">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/40 p-3 sm:block">
                     <dt className="text-muted-foreground">Créé le</dt>
                     <dd className="font-medium">{formatDateTime(d.created_at)}</dd>
                   </div>

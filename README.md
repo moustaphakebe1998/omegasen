@@ -5,6 +5,7 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 | Espace | URL | Accès |
 |---|---|---|
 | Public (découverte, menu, commande, suivi) | `/`, `/r/{slug}`, `/q/{code}`, `/track/{jeton}` | Tout le monde |
+| Demande d'ouverture, activation de compte | `/demande`, `/activate/{jeton}` | Tout le monde |
 | Restaurateur | `/manage`, `/manage/{id}/…` | Propriétaire, gérant |
 | Cuisine (KDS) | `/kitchen/{id}` | Propriétaire, gérant, cuisine, caisse |
 | Caisse / guichet | `/pos/{id}` | Propriétaire, gérant, caissier |
@@ -33,6 +34,7 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 ### Principes métier
 
 - **Multi-tenant** : chaque ressource porte un `restaurant_id`. Toute route `/api/restaurants/{id}/…` passe par `require_roles`, qui vérifie l'appartenance de l'utilisateur au restaurant. Un restaurant tiers renvoie 404. Des tests couvrent l'isolation.
+- **Ouverture des restaurants** : seul le **super admin** crée un restaurant. Un restaurateur envoie une **demande d'ouverture** (`/demande`), que le super admin accepte ou refuse dans `/admin/requests`. À l'acceptation, le restaurant (et son QR Code) est créé et, si le propriétaire n'a pas encore de compte, un **lien d'activation** à usage unique (7 jours) est affiché pour lui être transmis : il y choisit son mot de passe (`/activate/{jeton}`). Il n'y a pas d'inscription libre ; les employés sont ajoutés par le propriétaire ou le gérant.
 - **Rôles par restaurant** : `OWNER`, `MANAGER`, `CASHIER`, `KITCHEN`. Le super admin est un drapeau global.
 - **Montants** : entiers en unités mineures (centimes pour EUR, francs pour XOF). La devise est propre à chaque restaurant. Les prix sont saisis **TTC** et la TVA est **extraite**, jamais ajoutée.
 - **QR Code permanent** : il est créé avec le restaurant et encode `PUBLIC_APP_URL/q/{code}`. Il ne change pas quand le nom, le slug ou le menu changent. Seul un super admin peut le régénérer. Il peut être téléchargé en PNG, en SVG et en PDF imprimable (A4 ou chevalet A6), avec le logo au centre, et le nombre de scans est compté.
@@ -67,11 +69,12 @@ En local, les images sont stockées dans un S3 de développement en mémoire (`m
 | Menu client (démo) | http://localhost:3100/r/le-baobab-demo |
 | Menu en mode borne | http://localhost:3100/r/le-baobab-demo?mode=kiosk |
 | Connexion | http://localhost:3100/login |
-| Création de compte restaurateur | http://localhost:3100/register |
+| Demande d'ouverture d'un restaurant | http://localhost:3100/demande |
 | Espace restaurateur | http://localhost:3100/manage |
 | Écran cuisine | http://localhost:3100/kitchen/{id-restaurant} |
 | Caisse | http://localhost:3100/pos/{id-restaurant} |
 | Super admin | http://localhost:3100/admin |
+| Demandes d'ouverture (super admin) | http://localhost:3100/admin/requests |
 | Suivi d'une commande | http://localhost:3100/track/{jeton} |
 | Lien du QR Code | http://localhost:3100/q/{code} |
 

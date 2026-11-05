@@ -1,14 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Search,
-  Store,
-  UtensilsCrossed,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Search, Store, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -22,13 +15,7 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 12;
 
-export function OpenBadge({
-  open,
-  className,
-}: {
-  open: boolean;
-  className?: string;
-}) {
+export function OpenBadge({ open, className }: { open: boolean; className?: string }) {
   return (
     <Badge
       className={cn(
@@ -39,10 +26,7 @@ export function OpenBadge({
         className,
       )}
     >
-      <span
-        className={`size-1.5 rounded-full ${open ? "bg-green-600" : "bg-neutral-500"}`}
-        aria-hidden
-      />
+      <span className={`size-1.5 rounded-full ${open ? "bg-green-600" : "bg-neutral-500"}`} aria-hidden />
       {open ? "Ouvert" : "Fermé"}
     </Badge>
   );
@@ -64,22 +48,14 @@ function RestaurantCard({ r }: { r: Schemas["PublicRestaurantCard"] }) {
             loading="lazy"
           />
         ) : (
-          <UtensilsCrossed
-            className="absolute inset-0 m-auto size-10 text-white/70"
-            aria-hidden
-          />
+          <UtensilsCrossed className="absolute inset-0 m-auto size-10 text-white/70" aria-hidden />
         )}
       </div>
       {/* Logo et texte sous l'image (plus de chevauchement). */}
       <div className="flex flex-1 items-start gap-3 p-4">
         <div className="size-12 shrink-0 overflow-hidden rounded-xl border bg-muted">
           {r.logo_url ? (
-            <img
-              src={r.logo_url}
-              alt=""
-              className="size-full object-cover"
-              loading="lazy"
-            />
+            <img src={r.logo_url} alt="" className="size-full object-cover" loading="lazy" />
           ) : (
             <span className="flex size-full items-center justify-center bg-primary/10 text-lg font-bold text-primary">
               {r.name.charAt(0).toUpperCase()}
@@ -88,9 +64,7 @@ function RestaurantCard({ r }: { r: Schemas["PublicRestaurantCard"] }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="min-w-0 truncate font-semibold group-hover:text-primary">
-              {r.name}
-            </h3>
+            <h3 className="min-w-0 truncate font-semibold group-hover:text-primary">{r.name}</h3>
             <OpenBadge open={r.is_open_now} className="shrink-0" />
           </div>
           {meta && (
@@ -99,11 +73,7 @@ function RestaurantCard({ r }: { r: Schemas["PublicRestaurantCard"] }) {
               <span className="truncate">{meta}</span>
             </p>
           )}
-          {r.description && (
-            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-              {r.description}
-            </p>
-          )}
+          {r.description && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{r.description}</p>}
         </div>
       </div>
     </Link>
@@ -146,15 +116,10 @@ export function RestaurantSearch() {
     >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2
-            id="restaurants-title"
-            className="text-2xl font-semibold tracking-tight"
-          >
+          <h2 id="restaurants-title" className="text-2xl font-semibold tracking-tight">
             Trouver un restaurant
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Consultez le menu et commandez en ligne.
-          </p>
+          <p className="text-sm text-muted-foreground">Consultez le menu et commandez en ligne.</p>
         </div>
         <div className="relative w-full sm:max-w-xs">
           <label htmlFor="restaurant-search" className="sr-only">
@@ -201,11 +166,7 @@ export function RestaurantSearch() {
         <EmptyState
           icon={Store}
           title="Aucun restaurant trouvé"
-          description={
-            q
-              ? `Aucun résultat pour « ${q} ».`
-              : "Aucun restaurant n'est encore disponible."
-          }
+          description={q ? `Aucun résultat pour « ${q} ».` : "Aucun restaurant n'est encore disponible."}
         />
       ) : (
         <>
@@ -213,12 +174,7 @@ export function RestaurantSearch() {
             {total} restaurant{total > 1 ? "s" : ""} trouvé
             {total > 1 ? "s" : ""}
           </p>
-          <ul
-            className={cn(
-              "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
-              query.isPlaceholderData && "opacity-60",
-            )}
-          >
+          <ul className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", query.isPlaceholderData && "opacity-60")}>
             {query.data.items.map((r) => (
               <li key={r.slug}>
                 <RestaurantCard r={r} />
@@ -226,10 +182,7 @@ export function RestaurantSearch() {
             ))}
           </ul>
           {pages > 1 && (
-            <nav
-              className="mt-6 flex items-center justify-center gap-3"
-              aria-label="Pagination"
-            >
+            <nav className="mt-6 flex items-center justify-center gap-3" aria-label="Pagination">
               <Button
                 variant="outline"
                 size="sm"

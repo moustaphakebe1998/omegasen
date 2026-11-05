@@ -29,13 +29,24 @@ export default function AdminUsersPage() {
   const list = useQuery({
     queryKey: key,
     queryFn: () =>
-      unwrap(api.GET("/api/admin/users", { params: { query: { q: search || undefined, page, page_size: PAGE_SIZE } } })),
+      unwrap(
+        api.GET("/api/admin/users", {
+          params: {
+            query: { q: search || undefined, page, page_size: PAGE_SIZE },
+          },
+        }),
+      ),
     placeholderData: keepPreviousData,
   });
 
   const update = useMutation({
     mutationFn: ({ user, patch }: { user: AdminUser; patch: Patch }) =>
-      unwrap(api.PATCH("/api/admin/users/{user_id}", { params: { path: { user_id: user.id } }, body: patch })),
+      unwrap(
+        api.PATCH("/api/admin/users/{user_id}", {
+          params: { path: { user_id: user.id } },
+          body: patch,
+        }),
+      ),
     onMutate: async ({ user, patch }) => {
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData<Schemas["Page_AdminUser_"]>(key);
@@ -95,7 +106,11 @@ export default function AdminUsersPage() {
       ) : list.isLoading ? (
         <Skeleton className="h-64" />
       ) : list.data && list.data.items.length === 0 ? (
-        <EmptyState icon={Users} title="Aucun utilisateur" description={search ? "Aucun résultat pour cette recherche." : undefined} />
+        <EmptyState
+          icon={Users}
+          title="Aucun utilisateur"
+          description={search ? "Aucun résultat pour cette recherche." : undefined}
+        />
       ) : (
         <div className="rounded-lg border bg-background">
           <Table>
@@ -123,7 +138,9 @@ export default function AdminUsersPage() {
                       <div className="text-xs text-muted-foreground">{u.email}</div>
                     </TableCell>
                     <TableCell className="tabular text-right">{u.restaurants}</TableCell>
-                    <TableCell className="text-sm">{u.last_login_at ? formatDateTime(u.last_login_at) : "Jamais"}</TableCell>
+                    <TableCell className="text-sm">
+                      {u.last_login_at ? formatDateTime(u.last_login_at) : "Jamais"}
+                    </TableCell>
                     <TableCell className="text-sm">{formatDateTime(u.created_at)}</TableCell>
                     <TableCell>
                       <Switch
@@ -137,7 +154,12 @@ export default function AdminUsersPage() {
                       <Switch
                         checked={u.is_superadmin}
                         disabled={busy || (self && u.is_superadmin)}
-                        onCheckedChange={(v) => update.mutate({ user: u, patch: { is_superadmin: v } })}
+                        onCheckedChange={(v) =>
+                          update.mutate({
+                            user: u,
+                            patch: { is_superadmin: v },
+                          })
+                        }
                         aria-label={`Super admin : ${u.email}`}
                       />
                     </TableCell>

@@ -1,10 +1,10 @@
 from datetime import timedelta
 
-from tests.conftest import login, register
+from tests.conftest import login, make_user
 
 
-async def test_register_login_me(client):
-    api = await register(client, "awa@example.com")
+async def test_login_me(client):
+    api = await make_user(client, "awa@example.com")
     assert api.user["email"] == "awa@example.com"
     assert "omegasen_refresh" in client.cookies
 
@@ -16,17 +16,15 @@ async def test_register_login_me(client):
     assert logged.user["id"] == api.user["id"]
 
 
-async def test_duplicate_email_rejected(client):
-    await register(client, "dup@example.com")
+async def test_no_public_signup(client):
     r = await client.post(
-        "/api/auth/register", json={"email": "dup@example.com", "password": "Password!123", "full_name": "X Y"}
+        "/api/auth/register", json={"email": "new@example.com", "password": "Password!123", "full_name": "X Y"}
     )
-    assert r.status_code == 409
-    assert r.json()["error"]["code"] == "email_taken"
+    assert r.status_code in (404, 405)
 
 
 async def test_wrong_password_and_lockout(client):
-    await register(client, "lock@example.com")
+    await make_user(client, "lock@example.com")
     for _ in range(5):
         r = await client.post("/api/auth/login", json={"email": "lock@example.com", "password": "nope"})
         assert r.status_code == 401
@@ -36,7 +34,7 @@ async def test_wrong_password_and_lockout(client):
 
 
 async def test_refresh_rotation_and_reuse_detection(client):
-    await register(client, "rot@example.com")
+    await make_user(client, "rot@example.com")
     first = client.cookies.get("omegasen_refresh")
 
     r = await client.post("/api/auth/refresh")
@@ -84,6 +82,6 @@ async def test_protected_route_requires_token(client):
 
 
 async def test_logout_revokes_refresh(client):
-    await register(client, "out@example.com")
+    await make_user(client, "out@example.com")
     assert (await client.post("/api/auth/logout")).status_code == 204
     assert (await client.post("/api/auth/refresh")).status_code == 401

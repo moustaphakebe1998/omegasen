@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
-from app.core.deps import AnyMember, CurrentUser, Manager, Session
+from app.core.deps import AnyMember, Manager, Session, SuperAdmin
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
 from app.core.money import SUPPORTED_CURRENCIES
 from app.core.schema import Schema
@@ -245,15 +245,13 @@ async def unique_qr_code(session: AsyncSession) -> str:
 
 
 @router.post("", response_model=RestaurantOut, status_code=201)
-async def create(body: RestaurantCreate, user: CurrentUser, session: Session):
-    owned = await session.scalar(
-        select(func.count())
-        .select_from(Membership)
-        .where(Membership.user_id == user.id, Membership.role == MemberRole.OWNER)
-    )
-    if owned >= 20 and not user.is_superadmin:
-        raise Unprocessable("Nombre maximal de restaurants atteint")
-    restaurant = await create_restaurant(session, body, user)
+async def create(body: RestaurantCreate, admin: SuperAdmin, session: Session):
+    """Création réservée au super admin (le super admin devient propriétaire).
+
+    Pour créer un restaurant au nom d'un restaurateur : POST /api/admin/restaurants ou approbation d'une
+    demande d'ouverture (POST /api/admin/restaurant-requests/{id}/approve).
+    """
+    restaurant = await create_restaurant(session, body, admin)
     await session.commit()
     return restaurant_out(await load_restaurant(session, restaurant.id))
 

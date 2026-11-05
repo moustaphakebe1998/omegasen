@@ -27,17 +27,11 @@ export function ProductGrid({
 
   const products = useMemo(() => {
     const needle = normalize(q.trim());
-    const source =
-      needle || active === "all"
-        ? categories
-        : categories.filter((c) => c.id === active);
+    const source = needle || active === "all" ? categories : categories.filter((c) => c.id === active);
     return source
       .flatMap((c) => c.products)
       .filter(
-        (p) =>
-          !needle ||
-          normalize(p.name).includes(needle) ||
-          p.tags.some((t) => normalize(t).includes(needle)),
+        (p) => !needle || normalize(p.name).includes(needle) || p.tags.some((t) => normalize(t).includes(needle)),
       );
   }, [categories, active, q]);
 
@@ -52,9 +46,7 @@ export function ProductGrid({
       }}
       className={cn(
         "min-h-12 shrink-0 rounded-full border-2 px-5 text-base font-semibold whitespace-nowrap",
-        active === id && !q
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-background",
+        active === id && !q ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background",
       )}
     >
       {label}
@@ -65,10 +57,7 @@ export function ProductGrid({
     <div className="flex h-full min-h-0 flex-col">
       <div className="space-y-2 border-b bg-background p-3">
         <div className="relative">
-          <Search
-            className="absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
+          <Search className="absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -87,11 +76,7 @@ export function ProductGrid({
             </button>
           )}
         </div>
-        <div
-          className="flex gap-2 overflow-x-auto pb-1"
-          role="toolbar"
-          aria-label="Catégories"
-        >
+        <div className="flex gap-2 overflow-x-auto pb-1" role="toolbar" aria-label="Catégories">
           {tab("all", "Tout")}
           {categories.map((c) => tab(c.id, c.name))}
         </div>
@@ -99,9 +84,7 @@ export function ProductGrid({
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {products.length === 0 ? (
-          <p className="p-8 text-center text-muted-foreground">
-            Aucun produit.
-          </p>
+          <p className="p-8 text-center text-muted-foreground">Aucun produit.</p>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
             {products.map((p) => {
@@ -114,9 +97,7 @@ export function ProductGrid({
                   onClick={() => onPick(p)}
                   className={cn(
                     "relative flex min-h-28 flex-col overflow-hidden rounded-xl border-2 bg-background text-left transition-transform active:scale-[0.97]",
-                    p.is_available
-                      ? "border-border active:border-primary"
-                      : "cursor-not-allowed opacity-45 grayscale",
+                    p.is_available ? "border-border active:border-primary" : "cursor-not-allowed opacity-45 grayscale",
                   )}
                 >
                   {/* Image dans son propre bandeau, jamais sous le texte. */}
@@ -128,9 +109,7 @@ export function ProductGrid({
                     />
                   )}
                   <span className="flex flex-1 flex-col justify-between gap-2 p-3">
-                    <span className="line-clamp-2 text-base leading-tight font-semibold">
-                      {p.name}
-                    </span>
+                    <span className="line-clamp-2 text-base leading-tight font-semibold">{p.name}</span>
                     <span className="flex items-end justify-between gap-2">
                       <span className="tabular text-lg font-black">
                         {formatMoney(p.effective_price, currency)}
@@ -141,10 +120,7 @@ export function ProductGrid({
                         )}
                       </span>
                       {p.option_groups.length > 0 && (
-                        <SlidersHorizontal
-                          className="size-4 text-muted-foreground"
-                          aria-label="Avec options"
-                        />
+                        <SlidersHorizontal className="size-4 text-muted-foreground" aria-label="Avec options" />
                       )}
                     </span>
                   </span>

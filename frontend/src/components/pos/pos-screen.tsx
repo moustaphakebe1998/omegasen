@@ -165,7 +165,7 @@ export function PosScreen({ rid }: { rid: string }) {
 
   return (
     <div className="flex h-dvh flex-col bg-muted/40">
-      <header className="flex flex-wrap items-center gap-3 border-b bg-background px-3 py-2">
+      <header className="flex items-center gap-2 border-b bg-background px-3 py-2 shadow-xs sm:gap-3">
         <div className="mr-auto flex min-w-0 items-center gap-3">
           <span
             className={cn(
@@ -180,12 +180,17 @@ export function PosScreen({ rid }: { rid: string }) {
             <p className="truncate text-xs text-muted-foreground">Caisse · {user?.full_name}</p>
           </div>
         </div>
-        <p className="tabular hidden text-2xl font-bold sm:block" aria-label="Heure">
+        <p className="tabular hidden shrink-0 text-2xl font-bold sm:block" aria-label="Heure">
           {new Date(now).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
         </p>
-        <Button variant="outline" className="relative h-12 text-base" onClick={() => setOrdersOpen(true)}>
+        <Button
+          variant="outline"
+          className="relative h-12 min-w-12 shrink-0 px-3 text-base"
+          aria-label="Commandes"
+          onClick={() => setOrdersOpen(true)}
+        >
           <ClipboardList className="size-5" />
-          Commandes
+          <span className="hidden sm:inline">Commandes</span>
           {readyCount + awaitingCount > 0 && (
             <span
               className="tabular absolute -top-2 -right-2 flex min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground"
@@ -195,13 +200,13 @@ export function PosScreen({ rid }: { rid: string }) {
             </span>
           )}
         </Button>
-        <Button asChild variant="outline" className="h-12 text-base">
-          <Link href={`/kitchen/${rid}`}>
+        <Button asChild variant="outline" className="h-12 min-w-12 shrink-0 px-3 text-base">
+          <Link href={`/kitchen/${rid}`} aria-label="Écran cuisine">
             <ChefHat className="size-5" />
             <span className="hidden md:inline">Cuisine</span>
           </Link>
         </Button>
-        <Button variant="ghost" className="size-12" aria-label="Se déconnecter" onClick={() => void logout()}>
+        <Button variant="ghost" className="size-12 shrink-0" aria-label="Se déconnecter" onClick={() => void logout()}>
           <LogOut className="size-5" />
         </Button>
       </header>

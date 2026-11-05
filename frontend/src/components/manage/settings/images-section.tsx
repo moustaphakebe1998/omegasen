@@ -50,8 +50,12 @@ function GalleryItem({ rid, media, onDelete }: { rid: string; media: Media; onDe
   };
 
   return (
-    <li className="grid gap-2 rounded-md border p-2">
-      <ImagePreview src={media.thumb_url} alt={media.alt ?? "Photo de la galerie"} className="aspect-[4/3] w-full rounded" />
+    <li className="grid gap-2 overflow-hidden rounded-xl border bg-background p-2 shadow-xs">
+      <ImagePreview
+        src={media.thumb_url}
+        alt={media.alt ?? "Photo de la galerie"}
+        className="aspect-[4/3] w-full rounded-lg"
+      />
       <Label htmlFor={id} className="text-xs">
         Description de l&apos;image
       </Label>
@@ -177,7 +181,7 @@ function Gallery({ rid }: { rid: string }) {
             {errorMessage(gallery.error)}
           </p>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
             <Images className="size-6" />
             Aucune photo pour le moment.
           </div>
@@ -212,7 +216,7 @@ export function ImagesSection({ restaurant }: { restaurant: Restaurant }) {
           <CardTitle>Logo et couverture</CardTitle>
           <CardDescription>Le logo peut aussi être affiché au centre de votre QR Code.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-6 md:grid-cols-2">
+        <CardContent className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
           <ImageUpload
             rid={rid}
             kind="LOGO"

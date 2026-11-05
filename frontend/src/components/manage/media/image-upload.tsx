@@ -121,11 +121,14 @@ export function ImageUpload({
       <label htmlFor={inputId} className="text-sm font-medium">
         {label}
       </label>
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-muted/30 p-3">
         <ImagePreview
           src={shown}
           alt={label}
-          className={cn("shrink-0 rounded-md border", aspect === "wide" ? "h-24 w-40" : "size-24")}
+          className={cn(
+            "shrink-0 overflow-hidden border bg-background shadow-xs",
+            aspect === "wide" ? "aspect-video w-full rounded-lg sm:w-56" : "size-24 rounded-xl",
+          )}
         />
         <div className="flex flex-wrap gap-2">
           <input

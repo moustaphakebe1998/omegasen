@@ -86,8 +86,9 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
       title={r.name}
       subtitle={subtitle}
       nav={nav}
+      avatarUrl={r.logo_url}
       actions={
-        <>
+        <div className="hidden items-center gap-2 sm:flex">
           <Button asChild variant="outline" size="sm" title="Ouvrir l'écran cuisine">
             <a href={`/kitchen/${rid}`} target="_blank" rel="noopener noreferrer">
               <ChefHat />
@@ -109,10 +110,28 @@ export function RestaurantShell({ rid, children }: { rid: string; children: Reac
               <span className="sr-only lg:hidden">Page publique (nouvel onglet)</span>
             </a>
           </Button>
-        </>
+        </div>
+      }
+      sheetExtra={
+        <div className="grid gap-2">
+          <p className="px-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">Ouvrir</p>
+          {[
+            { href: `/kitchen/${rid}`, label: "Écran cuisine", icon: ChefHat },
+            { href: `/pos/${rid}`, label: "Caisse", icon: Wallet },
+            { href: `/r/${r.slug}`, label: "Page publique", icon: ExternalLink },
+          ].map(({ href, label, icon: Icon }) => (
+            <Button key={href} asChild variant="outline" className="justify-start">
+              <a href={href} target="_blank" rel="noopener noreferrer">
+                <Icon />
+                {label}
+                <span className="sr-only"> (nouvel onglet)</span>
+              </a>
+            </Button>
+          ))}
+        </div>
       }
     >
-      {children}
+      <div className="[&_[data-slot=card]]:rounded-2xl">{children}</div>
     </AppShell>
   );
 }

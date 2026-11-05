@@ -2,7 +2,7 @@ import io
 
 from PIL import Image
 
-from tests.conftest import register
+from tests.conftest import make_user
 
 
 async def test_menu_crud_and_public_visibility(client, owner, restaurant, menu):
@@ -102,15 +102,7 @@ async def test_qr_regenerate_superadmin_only(client, owner, restaurant):
     rid = restaurant["id"]
     r = await owner.post(f"/api/admin/restaurants/{rid}/qr/regenerate")
     assert r.status_code == 403
-    admin = await register(client, "root@example.com")
-    from sqlalchemy import update
-
-    from app.core.db import SessionLocal
-    from app.models import User
-
-    async with SessionLocal() as s:
-        await s.execute(update(User).where(User.email == "root@example.com").values(is_superadmin=True))
-        await s.commit()
+    admin = await make_user(client, "root@example.com", superadmin=True)
     old = (await owner.get(f"/api/restaurants/{rid}/qr")).json()["code"]
     r = await admin.post(f"/api/admin/restaurants/{rid}/qr/regenerate")
     assert r.status_code == 200 and r.json()["code"] != old

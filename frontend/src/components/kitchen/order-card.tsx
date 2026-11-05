@@ -56,10 +56,16 @@ export function KitchenOrderCard({
   return (
     <article
       aria-label={`Commande ${order.display_number}`}
-      className={cn("relative flex flex-col gap-3 rounded-xl border-2 bg-neutral-900 p-4 text-neutral-50", ACCENT[order.status])}
+      className={cn(
+        "relative flex flex-col gap-3 rounded-2xl border-2 bg-neutral-900 p-4 text-neutral-50 shadow-lg shadow-black/30",
+        late ? "border-red-500 bg-red-950/40" : ACCENT[order.status],
+      )}
     >
       {late && (
-        <div aria-hidden className="pointer-events-none absolute -inset-0.5 animate-pulse rounded-xl ring-4 ring-red-500" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-[2px] animate-pulse rounded-2xl ring-2 ring-red-400/70"
+        />
       )}
 
       <header className="flex items-start justify-between gap-3">
@@ -67,7 +73,7 @@ export function KitchenOrderCard({
           <p className="tabular text-5xl leading-none font-black tracking-tight">{order.display_number}</p>
           {order.customer_name && <p className="mt-1 truncate text-lg font-semibold">{order.customer_name}</p>}
         </div>
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <p
             className={cn("tabular text-2xl font-bold", late ? "text-red-400" : "text-neutral-200")}
             aria-label={`Depuis ${formatElapsed(since, now)}`}
@@ -75,7 +81,11 @@ export function KitchenOrderCard({
             {formatElapsed(since, now)}
           </p>
           <p className="text-xs text-neutral-400">reçue à {formatTime(since)}</p>
-          {late && <p className="mt-1 text-xs font-bold tracking-wide text-red-400 uppercase">En retard</p>}
+          {late && (
+            <p className="mt-1 inline-block rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-bold tracking-wide text-white uppercase">
+              En retard
+            </p>
+          )}
         </div>
       </header>
 
@@ -99,7 +109,7 @@ export function KitchenOrderCard({
         </p>
       )}
 
-      <ul className="space-y-2">
+      <ul className="space-y-2 border-t border-neutral-800 pt-3">
         {items.map((item) => {
           const dimmed = stationId !== null && item.station_id !== stationId;
           return (
@@ -135,7 +145,7 @@ export function KitchenOrderCard({
               type="button"
               disabled={busy}
               onClick={() => onTransition(order, back!)}
-              className="flex min-h-14 items-center justify-center gap-1 rounded-lg border border-neutral-600 px-3 text-sm font-semibold text-neutral-200 active:bg-neutral-800 disabled:opacity-50"
+              className="flex min-h-14 items-center justify-center gap-1 rounded-xl border border-neutral-600 px-3 text-sm font-semibold text-neutral-200 active:bg-neutral-800 disabled:opacity-50"
               aria-label={`Retour à l'étape précédente pour la commande ${order.display_number}`}
             >
               <Undo2 className="size-4" aria-hidden />
@@ -148,7 +158,7 @@ export function KitchenOrderCard({
               disabled={busy}
               onClick={() => onTransition(order, forward.to)}
               className={cn(
-                "flex min-h-14 flex-1 items-center justify-center gap-2 rounded-lg text-xl font-bold transition-colors disabled:opacity-60",
+                "flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl text-xl font-bold transition-colors disabled:opacity-60",
                 forward.className,
               )}
             >

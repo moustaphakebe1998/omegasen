@@ -1,4 +1,4 @@
-from tests.conftest import login, register
+from tests.conftest import login, make_user
 
 
 async def test_create_restaurant_defaults_and_owner(owner, restaurant):
@@ -10,13 +10,19 @@ async def test_create_restaurant_defaults_and_owner(owner, restaurant):
     assert me["memberships"][0]["role"] == "OWNER"
 
 
-async def test_slug_unique(owner, restaurant):
-    r = await owner.post("/api/restaurants", json={"name": "Chez Awa"})
+async def test_slug_unique(admin, restaurant):
+    r = await admin.post("/api/restaurants", json={"name": "Chez Awa"})
     assert r.json()["slug"] == "chez-awa-2"
 
 
+async def test_only_superadmin_creates_restaurants(owner, restaurant):
+    assert (await owner.post("/api/restaurants", json={"name": "Mon resto"})).status_code == 403
+    r = await owner.post("/api/admin/restaurants", json={"name": "Mon resto", "owner_email": "x@example.com"})
+    assert r.status_code == 403
+
+
 async def test_tenant_isolation(client, owner, restaurant):
-    stranger = await register(client)
+    stranger = await make_user(client)
     rid = restaurant["id"]
     for url in (f"/api/restaurants/{rid}", f"/api/restaurants/{rid}/menu", f"/api/restaurants/{rid}/orders"):
         assert (await stranger.get(url)).status_code == 404, url
