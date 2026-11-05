@@ -135,7 +135,8 @@ La page `/demo` présente chaque espace avec de vraies captures du restaurant de
 ```bash
 cd backend && .venv/bin/pytest           # PostgreSQL réel (base *_test), Redis réel (db 15), S3 simulé
 cd frontend && npm run check             # tsc + eslint + vitest
-cd frontend && npm run test:e2e          # Playwright (API et front lancés)
+cd frontend && npm run test:e2e          # Playwright (API et front lancés), en série, nettoyage automatique
+cd frontend && NEXT_DIST_DIR=.next-build npx next build   # build de production sans gêner le serveur de dev
 ```
 
 Les tests n'utilisent **jamais** la base de production : `tests/conftest.py` impose une base dont le nom finit par `_test`.
@@ -144,7 +145,8 @@ Les tests n'utilisent **jamais** la base de production : `tests/conftest.py` imp
 
 ```bash
 cp .env.example .env    # renseigner : JWT_SECRET (openssl rand -hex 32), POSTGRES_PASSWORD,
-                        # S3_SECRET_KEY, PUBLIC_APP_URL, SUPERADMIN_*, MINIO_IMAGE
+                        # S3_SECRET_KEY, PUBLIC_APP_URL, SUPERADMIN_*, MINIO_IMAGE,
+                        # SMTP_HOST/PORT/USER/PASSWORD et EMAIL_FROM (emails d'activation)
 docker compose up -d --build
 ```
 

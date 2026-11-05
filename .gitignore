@@ -28,3 +28,4 @@ infra/backup/data/
 backups/
 .dev-logs/
 .demo-tmp/
+.next-build/

@@ -43,6 +43,11 @@ async def lifespan(_: FastAPI):
             await run_in_threadpool(ensure_bucket)
         except Exception:
             log.warning("s3_unavailable_at_startup")
+    if settings.is_production and not settings.smtp_host:
+        log.warning(
+            "smtp_not_configured",
+            detail="SMTP_HOST vide : les emails (activation, mot de passe oublié) ne seront pas envoyés.",
+        )
     log.info("startup", environment=settings.environment)
     yield
     await close_redis()

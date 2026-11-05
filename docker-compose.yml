@@ -22,6 +22,16 @@ x-backend-env: &backend-env
   MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-10}
   SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
   SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
+  # Comptes et emails (activation, mot de passe oublié, notifications par email)
+  ACTIVATION_TTL_HOURS: ${ACTIVATION_TTL_HOURS:-72}
+  RESET_TTL_MINUTES: ${RESET_TTL_MINUTES:-60}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+  SMTP_SSL: ${SMTP_SSL:-false}
+  EMAIL_FROM: ${EMAIL_FROM:-OmegaSen <no-reply@omegasen.local>}
 
 services:
   postgres:
