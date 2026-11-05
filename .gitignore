@@ -1,5 +1,14 @@
 node_modules/
 .env
-.env.local
+.env*.local
 .next/
-prisma/migrations/
+
+# OS / build
+.DS_Store
+.vercel/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+next-env.d.ts
+dist/
