@@ -57,6 +57,53 @@ Le script crée `.env` s'il manque, installe les dépendances au premier lanceme
 
 En local, les images sont stockées dans un S3 de développement en mémoire (`moto`) : elles sont perdues à chaque redémarrage. Avec `MINIO_IMAGE` défini, `docker compose -f docker-compose.dev.yml up -d minio` fournit un stockage persistant.
 
+### Liens utiles (pendant que `./dev.sh` tourne)
+
+**Application**
+
+| Page | Lien |
+|---|---|
+| Accueil | http://localhost:3100 |
+| Menu client (démo) | http://localhost:3100/r/le-baobab-demo |
+| Menu en mode borne | http://localhost:3100/r/le-baobab-demo?mode=kiosk |
+| Connexion | http://localhost:3100/login |
+| Création de compte restaurateur | http://localhost:3100/register |
+| Espace restaurateur | http://localhost:3100/manage |
+| Écran cuisine | http://localhost:3100/kitchen/{id-restaurant} |
+| Caisse | http://localhost:3100/pos/{id-restaurant} |
+| Super admin | http://localhost:3100/admin |
+| Suivi d'une commande | http://localhost:3100/track/{jeton} |
+| Lien du QR Code | http://localhost:3100/q/{code} |
+
+Les comptes cuisine et caisse sont redirigés automatiquement vers leur écran après connexion.
+
+**API**
+
+| Outil | Lien |
+|---|---|
+| Swagger | http://localhost:8100/api/docs |
+| ReDoc | http://localhost:8100/api/redoc |
+| OpenAPI (JSON) | http://localhost:8100/api/openapi.json |
+| Santé (API, base, Redis) | http://localhost:8100/health |
+
+**Stockage des images**
+
+| Outil | Lien |
+|---|---|
+| S3 local (moto) | http://localhost:9010 |
+| Bucket des images | http://localhost:9010/omegasen-media/ |
+| Tableau de bord du S3 local | http://localhost:9010/moto-api/ |
+| Console MinIO (seulement si `MINIO_IMAGE` est défini et le service `minio` lancé) | http://localhost:9011 (identifiants `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` de `docker-compose.dev.yml`) |
+
+**Base de données et cache** (client externe : TablePlus, DBeaver…)
+
+| Service | Accès |
+|---|---|
+| PostgreSQL | `localhost:54330`, base, utilisateur et mot de passe `omegasen` |
+| Redis | `localhost:63790` |
+
+**En production**, tout passe par Nginx sur le même domaine : `/` (site), `/api/docs` (API), `/media/…` (images). La console MinIO n'est pas exposée publiquement.
+
 **Comptes de démonstration** (mot de passe `Demo!2026pass`) : `owner@demo.example.com`, `manager@demo.example.com`, `caisse@demo.example.com`, `cuisine@demo.example.com`. Restaurant : `/r/le-baobab-demo`.
 Super admin : définir `SUPERADMIN_EMAIL` et `SUPERADMIN_PASSWORD`, puis lancer `python -m app.cli bootstrap`.
 
