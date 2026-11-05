@@ -27,8 +27,9 @@ from starlette.concurrency import run_in_threadpool
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.db import utcnow
-from app.core.deps import AnyMember, Manager, Session, SuperAdmin
+from app.core.deps import AnyMember, Can, Session, SuperAdmin
 from app.core.errors import NotFound
+from app.core.permissions import Perm
 from app.core.schema import Schema
 from app.core.storage import get_object
 from app.models import Media, QrCode, Restaurant
@@ -201,7 +202,7 @@ async def get_qr(ctx: AnyMember, session: Session):
 
 
 @router.patch(PREFIX, response_model=QrOut)
-async def update_qr(body: QrUpdate, ctx: Manager, session: Session):
+async def update_qr(body: QrUpdate, ctx: Can(Perm.QR_MANAGE), session: Session):
     q = await _get_qr(session, ctx.restaurant.id)
     data = body.model_dump(exclude_unset=True)
     for k, v in data.items():

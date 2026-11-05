@@ -15,9 +15,10 @@ from sqlalchemy import select
 
 from app.core.audit import audit
 from app.core.config import get_settings
-from app.core.deps import OptionalUser, ReservationStaff, Session
+from app.core.deps import Can, OptionalUser, Session
 from app.core.errors import NotFound, Unprocessable
 from app.core.mailer import build, send_email
+from app.core.permissions import Perm
 from app.core.ratelimit import client_ip, hit
 from app.core.realtime import publish, restaurant_channel
 from app.core.schema import Schema
@@ -256,7 +257,7 @@ async def cancel_reservation(token: str, session: Session):
 
 @router.get("", response_model=list[ReservationOut])
 async def list_reservations(
-    ctx: ReservationStaff,
+    ctx: Can(Perm.RESERVATIONS_VIEW),
     session: Session,
     status: ReservationStatus | None = None,
     day: date | None = Query(default=None, description="Jour (heure locale du restaurant)"),
@@ -276,7 +277,7 @@ async def list_reservations(
 
 
 @router.post("", response_model=ReservationOut, status_code=201)
-async def create_reservation(body: StaffReservationIn, ctx: ReservationStaff, session: Session):
+async def create_reservation(body: StaffReservationIn, ctx: Can(Perm.RESERVATIONS_MANAGE), session: Session):
     from app.modules.restaurants import RESTAURANT_LOADS
 
     restaurant = await session.scalar(
@@ -310,7 +311,7 @@ async def create_reservation(body: StaffReservationIn, ctx: ReservationStaff, se
 
 
 @router.post("/{reservation_id}/status", response_model=ReservationOut)
-async def set_status(reservation_id: uuid.UUID, body: StatusIn, ctx: ReservationStaff, session: Session):
+async def set_status(reservation_id: uuid.UUID, body: StatusIn, ctx: Can(Perm.RESERVATIONS_MANAGE), session: Session):
     r = await session.get(Reservation, reservation_id)
     if not r or r.restaurant_id != ctx.restaurant.id:
         raise NotFound("Réservation introuvable")

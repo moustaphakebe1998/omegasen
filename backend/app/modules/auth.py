@@ -11,7 +11,7 @@ from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.deps import CurrentUser, Session
 from app.core.errors import Unauthorized, Unprocessable
-from app.core.permissions import Perm, permissions_for
+from app.core.permissions import Perm, effective_permissions
 from app.core.ratelimit import client_ip, hit
 from app.core.schema import Schema
 from app.core.security import (
@@ -50,7 +50,8 @@ class MembershipOut(Schema):
     restaurant_slug: str
     restaurant_status: RestaurantStatus
     role: MemberRole
-    permissions: list[Perm]  # permissions effectives (table RBAC) — l'interface s'y fie pour l'affichage
+    permissions: list[Perm]  # permissions effectives (rôle + ajustements) — l'interface s'y fie pour l'affichage
+    station_id: uuid.UUID | None  # poste affecté (présélection de l'écran cuisine)
 
 
 class UserOut(Schema):
@@ -60,6 +61,8 @@ class UserOut(Schema):
     phone: str | None
     is_superadmin: bool
     account_type: AccountType
+    # Mot de passe initial défini par le restaurant : à changer avant toute autre action.
+    must_change_password: bool
     memberships: list[MembershipOut]
 
 
@@ -91,6 +94,7 @@ async def user_out(session, user: User) -> UserOut:
         phone=user.phone,
         is_superadmin=user.is_superadmin,
         account_type=user.account_type,
+        must_change_password=user.must_change_password,
         memberships=[
             MembershipOut(
                 restaurant_id=r.id,
@@ -98,7 +102,8 @@ async def user_out(session, user: User) -> UserOut:
                 restaurant_slug=r.slug,
                 restaurant_status=r.status,
                 role=m.role,
-                permissions=sorted(permissions_for(m.role)),
+                permissions=sorted(effective_permissions(m.role, m.permission_overrides)),
+                station_id=m.station_id,
             )
             for m, r in rows.all()
         ],
@@ -245,7 +250,10 @@ async def me(user: CurrentUser, session: Session):
 async def change_password(body: ChangePasswordIn, request: Request, user: CurrentUser, session: Session):
     if not verify_password(body.current_password, user.password_hash):
         raise Unprocessable("Mot de passe actuel incorrect", code="invalid_password")
+    if verify_password(body.new_password, user.password_hash):
+        raise Unprocessable("Le nouveau mot de passe doit être différent de l'actuel", code="same_password")
     user.password_hash = hash_password(body.new_password)
+    user.must_change_password = False
     # Déconnecte toutes les AUTRES sessions ; l'appareil courant reste connecté.
     raw = request.cookies.get(REFRESH_COOKIE)
     current = (

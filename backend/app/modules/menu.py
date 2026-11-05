@@ -10,8 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
-from app.core.deps import AnyMember, Manager, Session
+from app.core.deps import AnyMember, Can, Session
 from app.core.errors import NotFound, Unprocessable
+from app.core.permissions import Perm
 from app.core.realtime import publish, restaurant_channel
 from app.core.schema import Schema
 from app.core.storage import public_url
@@ -301,7 +302,7 @@ async def get_menu(ctx: AnyMember, session: Session):
 
 
 @router.post("/categories", response_model=CategoryOut, status_code=201)
-async def create_category(body: CategoryIn, ctx: Manager, session: Session):
+async def create_category(body: CategoryIn, ctx: Can(Perm.MENU_CREATE), session: Session):
     last = await session.scalar(
         select(MenuCategory.sort_order)
         .where(MenuCategory.restaurant_id == ctx.restaurant.id)
@@ -326,7 +327,7 @@ async def create_category(body: CategoryIn, ctx: Manager, session: Session):
 
 
 @router.patch("/categories/{category_id}", response_model=CategoryOut)
-async def update_category(category_id: uuid.UUID, body: CategoryUpdate, ctx: Manager, session: Session):
+async def update_category(category_id: uuid.UUID, body: CategoryUpdate, ctx: Can(Perm.MENU_EDIT), session: Session):
     c = await _category(session, ctx.restaurant.id, category_id)
     for k, v in body.model_dump(exclude_unset=True).items():
         setattr(c, k, v)
@@ -337,7 +338,7 @@ async def update_category(category_id: uuid.UUID, body: CategoryUpdate, ctx: Man
 
 
 @router.delete("/categories/{category_id}", status_code=204)
-async def delete_category(category_id: uuid.UUID, ctx: Manager, session: Session):
+async def delete_category(category_id: uuid.UUID, ctx: Can(Perm.MENU_DELETE), session: Session):
     c = await _category(session, ctx.restaurant.id, category_id)
     now = datetime.now(UTC)
     c.deleted_at = now
@@ -357,7 +358,7 @@ async def delete_category(category_id: uuid.UUID, ctx: Manager, session: Session
 
 
 @router.put("/categories/order", status_code=204)
-async def reorder_categories(body: ReorderIn, ctx: Manager, session: Session):
+async def reorder_categories(body: ReorderIn, ctx: Can(Perm.MENU_EDIT), session: Session):
     cats = {
         c.id: c
         for c in await session.scalars(
@@ -372,7 +373,7 @@ async def reorder_categories(body: ReorderIn, ctx: Manager, session: Session):
 
 
 @router.put("/categories/{category_id}/products/order", status_code=204)
-async def reorder_products(category_id: uuid.UUID, body: ReorderIn, ctx: Manager, session: Session):
+async def reorder_products(category_id: uuid.UUID, body: ReorderIn, ctx: Can(Perm.MENU_EDIT), session: Session):
     await _category(session, ctx.restaurant.id, category_id)
     prods = {
         p.id: p
@@ -388,7 +389,7 @@ async def reorder_products(category_id: uuid.UUID, body: ReorderIn, ctx: Manager
 
 
 @router.post("/products", response_model=ProductOut, status_code=201)
-async def create_product(body: ProductCreate, ctx: Manager, session: Session):
+async def create_product(body: ProductCreate, ctx: Can(Perm.MENU_CREATE, Perm.PRICES_EDIT), session: Session):
     rid = ctx.restaurant.id
     data = body.model_dump(exclude={"option_groups"})
     await _check_refs(session, rid, data)
@@ -416,12 +417,31 @@ async def create_product(body: ProductCreate, ctx: Manager, session: Session):
     return product_out(await _product(session, rid, p.id))
 
 
+PRICE_FIELDS = ("price", "promo_price", "promo_starts_at", "promo_ends_at")
+
+
+def _touches_prices(p: Product, data: dict, groups: list[OptionGroupIn] | None) -> bool:
+    """La modification change-t-elle un prix, une promotion ou le prix d'un supplément ?"""
+    if any(k in data and data[k] != getattr(p, k) for k in PRICE_FIELDS):
+        return True
+    if groups is None:
+        return False
+    current = {o.id: o.price_delta for g in p.option_groups for o in g.options}
+    for g in groups:
+        for o in g.options:
+            if (o.id in current and current[o.id] != o.price_delta) or (o.id not in current and o.price_delta):
+                return True
+    return False
+
+
 @router.patch("/products/{product_id}", response_model=ProductOut)
-async def update_product(product_id: uuid.UUID, body: ProductUpdate, ctx: Manager, session: Session):
+async def update_product(product_id: uuid.UUID, body: ProductUpdate, ctx: Can(Perm.MENU_EDIT), session: Session):
     rid = ctx.restaurant.id
     p = await _product(session, rid, product_id)
     data = body.model_dump(exclude_unset=True, exclude={"option_groups"})
     await _check_refs(session, rid, data)
+    if _touches_prices(p, data, body.option_groups):
+        ctx.require(Perm.PRICES_EDIT)
     before = {"price": p.price, "is_available": p.is_available}
     for k, v in data.items():
         setattr(p, k, v)
@@ -447,7 +467,7 @@ class AvailabilityIn(Schema):
 
 
 @router.post("/products/{product_id}/availability", response_model=ProductOut)
-async def set_availability(product_id: uuid.UUID, body: AvailabilityIn, ctx: AnyMember, session: Session):
+async def set_availability(product_id: uuid.UUID, body: AvailabilityIn, ctx: Can(Perm.STOCK_MANAGE), session: Session):
     """Rupture de stock rapide : accessible à tout le personnel (cuisine comprise)."""
     p = await _product(session, ctx.restaurant.id, product_id)
     p.is_available = body.is_available
@@ -466,7 +486,7 @@ async def set_availability(product_id: uuid.UUID, body: AvailabilityIn, ctx: Any
 
 
 @router.delete("/products/{product_id}", status_code=204)
-async def delete_product(product_id: uuid.UUID, ctx: Manager, session: Session):
+async def delete_product(product_id: uuid.UUID, ctx: Can(Perm.MENU_DELETE), session: Session):
     p = await _product(session, ctx.restaurant.id, product_id)
     p.deleted_at = datetime.now(UTC)
     audit(

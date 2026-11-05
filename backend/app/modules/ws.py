@@ -13,8 +13,8 @@ from fastapi import APIRouter, WebSocket, status
 from sqlalchemy import select
 
 from app.core.db import SessionLocal
-from app.core.deps import ALL_ROLES, load_user_from_token, resolve_context
-from app.core.errors import AppError
+from app.core.deps import load_user_from_token, resolve_context
+from app.core.errors import AppError, Forbidden
 from app.core.realtime import order_channel, relay, restaurant_channel
 from app.models import Order
 
@@ -26,7 +26,9 @@ async def restaurant_ws(websocket: WebSocket, restaurant_id: uuid.UUID, token: s
     try:
         async with SessionLocal() as session:
             user = await load_user_from_token(session, token)
-            await resolve_context(session, user, restaurant_id, ALL_ROLES)
+            if user.must_change_password:
+                raise Forbidden("Mot de passe initial à changer")
+            await resolve_context(session, user, restaurant_id)
     except AppError:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return

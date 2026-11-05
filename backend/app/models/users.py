@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base, Timestamps, UUIDPk
@@ -25,8 +25,12 @@ class User(UUIDPk, Timestamps, Base):
     # Renseigné quand l'utilisateur a choisi son mot de passe (activation) : vaut vérification de l'email.
     activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     account_type: Mapped[AccountType] = mapped_column(str_enum(AccountType), default=AccountType.STAFF)
+    # Compte créé avec un mot de passe initial : changement obligatoire à la première connexion.
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    memberships: Mapped[list["Membership"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    memberships: Mapped[list["Membership"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", foreign_keys="Membership.user_id"
+    )
 
 
 class Membership(UUIDPk, Timestamps, Base):
@@ -43,9 +47,19 @@ class Membership(UUIDPk, Timestamps, Base):
     )
     role: Mapped[MemberRole] = mapped_column(str_enum(MemberRole))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Ajustements des permissions du rôle : {"menu.delete": false, "stats.view": true}
+    permission_overrides: Mapped[dict] = mapped_column(JSONB, default=dict)
+    # Affectation à un poste (ex. Grill, Bar) : présélectionné sur l'écran cuisine.
+    station_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("kitchen_stations.id", ondelete="SET NULL")
+    )
+    invited_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
 
-    user: Mapped[User] = relationship(back_populates="memberships")
+    user: Mapped[User] = relationship(back_populates="memberships", foreign_keys=[user_id])
     restaurant: Mapped["Restaurant"] = relationship()  # noqa: F821
+    station: Mapped["KitchenStation | None"] = relationship()  # noqa: F821
 
 
 class RefreshToken(UUIDPk, Base):

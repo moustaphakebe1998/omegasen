@@ -6,8 +6,9 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Query
 from sqlalchemy import Integer, cast, extract, func, select
 
-from app.core.deps import Manager, Session
+from app.core.deps import Can, Session
 from app.core.errors import Unprocessable
+from app.core.permissions import Perm
 from app.core.schema import Schema
 from app.models import Order, OrderItem, QrCode
 from app.models.enums import OrderStatus, PaymentStatus
@@ -47,7 +48,7 @@ class StatsOut(Schema):
 
 @router.get("", response_model=StatsOut)
 async def stats(
-    ctx: Manager,
+    ctx: Can(Perm.STATS_VIEW),
     session: Session,
     date_from: date | None = Query(default=None, alias="from"),
     date_to: date | None = Query(default=None, alias="to"),

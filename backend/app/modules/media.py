@@ -10,9 +10,10 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.audit import audit
 from app.core.config import get_settings
-from app.core.deps import AnyMember, Manager, Session
+from app.core.deps import AnyMember, Can, Session
 from app.core.errors import NotFound, Unprocessable
 from app.core.images import ProcessedImage, process_image
+from app.core.permissions import Perm
 from app.core.schema import Schema
 from app.core.storage import PUBLIC_PREFIX, delete_objects, public_url, put_object
 from app.models import Media, Product, Restaurant
@@ -97,7 +98,7 @@ async def store_image(
 
 @router.post("", response_model=MediaOut, status_code=201)
 async def upload(
-    ctx: Manager,
+    ctx: Can(Perm.MEDIA_MANAGE),
     session: Session,
     file: UploadFile = File(...),
     kind: MediaKind = Form(...),
@@ -146,7 +147,7 @@ async def _get(session, ctx, media_id: uuid.UUID) -> Media:
 
 
 @router.patch("/{media_id}", response_model=MediaOut)
-async def update_media(media_id: uuid.UUID, body: MediaUpdate, ctx: Manager, session: Session):
+async def update_media(media_id: uuid.UUID, body: MediaUpdate, ctx: Can(Perm.MEDIA_MANAGE), session: Session):
     m = await _get(session, ctx, media_id)
     for k, v in body.model_dump(exclude_unset=True).items():
         setattr(m, k, v)
@@ -155,7 +156,7 @@ async def update_media(media_id: uuid.UUID, body: MediaUpdate, ctx: Manager, ses
 
 
 @router.delete("/{media_id}", status_code=204)
-async def delete_media(media_id: uuid.UUID, ctx: Manager, session: Session):
+async def delete_media(media_id: uuid.UUID, ctx: Can(Perm.MEDIA_MANAGE), session: Session):
     m = await _get(session, ctx, media_id)
     keys = list(m.variants.values())
     # Détache l'image des entités qui la référencent (les FK sont en SET NULL, on le fait explicitement

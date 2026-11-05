@@ -15,8 +15,9 @@ from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import audit
-from app.core.deps import FrontOfHouse, Manager, RestaurantContext, Session
+from app.core.deps import Can, RestaurantContext, Session
 from app.core.errors import AppError, NotFound, Unprocessable
+from app.core.permissions import Perm
 from app.core.schema import Schema
 from app.models import Order, Payment
 from app.models.enums import PaymentMethod, PaymentStatus, TransactionStatus
@@ -149,7 +150,7 @@ class RefundIn(Schema):
 
 
 @router.post("", response_model=OrderOut, status_code=201)
-async def add_payment(order_id: uuid.UUID, body: PaymentIn, ctx: FrontOfHouse, session: Session):
+async def add_payment(order_id: uuid.UUID, body: PaymentIn, ctx: Can(Perm.PAYMENTS_RECORD), session: Session):
     order = await load_order(session, ctx.restaurant.id, order_id)
     was_in_kitchen = order.sent_to_kitchen_at is not None
     await record_payment(
@@ -164,11 +165,13 @@ async def add_payment(order_id: uuid.UUID, body: PaymentIn, ctx: FrontOfHouse, s
     await session.commit()
     order = await load_order(session, ctx.restaurant.id, order_id)
     await broadcast_order(order, ctx.restaurant, "order.updated" if was_in_kitchen else "order.created")
-    return order_out(order, ctx.restaurant, ctx.role)
+    return order_out(order, ctx.restaurant, ctx.perms)
 
 
 @router.post("/{payment_id}/refund", response_model=OrderOut)
-async def refund(order_id: uuid.UUID, payment_id: uuid.UUID, body: RefundIn, ctx: Manager, session: Session):
+async def refund(
+    order_id: uuid.UUID, payment_id: uuid.UUID, body: RefundIn, ctx: Can(Perm.PAYMENTS_REFUND), session: Session
+):
     order = await load_order(session, ctx.restaurant.id, order_id)
     payment = next((p for p in order.payments if p.id == payment_id), None)
     if not payment:
@@ -193,4 +196,4 @@ async def refund(order_id: uuid.UUID, payment_id: uuid.UUID, body: RefundIn, ctx
     await session.commit()
     order = await load_order(session, ctx.restaurant.id, order_id)
     await broadcast_order(order, ctx.restaurant, "order.updated")
-    return order_out(order, ctx.restaurant, ctx.role)
+    return order_out(order, ctx.restaurant, ctx.perms)

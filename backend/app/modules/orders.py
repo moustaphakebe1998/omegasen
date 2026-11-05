@@ -21,9 +21,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
-from app.core.deps import FrontOfHouse, KitchenStaff, RestaurantContext, Session
+from app.core.deps import AnyMember, Can, RestaurantContext, Session
 from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
 from app.core.money import extract_vat
+from app.core.permissions import Perm
 from app.core.realtime import order_channel, publish, restaurant_channel
 from app.core.schema import Schema
 from app.core.security import random_code
@@ -53,29 +54,27 @@ from app.modules.notifications import notify, publish_pending, restaurant_member
 router = APIRouter(prefix="/api/restaurants/{restaurant_id}/orders", tags=["orders"])
 
 S = OrderStatus
-R = MemberRole
-ALL_STAFF = {R.OWNER, R.MANAGER, R.CASHIER, R.KITCHEN}
-FOH = {R.OWNER, R.MANAGER, R.CASHIER}
 
-# (de, vers) → rôles autorisés
-TRANSITIONS: dict[tuple[OrderStatus, OrderStatus], set[MemberRole]] = {
-    (S.NEW, S.PREPARING): ALL_STAFF,
-    (S.NEW, S.READY): ALL_STAFF,
-    (S.PREPARING, S.READY): ALL_STAFF,
-    (S.READY, S.COMPLETED): ALL_STAFF,
+# (de, vers) → permission requise (voir app/core/permissions.py)
+TRANSITIONS: dict[tuple[OrderStatus, OrderStatus], Perm] = {
+    (S.NEW, S.PREPARING): Perm.ORDERS_PREPARE,
+    (S.NEW, S.READY): Perm.ORDERS_PREPARE,
+    (S.PREPARING, S.READY): Perm.ORDERS_PREPARE,
+    (S.READY, S.COMPLETED): Perm.ORDERS_PREPARE,
     # retours arrière (erreur de manipulation)
-    (S.PREPARING, S.NEW): ALL_STAFF,
-    (S.READY, S.PREPARING): ALL_STAFF,
-    (S.COMPLETED, S.READY): FOH,
+    (S.PREPARING, S.NEW): Perm.ORDERS_PREPARE,
+    (S.READY, S.PREPARING): Perm.ORDERS_PREPARE,
+    (S.COMPLETED, S.READY): Perm.ORDERS_CREATE,  # réouverture : personnel de salle
     # annulation
-    (S.NEW, S.CANCELLED): FOH,
-    (S.PREPARING, S.CANCELLED): FOH,
-    (S.READY, S.CANCELLED): FOH,
+    (S.NEW, S.CANCELLED): Perm.ORDERS_CANCEL,
+    (S.PREPARING, S.CANCELLED): Perm.ORDERS_CANCEL,
+    (S.READY, S.CANCELLED): Perm.ORDERS_CANCEL,
 }
 
 
-def allowed_transitions(current: OrderStatus, role: MemberRole | None) -> list[OrderStatus]:
-    return [to for (frm, to), roles in TRANSITIONS.items() if frm == current and (role is None or role in roles)]
+def allowed_transitions(current: OrderStatus, perms: frozenset[Perm] | None) -> list[OrderStatus]:
+    """Transitions depuis `current` ; `perms=None` : toutes (événements temps réel, filtrés par l'écran)."""
+    return [to for (frm, to), p in TRANSITIONS.items() if frm == current and (perms is None or p in perms)]
 
 
 # ── Schémas ─────────────────────────────────────────────
@@ -216,7 +215,7 @@ def _items_out(o: Order) -> list[ItemOut]:
     ]
 
 
-def order_out(o: Order, restaurant: Restaurant, role: MemberRole | None = None) -> OrderOut:
+def order_out(o: Order, restaurant: Restaurant, perms: frozenset[Perm] | None = None) -> OrderOut:
     now = datetime.now(UTC)
     return OrderOut(
         id=o.id,
@@ -248,7 +247,7 @@ def order_out(o: Order, restaurant: Restaurant, role: MemberRole | None = None) 
         cancelled_at=o.cancelled_at,
         cancel_reason=o.cancel_reason,
         is_late=_is_late(o, restaurant.late_after_minutes, now),
-        allowed_transitions=allowed_transitions(o.status, role),
+        allowed_transitions=allowed_transitions(o.status, perms),
         items=_items_out(o),
         payments=[
             PaymentBrief(
@@ -570,8 +569,8 @@ async def change_status(session: AsyncSession, ctx: RestaurantContext, order: Or
     key = (order.status, body.status)
     if key not in TRANSITIONS:
         raise Unprocessable(f"Transition {order.status} → {body.status} impossible", code="invalid_transition")
-    if not ctx.is_superadmin and ctx.role not in TRANSITIONS[key]:
-        raise Forbidden("Votre rôle ne permet pas ce changement de statut")
+    if not ctx.can(TRANSITIONS[key]):
+        raise Forbidden("Vous n'avez pas la permission pour ce changement de statut", code="permission_denied")
     if order.sent_to_kitchen_at is None and body.status != S.CANCELLED:
         raise Unprocessable(
             "Commande en attente de paiement : elle n'est pas encore en cuisine", code="awaiting_payment"
@@ -632,7 +631,7 @@ class OrderPage(Schema):
 
 
 @router.post("", response_model=OrderOut, status_code=201)
-async def create_pos_order(body: PosOrderIn, ctx: FrontOfHouse, session: Session):
+async def create_pos_order(body: PosOrderIn, ctx: Can(Perm.ORDERS_CREATE), session: Session):
     """Commande saisie au guichet (caisse). Peut être encaissée immédiatement."""
     from app.modules.payments import record_payment  # cycle
 
@@ -651,12 +650,12 @@ async def create_pos_order(body: PosOrderIn, ctx: FrontOfHouse, session: Session
     order = await load_order(session, ctx.restaurant.id, order.id)
     if created:
         await broadcast_order(order, ctx.restaurant, "order.created")
-    return order_out(order, ctx.restaurant, ctx.role)
+    return order_out(order, ctx.restaurant, ctx.perms)
 
 
 @router.get("", response_model=OrderPage)
 async def list_orders(
-    ctx: FrontOfHouse,
+    ctx: Can(Perm.ORDERS_HISTORY),
     session: Session,
     status: list[OrderStatus] | None = Query(default=None),
     channel: OrderChannel | None = None,
@@ -691,13 +690,13 @@ async def list_orders(
         .limit(page_size)
     )
     return OrderPage(
-        items=[order_out(o, ctx.restaurant, ctx.role) for o in rows], total=total or 0, page=page, page_size=page_size
+        items=[order_out(o, ctx.restaurant, ctx.perms) for o in rows], total=total or 0, page=page, page_size=page_size
     )
 
 
 @router.get("/active", response_model=list[OrderOut])
 async def active_orders(
-    ctx: KitchenStaff,
+    ctx: Can(Perm.ORDERS_PREPARE),
     session: Session,
     station_id: uuid.UUID | None = None,
     include_completed_minutes: int = Query(0, ge=0, le=240),
@@ -713,11 +712,11 @@ async def active_orders(
     if station_id:
         cond.append(Order.items.any(OrderItem.station_id == station_id))
     rows = await session.scalars(select(Order).where(*cond).options(*ORDER_LOADS).order_by(Order.sent_to_kitchen_at))
-    return [order_out(o, ctx.restaurant, ctx.role) for o in rows]
+    return [order_out(o, ctx.restaurant, ctx.perms) for o in rows]
 
 
 @router.get("/awaiting-payment", response_model=list[OrderOut])
-async def awaiting_payment(ctx: FrontOfHouse, session: Session):
+async def awaiting_payment(ctx: Can(Perm.ORDERS_CREATE), session: Session):
     """Commandes publiques en attente de paiement (restaurants avec prépaiement obligatoire)."""
     rows = await session.scalars(
         select(Order)
@@ -725,26 +724,28 @@ async def awaiting_payment(ctx: FrontOfHouse, session: Session):
         .options(*ORDER_LOADS)
         .order_by(Order.created_at)
     )
-    return [order_out(o, ctx.restaurant, ctx.role) for o in rows]
+    return [order_out(o, ctx.restaurant, ctx.perms) for o in rows]
 
 
 @router.get("/transitions", response_model=dict[OrderStatus, list[OrderStatus]])
-async def transition_rules(ctx: KitchenStaff):
+async def transition_rules(ctx: AnyMember):
     """Transitions de statut permises au rôle courant (source unique pour les écrans)."""
-    return {st: allowed_transitions(st, ctx.role) for st in OrderStatus}
+    return {st: allowed_transitions(st, ctx.perms) for st in OrderStatus}
 
 
 @router.get("/{order_id}", response_model=OrderOut)
-async def get_order(order_id: uuid.UUID, ctx: KitchenStaff, session: Session):
-    return order_out(await load_order(session, ctx.restaurant.id, order_id), ctx.restaurant, ctx.role)
+async def get_order(order_id: uuid.UUID, ctx: AnyMember, session: Session):
+    if not (ctx.can(Perm.ORDERS_PREPARE) or ctx.can(Perm.ORDERS_HISTORY) or ctx.can(Perm.ORDERS_CREATE)):
+        raise Forbidden("Vous n'avez pas la permission pour cette action", code="permission_denied")
+    return order_out(await load_order(session, ctx.restaurant.id, order_id), ctx.restaurant, ctx.perms)
 
 
 @router.post("/{order_id}/status", response_model=OrderOut)
-async def set_status(order_id: uuid.UUID, body: StatusIn, ctx: KitchenStaff, session: Session):
+async def set_status(order_id: uuid.UUID, body: StatusIn, ctx: Can(Perm.ORDERS_PREPARE), session: Session):
     order = await load_order(session, ctx.restaurant.id, order_id)
     await change_status(session, ctx, order, body)
     await session.commit()
     await publish_pending(session)
     order = await load_order(session, ctx.restaurant.id, order_id)
     await broadcast_order(order, ctx.restaurant, "order.updated")
-    return order_out(order, ctx.restaurant, ctx.role)
+    return order_out(order, ctx.restaurant, ctx.perms)

@@ -8,20 +8,20 @@ from zoneinfo import ZoneInfo, available_timezones
 
 from fastapi import APIRouter
 from pydantic import EmailStr, Field, field_validator, model_validator
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
-from app.core.deps import AnyMember, Manager, Session, SuperAdmin
-from app.core.errors import Conflict, Forbidden, NotFound, Unprocessable
+from app.core.deps import AnyMember, Can, Session, SuperAdmin
+from app.core.errors import Conflict, NotFound, Unprocessable
 from app.core.money import SUPPORTED_CURRENCIES
+from app.core.permissions import Perm
 from app.core.schema import Schema
 from app.core.security import random_code
 from app.core.storage import public_url
 from app.models import KitchenStation, Media, Membership, OpeningHours, QrCode, Restaurant, User
 from app.models.enums import MemberRole, RestaurantStatus
-from app.modules.accounts import ensure_account, issue_link, send_activation_email
 
 router = APIRouter(prefix="/api/restaurants", tags=["restaurants"])
 
@@ -264,10 +264,30 @@ async def get_one(ctx: AnyMember, session: Session):
     return restaurant_out(await load_restaurant(session, ctx.restaurant.id))
 
 
+SETTINGS_FIELDS = {
+    "accepting_orders",
+    "dine_in_enabled",
+    "takeaway_enabled",
+    "require_prepayment",
+    "late_after_minutes",
+    "reservations_enabled",
+    "timezone",
+    "vat_rate_bp",
+}
+MEDIA_FIELDS = {"logo_media_id", "cover_media_id"}
+
+
 @router.patch("/{restaurant_id}", response_model=RestaurantOut)
-async def update_one(body: RestaurantUpdate, ctx: Manager, session: Session):
+async def update_one(body: RestaurantUpdate, ctx: AnyMember, session: Session):
     r = ctx.restaurant
     data = body.model_dump(exclude_unset=True)
+    # Permission par nature de champ : informations / paramètres / images.
+    if set(data) & SETTINGS_FIELDS:
+        ctx.require(Perm.SETTINGS_EDIT)
+    if set(data) & MEDIA_FIELDS:
+        ctx.require(Perm.MEDIA_MANAGE)
+    if set(data) - SETTINGS_FIELDS - MEDIA_FIELDS:
+        ctx.require(Perm.RESTAURANT_EDIT)
     if "slug" in data and data["slug"] != r.slug:
         if await session.scalar(select(Restaurant.id).where(Restaurant.slug == data["slug"], Restaurant.id != r.id)):
             raise Conflict("Cette adresse est déjà utilisée", code="slug_taken")
@@ -276,6 +296,8 @@ async def update_one(body: RestaurantUpdate, ctx: Manager, session: Session):
             media = await session.get(Media, data[field])
             if not media or media.restaurant_id != r.id:
                 raise Unprocessable("Image introuvable pour ce restaurant")
+    # Traçabilité : valeurs avant / après des champs réellement modifiés.
+    changes = {k: [getattr(r, k), v] for k, v in data.items() if getattr(r, k) != v}
     for k, v in data.items():
         setattr(r, k, v)
     audit(
@@ -285,14 +307,19 @@ async def update_one(body: RestaurantUpdate, ctx: Manager, session: Session):
         restaurant_id=r.id,
         entity="Restaurant",
         entity_id=r.id,
-        data={"fields": sorted(data)},
+        data={
+            "changes": {
+                k: [str(a) if a is not None else None, str(b) if b is not None else None]
+                for k, (a, b) in changes.items()
+            }
+        },
     )
     await session.commit()
     return restaurant_out(await load_restaurant(session, r.id))
 
 
 @router.put("/{restaurant_id}/opening-hours", response_model=list[HoursSlot])
-async def set_hours(body: list[HoursSlot], ctx: Manager, session: Session):
+async def set_hours(body: list[HoursSlot], ctx: Can(Perm.RESTAURANT_EDIT), session: Session):
     if len(body) > 28:
         raise Unprocessable("Trop de plages horaires")
     r = await load_restaurant(session, ctx.restaurant.id)
@@ -302,194 +329,7 @@ async def set_hours(body: list[HoursSlot], ctx: Manager, session: Session):
     return body
 
 
-# ── Employés ────────────────────────────────────────────
-
-
-class MemberOut(Schema):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    email: str
-    full_name: str
-    phone: str | None
-    role: MemberRole
-    is_active: bool
-    # Le compte a-t-il choisi son mot de passe ? (sinon : invitation en attente)
-    activated: bool
-    created_at: datetime
-    # Renseignés à l'ajout / au renvoi de l'invitation : lien à transmettre si l'email n'est pas parti.
-    activation_url: str | None = None
-    email_sent: bool | None = None
-
-
-class MemberCreate(Schema):
-    """Pas de mot de passe : la personne reçoit un lien d'activation pour choisir le sien."""
-
-    email: EmailStr
-    full_name: str = Field(min_length=2, max_length=120)
-    role: MemberRole
-    phone: str | None = Field(default=None, max_length=32)
-
-
-class MemberUpdate(Schema):
-    role: MemberRole | None = None
-    is_active: bool | None = None
-
-
-def _member_out(m: Membership) -> MemberOut:
-    return MemberOut(
-        id=m.id,
-        user_id=m.user_id,
-        email=m.user.email,
-        full_name=m.user.full_name,
-        phone=m.user.phone,
-        role=m.role,
-        is_active=m.is_active,
-        activated=m.user.activated_at is not None,
-        created_at=m.created_at,
-    )
-
-
-def _check_role_grant(ctx, role: MemberRole) -> None:
-    if role == MemberRole.OWNER and not ctx.has(MemberRole.OWNER):
-        raise Forbidden("Seul un propriétaire peut nommer un propriétaire")
-
-
-@router.get("/{restaurant_id}/members", response_model=list[MemberOut])
-async def list_members(ctx: Manager, session: Session):
-    rows = await session.scalars(
-        select(Membership)
-        .where(Membership.restaurant_id == ctx.restaurant.id)
-        .options(selectinload(Membership.user))
-        .order_by(Membership.created_at)
-    )
-    return [_member_out(m) for m in rows]
-
-
-@router.post("/{restaurant_id}/members", response_model=MemberOut, status_code=201)
-async def add_member(body: MemberCreate, ctx: Manager, session: Session):
-    _check_role_grant(ctx, body.role)
-    user, needs_activation = await ensure_account(session, body.email, body.full_name, phone=body.phone)
-    existing = await session.scalar(
-        select(Membership).where(Membership.user_id == user.id, Membership.restaurant_id == ctx.restaurant.id)
-    )
-    if existing:
-        raise Conflict("Cette personne fait déjà partie de l'équipe", code="already_member")
-    m = Membership(user_id=user.id, restaurant_id=ctx.restaurant.id, role=body.role)
-    session.add(m)
-    url = await issue_link(session, user) if needs_activation else None
-    audit(
-        session,
-        "member.added",
-        actor_id=ctx.user.id,
-        restaurant_id=ctx.restaurant.id,
-        entity="User",
-        entity_id=user.id,
-        data={"role": body.role},
-    )
-    await session.commit()
-    await session.refresh(m, ["user"])
-    out = _member_out(m)
-    if url:
-        out.activation_url = url
-        out.email_sent = await send_activation_email(
-            user, url, context=f"Vous avez été ajouté(e) à l'équipe du restaurant « {ctx.restaurant.name} »."
-        )
-    return out
-
-
-@router.post("/{restaurant_id}/members/{member_id}/resend-invite", response_model=MemberOut)
-async def resend_invite(member_id: uuid.UUID, ctx: Manager, session: Session):
-    m = await _get_member(session, ctx, member_id)
-    if m.user.activated_at is not None:
-        raise Conflict("Ce compte est déjà activé", code="already_activated")
-    url = await issue_link(session, m.user)
-    audit(
-        session,
-        "member.invite_resent",
-        actor_id=ctx.user.id,
-        restaurant_id=ctx.restaurant.id,
-        entity="User",
-        entity_id=m.user_id,
-    )
-    await session.commit()
-    out = _member_out(m)
-    out.activation_url = url
-    out.email_sent = await send_activation_email(
-        m.user, url, context=f"Vous avez été ajouté(e) à l'équipe du restaurant « {ctx.restaurant.name} »."
-    )
-    return out
-
-
-async def _get_member(session, ctx, member_id: uuid.UUID) -> Membership:
-    m = await session.scalar(
-        select(Membership)
-        .where(Membership.id == member_id, Membership.restaurant_id == ctx.restaurant.id)
-        .options(selectinload(Membership.user))
-    )
-    if not m:
-        raise NotFound("Employé introuvable")
-    return m
-
-
-async def _ensure_other_owner(session, ctx, m: Membership) -> None:
-    if m.role != MemberRole.OWNER:
-        return
-    owners = await session.scalar(
-        select(func.count())
-        .select_from(Membership)
-        .where(
-            Membership.restaurant_id == ctx.restaurant.id,
-            Membership.role == MemberRole.OWNER,
-            Membership.is_active.is_(True),
-        )
-    )
-    if owners <= 1:
-        raise Unprocessable("Le restaurant doit garder au moins un propriétaire actif", code="last_owner")
-
-
-@router.patch("/{restaurant_id}/members/{member_id}", response_model=MemberOut)
-async def update_member(member_id: uuid.UUID, body: MemberUpdate, ctx: Manager, session: Session):
-    m = await _get_member(session, ctx, member_id)
-    if m.role == MemberRole.OWNER and not ctx.has(MemberRole.OWNER):
-        raise Forbidden("Seul un propriétaire peut modifier un propriétaire")
-    if body.role is not None:
-        _check_role_grant(ctx, body.role)
-        if body.role != MemberRole.OWNER:
-            await _ensure_other_owner(session, ctx, m)
-        m.role = body.role
-    if body.is_active is not None:
-        if not body.is_active:
-            await _ensure_other_owner(session, ctx, m)
-        m.is_active = body.is_active
-    audit(
-        session,
-        "member.updated",
-        actor_id=ctx.user.id,
-        restaurant_id=ctx.restaurant.id,
-        entity="Membership",
-        entity_id=m.id,
-        data=body.model_dump(exclude_unset=True),
-    )
-    await session.commit()
-    return _member_out(m)
-
-
-@router.delete("/{restaurant_id}/members/{member_id}", status_code=204)
-async def remove_member(member_id: uuid.UUID, ctx: Manager, session: Session):
-    m = await _get_member(session, ctx, member_id)
-    if m.role == MemberRole.OWNER and not ctx.has(MemberRole.OWNER):
-        raise Forbidden("Seul un propriétaire peut retirer un propriétaire")
-    await _ensure_other_owner(session, ctx, m)
-    await session.delete(m)
-    audit(
-        session,
-        "member.removed",
-        actor_id=ctx.user.id,
-        restaurant_id=ctx.restaurant.id,
-        entity="User",
-        entity_id=m.user_id,
-    )
-    await session.commit()
+# Équipe (collaborateurs, invitations, permissions) : app/modules/team.py
 
 
 # ── Postes de cuisine ───────────────────────────────────
@@ -515,7 +355,7 @@ async def list_stations(ctx: AnyMember, session: Session):
 
 
 @router.post("/{restaurant_id}/stations", response_model=StationOut, status_code=201)
-async def create_station(body: StationIn, ctx: Manager, session: Session):
+async def create_station(body: StationIn, ctx: Can(Perm.SETTINGS_EDIT), session: Session):
     s = KitchenStation(restaurant_id=ctx.restaurant.id, **body.model_dump())
     session.add(s)
     await session.commit()
@@ -523,7 +363,7 @@ async def create_station(body: StationIn, ctx: Manager, session: Session):
 
 
 @router.delete("/{restaurant_id}/stations/{station_id}", status_code=204)
-async def delete_station(station_id: uuid.UUID, ctx: Manager, session: Session):
+async def delete_station(station_id: uuid.UUID, ctx: Can(Perm.SETTINGS_EDIT), session: Session):
     s = await session.get(KitchenStation, station_id)
     if not s or s.restaurant_id != ctx.restaurant.id:
         raise NotFound("Poste introuvable")

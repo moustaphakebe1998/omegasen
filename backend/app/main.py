@@ -27,6 +27,7 @@ from app.modules import (
     requests,
     reservations,
     restaurants,
+    team,
     ws,
 )
 
@@ -77,6 +78,7 @@ def create_app() -> FastAPI:
     app.include_router(notifications.router)
     app.include_router(reservations.public_router)
     app.include_router(reservations.router)
+    app.include_router(team.router)
 
     @app.get("/health", tags=["system"])
     @app.get("/api/health", tags=["system"], include_in_schema=False)

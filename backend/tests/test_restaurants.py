@@ -34,7 +34,7 @@ async def test_roles(client, owner, restaurant):
     rid = restaurant["id"]
     cook = await add_member(owner, client, rid, "cook@example.com", "KITCHEN")
     assert (await cook.get(f"/api/restaurants/{rid}/menu")).status_code == 200
-    assert (await cook.patch(f"/api/restaurants/{rid}", json={"name": "X"})).status_code == 403
+    assert (await cook.patch(f"/api/restaurants/{rid}", json={"name": "Piraté"})).status_code == 403
     assert (await cook.post(f"/api/restaurants/{rid}/menu/categories", json={"name": "X"})).status_code == 403
     assert (await cook.get(f"/api/restaurants/{rid}/orders/active")).status_code == 200
     assert (await cook.get(f"/api/restaurants/{rid}/orders")).status_code == 403  # historique : caisse+
@@ -51,8 +51,10 @@ async def test_manager_cannot_create_owner_and_last_owner_protected(client, owne
     members = (await owner.get(f"/api/restaurants/{rid}/members")).json()
     owner_member = next(m for m in members if m["role"] == "OWNER")
     r = await owner.delete(f"/api/restaurants/{rid}/members/{owner_member['id']}")
-    assert r.status_code == 422
-    assert r.json()["error"]["code"] == "last_owner"
+    assert r.status_code == 403 and r.json()["error"]["code"] == "self_edit"
+    # Le gérant ne peut ni retirer ni rétrograder le propriétaire.
+    r = await mgr.patch(f"/api/restaurants/{rid}/members/{owner_member['id']}", json={"role": "MANAGER"})
+    assert r.status_code == 403
 
 
 async def test_opening_hours_and_validation(owner, restaurant):

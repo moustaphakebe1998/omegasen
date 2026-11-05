@@ -141,9 +141,9 @@ async def test_me_exposes_permissions(client, owner, restaurant):
     rid = restaurant["id"]
     cook = await add_member(owner, client, rid, "cuisto@example.com", "KITCHEN")
     perms = (await cook.get("/api/auth/me")).json()["memberships"][0]["permissions"]
-    assert "orders.prepare" in perms and "menu.manage" not in perms and "team.manage" not in perms
+    assert "orders.prepare" in perms and "menu.edit" not in perms and "team.manage" not in perms
     owner_perms = (await owner.get("/api/auth/me")).json()["memberships"][0]["permissions"]
-    assert {"menu.manage", "team.manage", "stats.view"} <= set(owner_perms)
+    assert {"menu.edit", "prices.edit", "team.manage", "stats.view"} <= set(owner_perms)
 
 
 async def test_change_password_keeps_current_session(client):
