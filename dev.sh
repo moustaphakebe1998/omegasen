@@ -26,7 +26,8 @@ free_port() {
   [ -z "$pids" ] && return 0
   for pid in $pids; do
     cmd=$(ps -o command= -p "$pid" 2>/dev/null || true)
-    if [[ "$cmd" == *uvicorn* || "$cmd" == *next* || "$cmd" == *moto_server* || "$cmd" == *node* ]]; then
+    # uvicorn --reload sert via un processus enfant « multiprocessing.spawn » : on l'accepte aussi.
+    if [[ "$cmd" == *uvicorn* || "$cmd" == *next* || "$cmd" == *moto_server* || "$cmd" == *node* || "$cmd" == *multiprocessing* ]]; then
       kill "$pid" 2>/dev/null || true
       warn "port $port : ancien processus arrêté (PID $pid)"
     else
@@ -114,8 +115,6 @@ bold "4/5 Base de données"
   die "Échec des migrations (voir ci-dessus)."
 }
 ok "migrations appliquées"
-(cd backend && .venv/bin/python -m app.cli bootstrap >/dev/null && .venv/bin/python -m app.cli seed-demo >/dev/null)
-ok "super admin et restaurant de démo en place"
 
 bold "5/5 Démarrage"
 mkdir -p "$LOGS"
@@ -137,6 +136,11 @@ backend/.venv/bin/moto_server -p "$S3_PORT" >"$LOGS/s3.log" 2>&1 &
 PIDS+=($!)
 wait_http "http://localhost:$S3_PORT" s3 20 || die "Le stockage d'images local ne démarre pas (voir $LOGS/s3.log)."
 ok "stockage d'images local  http://localhost:$S3_PORT"
+
+# Après le S3 : la démo y dépose ses photos (et les restaure, le S3 local étant en mémoire).
+(cd backend && .venv/bin/python -m app.cli bootstrap >/dev/null && .venv/bin/python -m app.cli seed-demo >/dev/null) ||
+  die "Échec de la création des données de démo."
+ok "super admin et restaurant de démo (avec photos) en place"
 
 (cd backend && exec .venv/bin/uvicorn app.main:app --port "$API_PORT" --reload) >"$LOGS/api.log" 2>&1 &
 PIDS+=($!)

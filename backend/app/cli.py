@@ -7,17 +7,55 @@ python -m app.cli seed-demo   # restaurant de démonstration + menu + comptes em
 import asyncio
 import sys
 from datetime import time
+from pathlib import Path
 
+from botocore.exceptions import ClientError
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from starlette.concurrency import run_in_threadpool
 
 from app.core.config import get_settings
 from app.core.db import SessionLocal
 from app.core.security import hash_password
-from app.models import KitchenStation, Membership, MenuCategory, OpeningHours, Option, OptionGroup, Product, User
-from app.models.enums import MemberRole
+from app.core.storage import _client, ensure_bucket
+from app.models import (
+    KitchenStation,
+    Media,
+    Membership,
+    MenuCategory,
+    OpeningHours,
+    Option,
+    OptionGroup,
+    Product,
+    Restaurant,
+    User,
+)
+from app.models.enums import MediaKind, MemberRole
+from app.modules.media import put_variants, store_image
 from app.modules.restaurants import RestaurantCreate, create_restaurant
 
 DEMO_PASSWORD = "Demo!2026pass"
+DEMO_SLUG = "le-baobab-demo"
+
+# Photos de démonstration (voir app/demo_assets/CREDITS.md).
+ASSETS = Path(__file__).parent / "demo_assets"
+PRODUCT_IMAGES = {
+    "Yassa poulet": "yassa-poulet.jpg",
+    "Thiéboudienne": "thieboudienne.jpg",
+    "Mafé bœuf": "mafe-boeuf.jpg",
+    "Dibi agneau": "dibi-agneau.jpg",
+    "Bissap": "bissap.jpg",
+    "Bouye": "bouye.jpg",
+    "Gingembre": "gingembre.jpg",
+    "Eau minérale": "eau-minerale.jpg",
+    "Thiakry": "thiakry.jpg",
+    "Beignets": "beignets.jpg",
+}
+GALLERY = [
+    ("gallery-1.jpg", "Ambiance du restaurant"),
+    ("gallery-2.jpg", "Nos plats"),
+    ("gallery-3.jpg", "La terrasse"),
+]
 
 
 async def bootstrap() -> None:
@@ -60,6 +98,7 @@ async def seed_demo() -> None:
         owner = await _user(session, "owner@demo.example.com", "Awa Diop")
         if await session.scalar(select(Membership.id).where(Membership.user_id == owner.id)):
             print("Démo déjà présente.")
+            await sync_demo_media()
             return
         r = await create_restaurant(
             session,
@@ -142,7 +181,74 @@ async def seed_demo() -> None:
         product(desserts, "Thiakry", 1500, "Couscous de mil au lait caillé", allergens=["lait"])
         product(desserts, "Beignets", 1000, "Beignets maison au sucre")
         await session.commit()
-        print(f"Démo créée : /r/{r.slug} — comptes *@demo.example.com, mot de passe {DEMO_PASSWORD}")
+    await sync_demo_media()
+    print(f"Démo créée : /r/{r.slug} — comptes *@demo.example.com, mot de passe {DEMO_PASSWORD}")
+
+
+async def _object_exists(key: str) -> bool:
+    try:
+        await run_in_threadpool(_client().head_object, Bucket=get_settings().s3_bucket, Key=key)
+        return True
+    except ClientError:
+        return False
+
+
+async def _demo_image(session, restaurant_id, kind: MediaKind, current: Media | None, filename: str, alt=None):
+    """Garantit qu'une image de démo existe en base ET sur le stockage.
+
+    Le S3 de développement (moto) est en mémoire : après un redémarrage, les fichiers ont disparu alors
+    que les lignes Media existent encore. On les redépose alors sous les mêmes clés.
+    """
+    path = ASSETS / filename
+    if not path.is_file():
+        return current
+    if current is not None:
+        if not await _object_exists(current.variants["original"]):
+            await put_variants(current.storage_key.rsplit("/", 1)[0], path.read_bytes())
+        return current
+    media, _ = await store_image(session, restaurant_id, kind, path.read_bytes(), alt=alt)
+    return media
+
+
+async def sync_demo_media() -> None:
+    """Ajoute (ou restaure) logo, couverture, galerie et photos produits du restaurant de démo."""
+    await run_in_threadpool(ensure_bucket)
+    async with SessionLocal() as session:
+        r = await session.scalar(
+            select(Restaurant)
+            .where(Restaurant.slug == DEMO_SLUG)
+            .options(selectinload(Restaurant.logo), selectinload(Restaurant.cover))
+        )
+        if r is None:
+            return
+        logo = await _demo_image(session, r.id, MediaKind.LOGO, r.logo, "logo.png", f"Logo {r.name}")
+        cover = await _demo_image(session, r.id, MediaKind.COVER, r.cover, "cover.jpg")
+        r.logo_media_id = logo.id if logo else None
+        r.cover_media_id = cover.id if cover else None
+
+        gallery = list(
+            await session.scalars(
+                select(Media)
+                .where(Media.restaurant_id == r.id, Media.kind == MediaKind.GALLERY)
+                .order_by(Media.sort_order, Media.created_at)
+            )
+        )
+        for i, (filename, alt) in enumerate(GALLERY):
+            m = await _demo_image(
+                session, r.id, MediaKind.GALLERY, gallery[i] if i < len(gallery) else None, filename, alt
+            )
+            if m is not None:
+                m.sort_order = i
+
+        products = await session.scalars(
+            select(Product).where(Product.restaurant_id == r.id).options(selectinload(Product.image))
+        )
+        for p in products:
+            filename = PRODUCT_IMAGES.get(p.name)
+            if filename:
+                m = await _demo_image(session, r.id, MediaKind.PRODUCT, p.image, filename, p.name)
+                p.image_media_id = m.id if m else None
+        await session.commit()
 
 
 def backup_media(target: str) -> None:

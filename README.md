@@ -104,6 +104,8 @@ Les comptes cuisine et caisse sont redirigés automatiquement vers leur écran a
 
 **En production**, tout passe par Nginx sur le même domaine : `/` (site), `/api/docs` (API), `/media/…` (images). La console MinIO n'est pas exposée publiquement.
 
+**Photos de démonstration** : `backend/app/demo_assets/` (restaurant de démo) et `frontend/public/landing/` (page d'accueil), photos Unsplash sous licence Unsplash, crédits dans les `CREDITS.md` de chaque dossier. `seed-demo` les importe et les restaure si le stockage local a été vidé.
+
 **Comptes de démonstration** (mot de passe `Demo!2026pass`) : `owner@demo.example.com`, `manager@demo.example.com`, `caisse@demo.example.com`, `cuisine@demo.example.com`. Restaurant : `/r/le-baobab-demo`.
 Super admin : définir `SUPERADMIN_EMAIL` et `SUPERADMIN_PASSWORD`, puis lancer `python -m app.cli bootstrap`.
 

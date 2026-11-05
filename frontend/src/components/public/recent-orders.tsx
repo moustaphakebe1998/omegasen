@@ -19,7 +19,10 @@ export function RecentOrders() {
   if (orders.length === 0) return null;
 
   return (
-    <section aria-labelledby="recent-orders-title" className="mx-auto w-full max-w-6xl px-4">
+    <section
+      aria-labelledby="recent-orders-title"
+      className="mx-auto w-full max-w-7xl px-4"
+    >
       <h2 id="recent-orders-title" className="mb-3 text-lg font-semibold">
         Vos commandes récentes
       </h2>
@@ -37,9 +40,14 @@ export function RecentOrders() {
                 <span className="block truncate font-medium">
                   Commande n° {o.displayNumber} · {o.restaurantName}
                 </span>
-                <span className="block text-xs text-muted-foreground">Passée à {formatTime(o.createdAt)}</span>
+                <span className="block text-xs text-muted-foreground">
+                  Passée à {formatTime(o.createdAt)}
+                </span>
               </span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              <ChevronRight
+                className="size-4 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
             </Link>
           </li>
         ))}

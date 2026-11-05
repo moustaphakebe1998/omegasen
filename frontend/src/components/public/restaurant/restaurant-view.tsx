@@ -11,10 +11,28 @@ import { rememberOrder } from "@/components/public/recent-orders-store";
 import { EmptyState, Logo } from "@/components/shared/app-shell";
 import { ProductDialog } from "@/components/shared/product-dialog";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError, api, errorMessage, unwrap, type Schemas } from "@/lib/api/client";
-import { type CartLine, type Product, toOrderItems, useCart, validateOptions } from "@/lib/cart";
+import {
+  ApiError,
+  api,
+  errorMessage,
+  unwrap,
+  type Schemas,
+} from "@/lib/api/client";
+import {
+  type CartLine,
+  type Product,
+  toOrderItems,
+  useCart,
+  validateOptions,
+} from "@/lib/cart";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +56,8 @@ function visibleMenu(r: Restaurant) {
 
 function availableProducts(r: Restaurant): Map<string, Product> {
   const map = new Map<string, Product>();
-  for (const c of visibleMenu(r)) for (const p of c.products) if (p.is_available) map.set(p.id, p);
+  for (const c of visibleMenu(r))
+    for (const p of c.products) if (p.is_available) map.set(p.id, p);
   return map;
 }
 
@@ -46,8 +65,11 @@ function availableProducts(r: Restaurant): Map<string, Product> {
 function lineStillValid(line: CartLine, products: Map<string, Product>) {
   const p = products.get(line.productId);
   if (!p) return false;
-  const options = new Map(p.option_groups.flatMap((g) => g.options).map((o) => [o.id, o]));
-  if (!line.optionIds.every((id) => options.get(id)?.is_available)) return false;
+  const options = new Map(
+    p.option_groups.flatMap((g) => g.options).map((o) => [o.id, o]),
+  );
+  if (!line.optionIds.every((id) => options.get(id)?.is_available))
+    return false;
   return validateOptions(p, line.optionIds) === null;
 }
 
@@ -66,7 +88,12 @@ export function RestaurantView({
 
   const query = useQuery({
     queryKey: ["public-restaurant", slug],
-    queryFn: () => unwrap(api.GET("/api/public/restaurants/{slug}", { params: { path: { slug } } })),
+    queryFn: () =>
+      unwrap(
+        api.GET("/api/public/restaurants/{slug}", {
+          params: { path: { slug } },
+        }),
+      ),
     initialData,
     refetchInterval: 60_000,
   });
@@ -77,14 +104,20 @@ export function RestaurantView({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [step, setStep] = useState<CartStep>("cart");
   const [closedError, setClosedError] = useState<string | null>(null);
-  const [confirmation, setConfirmation] = useState<Schemas["PlacedOrderOut"] | null>(null);
+  const [confirmation, setConfirmation] = useState<
+    Schemas["PlacedOrderOut"] | null
+  >(null);
 
-  const categories = useMemo(() => (restaurant ? visibleMenu(restaurant) : []), [restaurant]);
+  const categories = useMemo(
+    () => (restaurant ? visibleMenu(restaurant) : []),
+    [restaurant],
+  );
 
   // Retire du panier (restauré depuis la session) les produits devenus indisponibles.
   const { hydrated, syncWithMenu } = cart;
   useEffect(() => {
-    if (restaurant && hydrated) syncWithMenu(new Set(availableProducts(restaurant).keys()));
+    if (restaurant && hydrated)
+      syncWithMenu(new Set(availableProducts(restaurant).keys()));
   }, [restaurant, hydrated, syncWithMenu]);
 
   // Panier vidé → on revient à l'étape « panier ».
@@ -110,11 +143,21 @@ export function RestaurantView({
       clearTimeout(timer);
       timer = setTimeout(resetKiosk, KIOSK_IDLE_MS);
     };
-    const events = ["pointerdown", "keydown", "touchstart", "wheel", "scroll"] as const;
-    events.forEach((e) => window.addEventListener(e, bump, { passive: true, capture: true }));
+    const events = [
+      "pointerdown",
+      "keydown",
+      "touchstart",
+      "wheel",
+      "scroll",
+    ] as const;
+    events.forEach((e) =>
+      window.addEventListener(e, bump, { passive: true, capture: true }),
+    );
     return () => {
       clearTimeout(timer);
-      events.forEach((e) => window.removeEventListener(e, bump, { capture: true }));
+      events.forEach((e) =>
+        window.removeEventListener(e, bump, { capture: true }),
+      );
     };
   }, [kiosk, confirmation, resetKiosk]);
 
@@ -129,7 +172,8 @@ export function RestaurantView({
             items: toOrderItems(cart.lines),
             customer_name: v.customer_name,
             customer_phone: kiosk ? null : v.customer_phone || null,
-            table_label: v.service_mode === "DINE_IN" ? v.table_label || null : null,
+            table_label:
+              v.service_mode === "DINE_IN" ? v.table_label || null : null,
             note: v.note || null,
             payment_preference: "AT_COUNTER",
             idempotency_key: cart.idempotencyKey,
@@ -175,7 +219,9 @@ export function RestaurantView({
         invalid.forEach((l) => cart.remove(l.key));
         setStep("cart");
         if (invalid.length > 0) {
-          toast.info("Votre panier a été mis à jour : certains articles ou options ne sont plus disponibles.");
+          toast.info(
+            "Votre panier a été mis à jour : certains articles ou options ne sont plus disponibles.",
+          );
         }
       }
     },
@@ -183,13 +229,22 @@ export function RestaurantView({
 
   if (!restaurant) {
     if (query.isError) {
-      const notFound = query.error instanceof ApiError && query.error.status === 404;
+      const notFound =
+        query.error instanceof ApiError && query.error.status === 404;
       return (
         <main className="mx-auto flex min-h-dvh max-w-md items-center p-4">
           <EmptyState
             icon={Store}
-            title={notFound ? "Restaurant introuvable" : "Impossible de charger le restaurant"}
-            description={notFound ? "Ce restaurant n'existe pas ou n'est plus disponible." : errorMessage(query.error)}
+            title={
+              notFound
+                ? "Restaurant introuvable"
+                : "Impossible de charger le restaurant"
+            }
+            description={
+              notFound
+                ? "Ce restaurant n'existe pas ou n'est plus disponible."
+                : errorMessage(query.error)
+            }
             action={
               notFound ? (
                 !kiosk && (
@@ -206,7 +261,11 @@ export function RestaurantView({
       );
     }
     return (
-      <main className="mx-auto max-w-5xl space-y-4 p-4" aria-busy="true" aria-label="Chargement du restaurant">
+      <main
+        className="mx-auto max-w-5xl space-y-4 p-4"
+        aria-busy="true"
+        aria-label="Chargement du restaurant"
+      >
         <Skeleton className="h-40 w-full rounded-xl" />
         <Skeleton className="h-8 w-2/3" />
         <Skeleton className="h-28 w-full" />
@@ -215,22 +274,25 @@ export function RestaurantView({
     );
   }
 
-  const modesAvailable = restaurant.dine_in_enabled || restaurant.takeaway_enabled;
+  const modesAvailable =
+    restaurant.dine_in_enabled || restaurant.takeaway_enabled;
   const closed = !restaurant.is_open_now;
   const blockedReason = closedError
     ? closedError
     : closed
-    ? "Le restaurant est fermé : les commandes sont momentanément impossibles."
-    : !restaurant.accepting_orders
-      ? "Le restaurant ne prend pas de commandes pour le moment."
-      : !modesAvailable
-        ? "La commande en ligne n'est pas disponible pour ce restaurant."
-        : null;
+      ? "Le restaurant est fermé : les commandes sont momentanément impossibles."
+      : !restaurant.accepting_orders
+        ? "Le restaurant ne prend pas de commandes pour le moment."
+        : !modesAvailable
+          ? "La commande en ligne n'est pas disponible pour ce restaurant."
+          : null;
   const canOrder = blockedReason === null;
 
   const onAdd = (line: CartLine) => {
     cart.add(line);
-    toast.success(`${line.quantity} × ${line.name} ajouté${line.quantity > 1 ? "s" : ""} au panier`);
+    toast.success(
+      `${line.quantity} × ${line.name} ajouté${line.quantity > 1 ? "s" : ""} au panier`,
+    );
   };
 
   const panelProps = {
@@ -248,11 +310,22 @@ export function RestaurantView({
 
   return (
     <div className={cn("min-h-dvh", kiosk && "select-none")}>
-      <div className={cn(kiosk && "md:grid md:grid-cols-[minmax(0,1fr)_380px] lg:grid-cols-[minmax(0,1fr)_440px]")}>
+      <div
+        className={cn(
+          kiosk &&
+            "md:grid md:grid-cols-[minmax(0,1fr)_380px] lg:grid-cols-[minmax(0,1fr)_440px]",
+        )}
+      >
         <div className="min-w-0">
           <RestaurantHeader restaurant={restaurant} kiosk={kiosk} />
 
-          <main className={cn("mx-auto w-full max-w-5xl px-4 pt-4", showBar ? "pb-28" : "pb-12", kiosk && "md:pb-12")}>
+          <main
+            className={cn(
+              "mx-auto w-full max-w-5xl px-4 pt-4",
+              showBar ? "pb-28" : "pb-12",
+              kiosk && "md:pb-12",
+            )}
+          >
             {blockedReason && (
               <div
                 role="status"
@@ -261,10 +334,13 @@ export function RestaurantView({
                 <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
                 <div>
                   <p className="font-semibold">
-                    {closed || closedError ? "Le restaurant est fermé" : "Le restaurant ne prend pas de commandes"}
+                    {closed || closedError
+                      ? "Le restaurant est fermé"
+                      : "Le restaurant ne prend pas de commandes"}
                   </p>
                   <p>
-                    {blockedReason.replace(/\.?$/, ".")} Vous pouvez tout de même consulter le menu.
+                    {blockedReason.replace(/\.?$/, ".")} Vous pouvez tout de
+                    même consulter le menu.
                   </p>
                 </div>
               </div>
@@ -294,7 +370,10 @@ export function RestaurantView({
             aria-labelledby="kiosk-cart-title"
             className="sticky top-0 hidden h-dvh flex-col border-l bg-muted/30 md:flex"
           >
-            <h2 id="kiosk-cart-title" className="border-b bg-background px-5 py-4 text-2xl font-bold">
+            <h2
+              id="kiosk-cart-title"
+              className="border-b bg-background px-5 py-4 text-2xl font-bold"
+            >
               {step === "checkout" ? "Finaliser la commande" : "Votre commande"}
             </h2>
             <div className="flex-1 overflow-y-auto p-5">
@@ -305,10 +384,18 @@ export function RestaurantView({
       </div>
 
       {showBar && (
-        <div className={cn("fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 p-3 backdrop-blur", kiosk && "md:hidden")}>
+        <div
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 p-3 backdrop-blur",
+            kiosk && "md:hidden",
+          )}
+        >
           <Button
             size="lg"
-            className={cn("mx-auto flex w-full max-w-lg justify-between gap-2", kiosk ? "h-16 text-lg" : "h-12")}
+            className={cn(
+              "mx-auto flex w-full max-w-lg justify-between gap-2",
+              kiosk ? "h-16 text-lg" : "h-12",
+            )}
             onClick={() => setSheetOpen(true)}
             aria-haspopup="dialog"
           >
@@ -317,7 +404,8 @@ export function RestaurantView({
               Voir le panier
             </span>
             <span className="tabular truncate">
-              {cart.count} article{cart.count > 1 ? "s" : ""} · {formatMoney(cart.total, restaurant.currency)}
+              {cart.count} article{cart.count > 1 ? "s" : ""} ·{" "}
+              {formatMoney(cart.total, restaurant.currency)}
             </span>
           </Button>
         </div>

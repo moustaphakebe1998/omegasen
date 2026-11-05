@@ -53,8 +53,13 @@ export function KioskConfirmation({
         Merci{order.customer_name ? ` ${order.customer_name}` : ""} !
       </h2>
       <div>
-        <p className="text-lg font-medium uppercase opacity-90">Votre numéro de commande</p>
-        <p className="tabular text-[7rem] leading-none font-black md:text-[10rem]" aria-live="polite">
+        <p className="text-lg font-medium uppercase opacity-90">
+          Votre numéro de commande
+        </p>
+        <p
+          className="tabular text-[7rem] leading-none font-black md:text-[10rem]"
+          aria-live="polite"
+        >
           {order.display_number}
         </p>
       </div>
@@ -64,7 +69,8 @@ export function KioskConfirmation({
           : "Réglez au comptoir. Nous appellerons votre numéro dès que votre commande sera prête."}
       </p>
       <p className="text-lg opacity-90">
-        {SERVICE_MODE[order.service_mode]} · {formatMoney(order.total, order.currency)}
+        {SERVICE_MODE[order.service_mode]} ·{" "}
+        {formatMoney(order.total, order.currency)}
       </p>
       <Button
         ref={buttonRef}

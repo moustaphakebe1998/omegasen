@@ -12,7 +12,7 @@ from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.deps import AnyMember, Manager, Session
 from app.core.errors import NotFound, Unprocessable
-from app.core.images import process_image
+from app.core.images import ProcessedImage, process_image
 from app.core.schema import Schema
 from app.core.storage import PUBLIC_PREFIX, delete_objects, public_url, put_object
 from app.models import Media, Product, Restaurant
@@ -56,6 +56,45 @@ def media_out(m: Media) -> MediaOut:
     )
 
 
+async def put_variants(base: str, data: bytes) -> tuple[ProcessedImage, dict[str, str]]:
+    """Optimise l'image (WebP, 3 tailles) et dépose chaque variante sous `base/`."""
+    processed = await run_in_threadpool(process_image, data)
+    keys = {name: f"{base}/{name}.webp" for name in processed.variants}
+    for name, content in processed.variants.items():
+        await put_object(keys[name], content, "image/webp")
+    return processed, keys
+
+
+async def store_image(
+    session,
+    restaurant_id: uuid.UUID,
+    kind: MediaKind,
+    data: bytes,
+    *,
+    alt: str | None = None,
+    uploaded_by_id: uuid.UUID | None = None,
+) -> tuple[Media, dict[str, str]]:
+    """Traite, stocke sur S3 et ajoute à la session un Media (sans commit)."""
+    media_id = uuid.uuid4()
+    base = f"{PUBLIC_PREFIX}restaurants/{restaurant_id}/{kind.lower()}/{media_id}"
+    processed, keys = await put_variants(base, data)
+    m = Media(
+        id=media_id,
+        restaurant_id=restaurant_id,
+        kind=kind,
+        storage_key=keys["original"],
+        content_type="image/webp",
+        width=processed.width,
+        height=processed.height,
+        size_bytes=sum(len(c) for c in processed.variants.values()),
+        variants=keys,
+        alt=alt,
+        uploaded_by_id=uploaded_by_id,
+    )
+    session.add(m)
+    return m, keys
+
+
 @router.post("", response_model=MediaOut, status_code=201)
 async def upload(
     ctx: Manager,
@@ -71,27 +110,8 @@ async def upload(
     if not data:
         raise Unprocessable("Fichier vide", code="invalid_image")
 
-    processed = await run_in_threadpool(process_image, data)
-    media_id = uuid.uuid4()
-    base = f"{PUBLIC_PREFIX}restaurants/{ctx.restaurant.id}/{kind.lower()}/{media_id}"
-    keys = {name: f"{base}/{name}.webp" for name in processed.variants}
-    for name, content in processed.variants.items():
-        await put_object(keys[name], content, "image/webp")
-
-    m = Media(
-        id=media_id,
-        restaurant_id=ctx.restaurant.id,
-        kind=kind,
-        storage_key=keys["original"],
-        content_type="image/webp",
-        width=processed.width,
-        height=processed.height,
-        size_bytes=sum(len(c) for c in processed.variants.values()),
-        variants=keys,
-        alt=alt,
-        uploaded_by_id=ctx.user.id,
-    )
-    session.add(m)
+    m, keys = await store_image(session, ctx.restaurant.id, kind, data, alt=alt, uploaded_by_id=ctx.user.id)
+    media_id = m.id
     audit(
         session,
         "media.uploaded",

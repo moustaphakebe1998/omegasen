@@ -46,7 +46,10 @@ export function rememberOrder(order: RecentOrder) {
 
 export function forgetOrder(token: string) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(readRecentOrders().filter((o) => o.token !== token)));
+    localStorage.setItem(
+      KEY,
+      JSON.stringify(readRecentOrders().filter((o) => o.token !== token)),
+    );
   } catch {
     /* stockage indisponible */
   }

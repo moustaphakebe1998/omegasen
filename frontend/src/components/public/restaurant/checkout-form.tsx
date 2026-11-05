@@ -1,7 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreditCard, Info, Loader2, ShoppingBag, Store, UtensilsCrossed } from "lucide-react";
+import {
+  CreditCard,
+  Info,
+  Loader2,
+  ShoppingBag,
+  Store,
+  UtensilsCrossed,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,12 +26,21 @@ type Restaurant = Schemas["PublicRestaurant"];
 type Mode = "DINE_IN" | "TAKEAWAY";
 
 const schema = z.object({
-  service_mode: z.enum(["DINE_IN", "TAKEAWAY"], { message: "Choisissez un mode de service" }),
-  customer_name: z.string().trim().min(1, "Indiquez votre prénom").max(80, "80 caractères maximum"),
+  service_mode: z.enum(["DINE_IN", "TAKEAWAY"], {
+    message: "Choisissez un mode de service",
+  }),
+  customer_name: z
+    .string()
+    .trim()
+    .min(1, "Indiquez votre prénom")
+    .max(80, "80 caractères maximum"),
   customer_phone: z
     .string()
     .trim()
-    .refine((v) => v === "" || /^[0-9+ ().-]{6,32}$/.test(v), "Numéro de téléphone invalide"),
+    .refine(
+      (v) => v === "" || /^[0-9+ ().-]{6,32}$/.test(v),
+      "Numéro de téléphone invalide",
+    ),
   table_label: z.string().trim().max(20, "20 caractères maximum"),
   note: z.string().trim().max(500, "500 caractères maximum"),
 });
@@ -52,7 +68,13 @@ export function CheckoutForm({
   ];
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(schema),
-    defaultValues: { service_mode: modes[0], customer_name: "", customer_phone: "", table_label: "", note: "" },
+    defaultValues: {
+      service_mode: modes[0],
+      customer_name: "",
+      customer_phone: "",
+      table_label: "",
+      note: "",
+    },
   });
   const {
     register,
@@ -63,7 +85,11 @@ export function CheckoutForm({
   const fieldSize = kiosk ? "h-14 text-lg" : "h-11";
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-5">
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      noValidate
+      className="space-y-5"
+    >
       <fieldset className="space-y-2">
         <legend className="mb-2 text-sm font-semibold">Mode de service</legend>
         <div className="grid grid-cols-2 gap-2">
@@ -78,7 +104,12 @@ export function CheckoutForm({
                   modes.length === 1 && "col-span-2",
                 )}
               >
-                <input type="radio" value={m} className="sr-only" {...register("service_mode")} />
+                <input
+                  type="radio"
+                  value={m}
+                  className="sr-only"
+                  {...register("service_mode")}
+                />
                 <Icon className={kiosk ? "size-7" : "size-5"} aria-hidden />
                 {SERVICE_MODE[m]}
               </label>
@@ -105,15 +136,25 @@ export function CheckoutForm({
           className={fieldSize}
           {...register("customer_name")}
         />
-        <p id="customer_name_hint" className={cn("text-xs", errors.customer_name ? "text-destructive" : "text-muted-foreground")}>
-          {errors.customer_name?.message ?? "Pour vous appeler quand votre commande est prête."}
+        <p
+          id="customer_name_hint"
+          className={cn(
+            "text-xs",
+            errors.customer_name ? "text-destructive" : "text-muted-foreground",
+          )}
+        >
+          {errors.customer_name?.message ??
+            "Pour vous appeler quand votre commande est prête."}
         </p>
       </div>
 
       {!kiosk && (
         <div className="space-y-1.5">
           <Label htmlFor="customer_phone">
-            Téléphone <span className="font-normal text-muted-foreground">(facultatif)</span>
+            Téléphone{" "}
+            <span className="font-normal text-muted-foreground">
+              (facultatif)
+            </span>
           </Label>
           <Input
             id="customer_phone"
@@ -121,7 +162,9 @@ export function CheckoutForm({
             inputMode="tel"
             autoComplete="tel"
             aria-invalid={!!errors.customer_phone}
-            aria-describedby={errors.customer_phone ? "customer_phone_error" : undefined}
+            aria-describedby={
+              errors.customer_phone ? "customer_phone_error" : undefined
+            }
             className={fieldSize}
             {...register("customer_phone")}
           />
@@ -146,13 +189,20 @@ export function CheckoutForm({
             className={fieldSize}
             {...register("table_label")}
           />
-          {errors.table_label && <p className="text-xs text-destructive">{errors.table_label.message}</p>}
+          {errors.table_label && (
+            <p className="text-xs text-destructive">
+              {errors.table_label.message}
+            </p>
+          )}
         </div>
       )}
 
       <div className="space-y-1.5">
         <Label htmlFor="order_note" className={cn(kiosk && "text-base")}>
-          Remarque pour le restaurant <span className="font-normal text-muted-foreground">(facultatif)</span>
+          Remarque pour le restaurant{" "}
+          <span className="font-normal text-muted-foreground">
+            (facultatif)
+          </span>
         </Label>
         <Textarea
           id="order_note"
@@ -162,19 +212,34 @@ export function CheckoutForm({
           aria-invalid={!!errors.note}
           {...register("note")}
         />
-        {errors.note && <p className="text-xs text-destructive">{errors.note.message}</p>}
+        {errors.note && (
+          <p className="text-xs text-destructive">{errors.note.message}</p>
+        )}
       </div>
 
       <fieldset>
         <legend className="mb-2 text-sm font-semibold">Paiement</legend>
         <div className="grid gap-2">
           <label className="flex min-h-14 items-center gap-3 rounded-lg border-2 border-primary bg-primary/10 px-3 has-focus-visible:ring-2 has-focus-visible:ring-ring">
-            <input type="radio" name="payment" value="AT_COUNTER" checked readOnly className="size-4 accent-primary" />
+            <input
+              type="radio"
+              name="payment"
+              value="AT_COUNTER"
+              checked
+              readOnly
+              className="size-4 accent-primary"
+            />
             <Store className="size-5 shrink-0" aria-hidden />
             <span className="font-medium">Payer au comptoir</span>
           </label>
           <label className="flex min-h-14 cursor-not-allowed items-center gap-3 rounded-lg border px-3 text-muted-foreground">
-            <input type="radio" name="payment" value="ONLINE" disabled className="size-4" />
+            <input
+              type="radio"
+              name="payment"
+              value="ONLINE"
+              disabled
+              className="size-4"
+            />
             <CreditCard className="size-5 shrink-0" aria-hidden />
             <span className="flex-1 font-medium">Payer en ligne</span>
             <Badge variant="secondary">Bientôt disponible</Badge>
@@ -189,10 +254,16 @@ export function CheckoutForm({
       </fieldset>
 
       <div className="space-y-2">
-        <Button type="submit" size="lg" className={cn("w-full", kiosk && "h-16 text-lg")} disabled={pending || disabled}>
+        <Button
+          type="submit"
+          size="lg"
+          className={cn("w-full", kiosk && "h-16 text-lg")}
+          disabled={pending || disabled}
+        >
           {pending ? (
             <>
-              <Loader2 className="animate-spin" aria-hidden /> Envoi de la commande…
+              <Loader2 className="animate-spin" aria-hidden /> Envoi de la
+              commande…
             </>
           ) : (
             <>Valider la commande · {formatMoney(total, r.currency)}</>
