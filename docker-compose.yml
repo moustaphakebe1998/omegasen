@@ -1,25 +1,131 @@
-version: '3.9'
+# OmegaSen — déploiement complet (VPS Docker).
+#   cp .env.example .env   # puis renseigner les secrets
+#   docker compose up -d --build
+#
+# Nginx (port 80) route : /api → backend, /api/ws → WebSocket, /media → MinIO (images publiques), / → frontend.
+name: omegasen
+
+x-backend-env: &backend-env
+  ENVIRONMENT: ${ENVIRONMENT:-production}
+  PUBLIC_APP_URL: ${PUBLIC_APP_URL}
+  API_PUBLIC_URL: ${PUBLIC_APP_URL}
+  CORS_ORIGINS: ${PUBLIC_APP_URL}
+  JWT_SECRET: ${JWT_SECRET:?JWT_SECRET requis}
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  REDIS_URL: redis://redis:6379/0
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-http://minio:9000}
+  S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL:-${PUBLIC_APP_URL}/media}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  S3_BUCKET: ${S3_BUCKET:-omegasen-media}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-10}
+  SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
+  SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: omegasen-app
+  postgres:
+    image: postgres:17-alpine
     restart: unless-stopped
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    networks:
-      - omegasen-net
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      retries: 20
 
-networks:
-  omegasen-net:
-    driver: bridge
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+
+  minio:
+    # Les images officielles minio/minio ne sont plus publiées sur Docker Hub :
+    # définir MINIO_IMAGE (build interne / miroir de confiance), ou utiliser un S3 managé
+    # en renseignant S3_ENDPOINT_URL et en désactivant ce service (profil "no-minio").
+    image: ${MINIO_IMAGE:-minio/minio:latest}
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?S3_SECRET_KEY requis}
+    volumes: [miniodata:/data]
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "1"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    build: ./backend
+    restart: unless-stopped
+    command: ["arq", "app.worker.WorkerSettings"]
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "0"
+    depends_on:
+      backend: { condition: service_healthy }
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_INTERNAL_URL: http://backend:8000
+    depends_on: [backend]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports: ["${HTTP_PORT:-80}:80"]
+    environment:
+      S3_BUCKET: ${S3_BUCKET:-omegasen-media}
+    volumes:
+      - ./infra/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    depends_on: [backend, frontend]
+
+  # Sauvegarde quotidienne PostgreSQL (rétention BACKUP_RETENTION_DAYS jours).
+  db-backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    entrypoint: ["/bin/sh", "/scripts/db-backup.sh"]
+    volumes:
+      - ./infra/backup:/scripts:ro
+      - ${BACKUP_DIR:-./backups}:/backups
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # Copie incrémentale quotidienne des images (bucket S3/MinIO → disque).
+  media-backup:
+    build: ./backend
+    restart: unless-stopped
+    command: ["/bin/sh", "-c", "while true; do python -m app.cli backup-media /backups/media; sleep 86400; done"]
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "0"
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+    depends_on: [minio]
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

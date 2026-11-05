@@ -1,526 +1,97 @@
-# Omegasen — Self-Order Restaurant Platform
+# OmegaSen
 
-Application SaaS de commande en restaurant, production-ready, multi-rôles, multi-restaurants. Conçue pour une expérience au niveau des meilleures bornes du marché.
+Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**, commandes (QR, guichet, en ligne, borne), écran cuisine en temps réel, caisse, paiements et super administration.
 
----
-
-## Table des matières
-
-1. [Présentation](#présentation)
-2. [Architecture](#architecture)
-3. [Stack technique](#stack-technique)
-4. [Installation locale](#installation-locale)
-5. [Configuration des variables d'environnement](#configuration-des-variables-denvironnement)
-6. [Base de données](#base-de-données)
-7. [Déploiement Vercel](#déploiement-vercel)
-8. [Les 4 interfaces](#les-4-interfaces)
-9. [Authentification et rôles](#authentification-et-rôles)
-10. [Temps réel SSE](#temps-réel-sse)
-11. [Workflow des commandes](#workflow-des-commandes)
-12. [Tests](#tests)
-13. [Comptes de test](#comptes-de-test)
-14. [Décisions d'architecture](#décisions-darchitecture)
-
----
-
-## Présentation
-
-Omegasen est une plateforme de self-order pour restaurants, pensée pour la production réelle. Elle permet à un réseau de restaurants de gérer leurs commandes, leurs menus, et leurs équipes via quatre interfaces dédiées :
-
-| Interface | URL | Rôles |
-|-----------|-----|-------|
-| Borne client | `/kiosk/[slug]` | Public |
-| Cuisine | `/kitchen` | KITCHEN, MANAGER, CEO |
-| Gérant | `/manager` | MANAGER, CEO |
-| Admin CEO | `/admin` | CEO |
-
----
+| Espace | URL | Accès |
+|---|---|---|
+| Public (découverte, menu, commande, suivi) | `/`, `/r/{slug}`, `/q/{code}`, `/track/{jeton}` | Tout le monde |
+| Restaurateur | `/manage`, `/manage/{id}/…` | Propriétaire, gérant |
+| Cuisine (KDS) | `/kitchen/{id}` | Propriétaire, gérant, cuisine, caisse |
+| Caisse / guichet | `/pos/{id}` | Propriétaire, gérant, caissier |
+| Super Admin | `/admin` | Super administrateur |
+| Documentation API | `/api/docs` (Swagger), `/api/redoc` | — |
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│              Next.js 15 App Router           │
-│                                             │
-│  /kiosk/[slug]   /kitchen   /manager  /admin│
-│                                             │
-│  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
-│  │ Auth     │  │ SSE      │  │ API       │  │
-│  │ Middleware│  │ Engine   │  │ Handlers  │  │
-│  └──────────┘  └──────────┘  └───────────┘  │
-│                                             │
-│  ┌──────────────────────────────────────┐   │
-│  │        Prisma ORM                    │   │
-│  └──────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
-         │                    │
-         ▼                    ▼
-  PostgreSQL (ext.)    Upstash Redis
-                       (rate limiting)
+            ┌──────────── Nginx ────────────┐
+ navigateur │ /api, /api/ws │ /media │  /   │
+            └──────┬────────┴───┬────┴──┬───┘
+                   ▼            ▼       ▼
+             FastAPI (API +   MinIO   Next.js (React, Tailwind, shadcn/ui)
+             WebSocket)       (S3)
+              │      │  ▲
+              ▼      ▼  │ pub/sub
+          PostgreSQL  Redis ◄── worker ARQ (tâches planifiées)
 ```
 
-**Principes clés :**
-- Fonctions stateless, compatibles Vercel Edge/Serverless
-- Calcul des totaux 100% serveur
-- SSE par restaurant (scope isolé)
-- Soft delete partout (archivage logique)
-- Rate limiting par IP sur les endpoints sensibles
+- **backend/** — Python 3.12, FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic v2, Redis, Pillow, qrcode, ReportLab, Argon2, JWT.
+  Un module par domaine dans `app/modules/` : `auth`, `restaurants`, `media`, `menu`, `qrcodes`, `orders`, `payments`, `public`, `analytics`, `admin`, `ws`.
+- **frontend/** — Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, Lucide, TanStack Query. Types de l'API générés depuis l'OpenAPI (`npm run api:types`).
+- **infra/** — configuration Nginx et scripts de sauvegarde.
 
----
+### Principes métier
 
-## Stack technique
+- **Multi-tenant** : chaque ressource porte un `restaurant_id`. Toute route `/api/restaurants/{id}/…` passe par `require_roles`, qui vérifie l'appartenance de l'utilisateur au restaurant. Un restaurant tiers renvoie 404. Des tests couvrent l'isolation.
+- **Rôles par restaurant** : `OWNER`, `MANAGER`, `CASHIER`, `KITCHEN`. Le super admin est un drapeau global.
+- **Montants** : entiers en unités mineures (centimes pour EUR, francs pour XOF). La devise est propre à chaque restaurant. Les prix sont saisis **TTC** et la TVA est **extraite**, jamais ajoutée.
+- **QR Code permanent** : il est créé avec le restaurant et encode `PUBLIC_APP_URL/q/{code}`. Il ne change pas quand le nom, le slug ou le menu changent. Seul un super admin peut le régénérer. Il peut être téléchargé en PNG, en SVG et en PDF imprimable (A4 ou chevalet A6), avec le logo au centre, et le nombre de scans est compté.
+- **Moteur de commandes unique** (`place_order`) pour les quatre canaux : prix recalculés côté serveur, promotions datées, options obligatoires et nombre min/max de choix vérifiés, nom et prix figés dans la commande, numéro du jour attribué par un compteur verrouillé, idempotence.
+- **Statuts de préparation** : `NEW → PREPARING → READY → COMPLETED` (et `CANCELLED`), avec retours arrière contrôlés selon le rôle. Le **statut de paiement est indépendant** de la préparation.
+- **Paiements** : espèces, carte, Mobile Money ou autre, enregistrés par un employé qui a réellement encaissé. Le paiement en ligne passe par l'interface `PaymentProvider` (Stripe, PayDunya, Wave… à brancher). Tant qu'aucun prestataire n'est configuré, l'API répond 503. **Aucun paiement n'est simulé.** Option « prépaiement obligatoire » : la commande n'arrive en cuisine qu'une fois payée.
+- **Temps réel** : les événements sont publiés dans Redis et relayés aux WebSockets (cuisine, caisse et gérant sur `/api/ws/restaurants/{id}`, client sur `/api/ws/orders/{jeton}`). Les écrans rechargent l'état complet à chaque reconnexion.
+- **Images** : validées et ré-encodées en WebP par Pillow (métadonnées EXIF et GPS supprimées), trois tailles (2000, 800 et 320 px). Elles sont stockées sur S3/MinIO sous `public/…` et PostgreSQL ne garde que les clés et métadonnées.
+- **Sécurité** : JWT d'accès de 15 min gardé en mémoire côté client. Jeton de rafraîchissement opaque dans un cookie httpOnly, renouvelé à chaque usage ; un rejeu provoque la révocation de toute la session. Verrouillage du compte après 5 échecs de connexion, limitation de débit avec Redis, journal d'audit.
 
-| Domaine | Technologie |
-|---------|-------------|
-| Framework | Next.js 15 + App Router |
-| Langage | TypeScript strict |
-| Styles | Tailwind CSS + shadcn/ui |
-| Animations | Framer Motion |
-| ORM | Prisma 5 |
-| Base de données | PostgreSQL (externe) |
-| Auth | JWT via cookies httpOnly (jose) |
-| Hashing | bcryptjs |
-| Validation | Zod |
-| Temps réel | Server-Sent Events (SSE) |
-| Rate limiting | Upstash Redis |
-| Stockage fichiers | Vercel Blob |
-| Tests | Vitest |
-| Déploiement | Vercel |
+## Développement local
 
----
-
-## Installation locale
-
-### Prérequis
-
-- Node.js 20+
-- PostgreSQL 15+
-- npm ou pnpm
-
-### Étapes
+Prérequis : Docker, Python 3.12+, Node 22+.
 
 ```bash
-# 1. Cloner le repo
-git clone https://github.com/your-org/omegasen.git
-cd omegasen
+cp .env.example .env
+docker compose -f docker-compose.dev.yml up -d postgres redis   # + minio si MINIO_IMAGE est défini
 
-# 2. Installer les dépendances
+# Backend
+cd backend
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+.venv/bin/alembic upgrade head
+.venv/bin/python -m app.cli seed-demo          # restaurant de démo + comptes
+.venv/bin/uvicorn app.main:app --port 8100 --reload
+
+# Frontend (autre terminal)
+cd frontend
 npm install
-
-# 3. Configurer les variables d'environnement
-cp .env.example .env.local
-# Éditer .env.local avec vos vraies valeurs
-
-# 4. Générer le client Prisma
-npx prisma generate
-
-# 5. Appliquer les migrations
-npx prisma migrate dev --name init
-
-# 6. Alimenter la base avec des données de test
-npx prisma db seed
-
-# 7. Lancer le serveur de développement
-npm run dev
+npm run dev                                     # http://localhost:3100
 ```
 
-L'application tourne sur [http://localhost:3000](http://localhost:3000).
+Sans MinIO, un S3 local de développement peut être lancé avec `backend/.venv/bin/moto_server -p 9010` (`pip install "moto[server]"`).
 
----
-
-## Configuration des variables d'environnement
-
-Copier `.env.example` en `.env.local` et remplir :
-
-```env
-# Base de données PostgreSQL — Neon
-DATABASE_URL="postgresql://USER:PASSWORD@HOST.neon.tech/neondb?sslmode=require"
-
-# Clé secrète JWT — générer avec : openssl rand -base64 64
-JWT_SECRET="votre-secret-très-long-et-aléatoire"
-
-# Upstash Redis / Vercel KV (rate limiting)
-# Ces variables sont injectées automatiquement par Vercel KV,
-# ou à copier manuellement depuis console.upstash.com
-KV_REST_API_URL="https://aware-cheetah-85642.upstash.io"
-KV_REST_API_TOKEN="gQAAAAAAAU6K..."
-KV_REST_API_READ_ONLY_TOKEN="ggAAAAAAAU6K..."
-KV_URL="rediss://default:...@aware-cheetah-85642.upstash.io:6379"
-REDIS_URL="rediss://default:...@aware-cheetah-85642.upstash.io:6379"
-# Alias classiques Upstash (fallback automatique) :
-UPSTASH_REDIS_REST_URL="https://aware-cheetah-85642.upstash.io"
-UPSTASH_REDIS_REST_TOKEN="gQAAAAAAAU6K..."
-
-# Vercel Blob (pour images produits et logos)
-BLOB_READ_WRITE_TOKEN="vercel_blob_rw_xxxxxxxxxxxx"
-
-# Resend (pour emails optionnels : rapports, alertes)
-RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-# Secret pour les cron jobs Vercel
-CRON_SECRET="un-secret-aléatoire-pour-les-crons"
-
-# URL publique de l'app (sans slash final)
-NEXT_PUBLIC_APP_URL="https://omegasen.vercel.app"
-
-# Feature flags optionnels
-FEATURE_PAYMENTS="false"
-FEATURE_MULTILINGUE="false"
-```
-
-### Base de données recommandée
-
-Pour la production sur Vercel, utiliser **Neon** (serverless PostgreSQL) :
-- Compte gratuit sur [neon.tech](https://neon.tech)
-- Créer un projet → copier la connection string en mode "pooled"
-- Ajouter `?pgbouncer=true&connection_limit=1` si PgBouncer est activé
-
----
-
-## Base de données
-
-### Migrations
-
-```bash
-# Créer une nouvelle migration
-npx prisma migrate dev --name description_migration
-
-# Appliquer les migrations en production
-npx prisma migrate deploy
-
-# Visualiser la base (Prisma Studio)
-npx prisma studio
-```
-
-### Seed
-
-Le seed crée :
-- 2 restaurants (Paris 1, Lyon)
-- 1 CEO, 1 Manager Paris, 1 Cuisine Paris
-- Menu complet (burgers, bowls, boissons, desserts, options)
-- Horaires d'ouverture
-
-```bash
-npx prisma db seed
-```
-
-### Schéma principal
-
-```
-Restaurant ─── UserRestaurant ─── User
-     │
-     ├── MenuCategory ─── Product ─── ProductOptionGroup ─── ProductOption
-     │
-     ├── Order ─── OrderItem ─── OrderItemOption
-     │     └── OrderStatusHistory
-     │     └── Payment
-     │
-     ├── KitchenEvent
-     ├── StockMovement
-     ├── OpeningHours
-     └── Kiosk
-```
-
----
-
-## Déploiement Vercel
-
-### 1. Connecter le repo
-
-```bash
-npm i -g vercel
-vercel login
-vercel link
-```
-
-### 2. Configurer les variables d'environnement
-
-Dans le dashboard Vercel → Settings → Environment Variables, ajouter toutes les variables du `.env.example`.
-
-### 3. Déployer
-
-```bash
-vercel --prod
-```
-
-Ou activer le déploiement automatique depuis GitHub : Settings → Git → Connect repository.
-
-### 4. Migrations de production
-
-Ajouter dans `package.json` :
-```json
-{
-  "scripts": {
-    "postbuild": "prisma migrate deploy"
-  }
-}
-```
-
-### Cron jobs
-
-Définis dans `vercel.json`, ils s'exécutent automatiquement :
-
-| Cron | Fréquence | Action |
-|------|-----------|--------|
-| `/api/cron/archive-orders` | 02h00 chaque nuit | Archive les commandes servies depuis 7j |
-| `/api/cron/cleanup-sessions` | 03h00 chaque nuit | Supprime les sessions expirées |
-| `/api/cron/daily-report` | 08h00 chaque matin | Rapport quotidien (si Resend configuré) |
-| `/api/cron/cleanup-drafts` | Toutes les 30 min | Supprime les paniers abandonnés |
-
----
-
-## Les 4 interfaces
-
-### 🏪 Borne client — `/kiosk/[restaurantSlug]`
-
-Parcours en 5 écrans :
-1. **Menu** — Grille de produits par catégorie, filtre, recherche
-2. **Produit** — Options, suppléments, quantité, notes
-3. **Panier** — Récapitulatif, modification
-4. **Confirmation** — Résumé final avant commande
-5. **Ticket** — Numéro de commande, lien suivi, reset auto 30s
-
-Conçu pour touch-first (tablettes, bornes tactiles 15–22"). Boutons 60px min. Navigation en 3 taps.
-
-### 🍳 Cuisine — `/kitchen`
-
-Interface dark optimisée production :
-- Colonnes : À préparer / En cours / Prêt
-- Urgence visuelle après 15 min (pulse rouge)
-- Grande horloge live
-- Actions rapides par commande
-- SSE temps réel + polling fallback 30s
-- Rollback contrôlé
-
-### 📊 Gérant — `/manager`
-
-Dashboard opérationnel :
-- KPIs du jour (CA, commandes, ticket moyen, annulations)
-- Liste des commandes avec filtres et détail
-- Gestion disponibilité produits (rupture en 1 clic)
-- Paramètres restaurant (ouvert/fermé, maintenance)
-- Horaires d'ouverture
-- SSE pour nouvelles commandes
-
-### 👔 Admin CEO — `/admin`
-
-Tableau de bord exécutif multi-restaurants :
-- KPIs globaux consolidés
-- Graphique CA sur 7/30/90 jours (Recharts)
-- Top 5 produits par restaurant
-- Performance par restaurant
-- Filtres temporels
-
----
-
-## Authentification et rôles
-
-### Flux
-
-1. POST `/api/auth/login` → JWT généré → cookie httpOnly `omegasen_token`
-2. Middleware vérifie le JWT à chaque requête
-3. Rôle injecté dans les headers `x-user-id`, `x-user-role`
-4. Chaque API vérifie le rôle ET l'accès au restaurant
-
-### Rôles
-
-| Rôle | Accès |
-|------|-------|
-| `CEO` | Tout, tous les restaurants |
-| `MANAGER` | Dashboard gérant, son restaurant |
-| `KITCHEN` | Interface cuisine, son restaurant |
-| `CLIENT` | Borne uniquement (non implémenté — borne est publique) |
-
-### Sécurité
-
-- Mots de passe hashés bcrypt (rounds: 12)
-- Lockout après 5 tentatives (15 min)
-- Rate limiting sur `/api/auth/login` : 5 req / 15 min / IP
-- Audit log sur toutes les mutations critiques
-- Pas de données sensibles renvoyées (passwordHash, etc.)
-- Protection double-soumission via clé d'idempotence UUID
-
----
-
-## Temps réel SSE
-
-### Endpoint
-
-`GET /api/sse?restaurantId=xxx`
-
-Authentification via cookie JWT. Scope par restaurant.
-
-### Événements
-
-| Type | Déclencheur |
-|------|-------------|
-| `order:new` | Nouvelle commande créée |
-| `order:update` | Changement de statut |
-| `order:cancelled` | Annulation |
-| `menu:update` | Modification menu |
-| `kitchen:alert` | Alerte cuisine (ex : urgence) |
-| `system:notice` | Maintenance, message système |
-
-### Reconnexion
-
-Le hook `useSSE` gère la reconnexion exponentielle :
-- Délai initial : 1s
-- Max : 30s
-- Max tentatives : 10
-- `lastEventId` pour reprise propre
-
----
-
-## Workflow des commandes
-
-```
-DRAFT → PENDING → CONFIRMED → PREPARING → READY → SERVED → ARCHIVED
-           │           │            │          │
-           └───────────┴────────────┴──────────┴─── CANCELLED
-```
-
-### Retours arrière autorisés
-
-| Transition | Rôles autorisés |
-|------------|-----------------|
-| PREPARING → CONFIRMED | CEO, MANAGER, KITCHEN |
-| READY → PREPARING | CEO, MANAGER, KITCHEN |
-| SERVED → READY | CEO, MANAGER uniquement |
-
-Chaque transition est tracée dans `OrderStatusHistory` avec l'utilisateur, le timestamp, et une note.
-
----
+**Comptes de démonstration** (mot de passe `Demo!2026pass`) : `owner@demo.example.com`, `manager@demo.example.com`, `caisse@demo.example.com`, `cuisine@demo.example.com`. Restaurant : `/r/le-baobab-demo`.
+Super admin : définir `SUPERADMIN_EMAIL` et `SUPERADMIN_PASSWORD`, puis lancer `python -m app.cli bootstrap`.
 
 ## Tests
 
 ```bash
-# Lancer les tests
-npm test
-
-# Avec couverture
-npm run test:coverage
-
-# Mode watch
-npm run test:watch
+cd backend && .venv/bin/pytest           # PostgreSQL réel (base *_test), Redis réel (db 15), S3 simulé
+cd frontend && npm run check             # tsc + eslint + vitest
+cd frontend && npm run test:e2e          # Playwright (API et front lancés)
 ```
 
-### Couverture cible
+Les tests n'utilisent **jamais** la base de production : `tests/conftest.py` impose une base dont le nom finit par `_test`.
 
-| Métrique | Seuil |
-|----------|-------|
-| Lignes | 70% |
-| Fonctions | 70% |
-| Branches | 60% |
-
-### Fichiers de tests
-
-- `src/tests/orders.test.ts` — Transitions de statut
-- `src/tests/validations.test.ts` — Schemas Zod
-- `src/tests/utils.test.ts` — Fonctions utilitaires
-- `src/tests/kiosk-order.test.ts` — Règles métier commande
-
----
-
-## Comptes de test
-
-Après le seed :
-
-| Rôle | Email | Mot de passe |
-|------|-------|--------------|
-| CEO | `ceo@omegasen.com` | `Omegasen2024!` |
-| Manager Paris | `manager.paris@omegasen.com` | `Manager2024!` |
-| Cuisine Paris | `cuisine.paris@omegasen.com` | `Kitchen2024!` |
-
-**Borne client :** [http://localhost:3000/kiosk/omegasen-paris-1](http://localhost:3000/kiosk/omegasen-paris-1)
-
----
-
-## Décisions d'architecture
-
-### JWT via cookies httpOnly
-> Alternative : sessions DB. Choix : JWT stateless pour compatibilité Vercel serverless. Rotation via `jti` si révocation nécessaire.
-
-### SSE via Map en mémoire
-> Alternative : Redis Pub/Sub. Choix : Map suffisante pour déploiement single-instance. Upgrade path documenté si multi-instance.
-
-### Calcul totaux 100% serveur
-> Le client envoie `productId + quantity`. Le serveur recalcule les prix depuis la DB. Impossible pour un client malveillant de falsifier le total.
-
-### Soft delete partout
-> `deletedAt: null` sur tous les modèles. Aucune donnée perdue, audit complet possible.
-
-### Prisma 5 vs Drizzle
-> Prisma choisi pour maturité, DX, Prisma Studio, migrations. Drizzle plus performant mais moins mature pour les relations complexes.
-
-### Upstash Redis pour rate limiting
-> Serverless-compatible (REST API). Graceful fallback si indisponible (ne bloque pas l'app).
-
-### Source de vérité : serveur
-> Zustand (client) pour l'UI state. Données serveur via fetch/SSE. Jamais de calcul sensible côté client.
-
----
-
-## Structure du projet
-
-```
-omegasen/
-├── prisma/
-│   ├── schema.prisma          # Modèle de données
-│   └── seed.ts                # Données de test
-├── src/
-│   ├── app/                   # Pages Next.js (App Router)
-│   │   ├── admin/             # Interface CEO
-│   │   ├── manager/           # Interface Gérant
-│   │   ├── kitchen/           # Interface Cuisine
-│   │   ├── kiosk/[slug]/      # Borne client
-│   │   ├── track/[orderId]/   # Suivi commande
-│   │   ├── login/             # Authentification
-│   │   └── api/               # Route Handlers
-│   │       ├── auth/          # Login, logout, me
-│   │       ├── orders/        # CRUD commandes
-│   │       ├── menu/          # Catégories, produits
-│   │       ├── kitchen/       # Feed cuisine
-│   │       ├── kiosk/         # API borne
-│   │       ├── analytics/     # KPIs
-│   │       ├── users/         # Gestion users (CEO)
-│   │       ├── restaurants/   # Gestion restaurants
-│   │       ├── sse/           # Server-Sent Events
-│   │       ├── health/        # Health check
-│   │       └── cron/          # Jobs planifiés
-│   ├── components/
-│   │   ├── admin/             # Composants CEO
-│   │   ├── manager/           # Composants Gérant
-│   │   └── shared/            # Composants partagés
-│   ├── db/                    # Client Prisma
-│   ├── hooks/                 # Hooks React (SSE, cart)
-│   ├── lib/                   # Auth, API helpers, SSE, rate-limit, utils
-│   ├── server/                # Logique métier serveur
-│   ├── tests/                 # Tests unitaires
-│   ├── types/                 # Types TypeScript
-│   ├── validations/           # Schemas Zod
-│   └── middleware.ts          # Auth middleware
-├── tailwind.config.ts
-├── vitest.config.ts
-├── vercel.json                # Crons, headers, config
-└── .env.example
-```
-
----
-
-## Scripts npm
+## Déploiement (VPS Docker)
 
 ```bash
-npm run dev          # Serveur de développement
-npm run build        # Build production
-npm run start        # Serveur production
-npm run lint         # ESLint
-npm test             # Tests (Vitest)
-npm run test:watch   # Tests en mode watch
-npm run test:coverage # Couverture de code
+cp .env.example .env    # renseigner : JWT_SECRET (openssl rand -hex 32), POSTGRES_PASSWORD,
+                        # S3_SECRET_KEY, PUBLIC_APP_URL, SUPERADMIN_*, MINIO_IMAGE
+docker compose up -d --build
 ```
 
----
+- Au démarrage, le backend applique les migrations Alembic et crée le super admin.
+- Le TLS se termine devant Nginx (Caddy, Traefik ou certbot), ou en ajoutant un bloc `listen 443 ssl` à `infra/nginx/default.conf.template`.
+- **Sauvegardes** : `db-backup` fait un `pg_dump` quotidien avec 14 jours de rétention ; `media-backup` copie chaque jour, de façon incrémentale, le bucket d'images dans `BACKUP_DIR`. Restauration : `pg_restore -d omegasen backups/db/omegasen-….dump`.
+- **MinIO** : les images officielles `minio/minio` ne sont plus publiées sur Docker Hub. Renseigner `MINIO_IMAGE` (build interne ou miroir de confiance), ou utiliser un stockage S3 managé (Scaleway Object Storage…) via `S3_ENDPOINT_URL` et `S3_PUBLIC_BASE_URL`.
 
-## Licence
+## Ajouter un prestataire de paiement en ligne
 
-Propriétaire — Omegasen © 2024
+Implémenter `PaymentProvider` (`backend/app/modules/payments.py`) : `create_checkout()` et `parse_webhook()` avec vérification de signature. L'enregistrer dans `PROVIDERS`, puis ajouter une route webhook qui passe la transaction en `SUCCEEDED` et appelle `recompute_payment_status`.

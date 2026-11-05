@@ -1,14 +1,28 @@
-node_modules/
+# env
 .env
-.env*.local
+.env.*
+!.env.example
+!frontend/.env.development
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+# node
+node_modules/
 .next/
-
-# OS / build
-.DS_Store
-.vercel/
+out/
 coverage/
-test-results/
 playwright-report/
+test-results/
 *.tsbuildinfo
 next-env.d.ts
-dist/
+# os
+.DS_Store
+# backups
+infra/backup/data/
+backups/

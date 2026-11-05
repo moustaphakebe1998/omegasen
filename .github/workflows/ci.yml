@@ -6,32 +6,57 @@ on:
   pull_request:
 
 jobs:
-  check:
+  backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: omegasen
           POSTGRES_PASSWORD: omegasen
           POSTGRES_DB: omegasen
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U omegasen" --health-interval 5s --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U omegasen" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
     env:
-      DATABASE_URL: postgresql://omegasen:omegasen@localhost:5432/omegasen
-      JWT_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-0000
-      CRON_SECRET: ci-cron-secret-0000
+      TEST_DATABASE_URL: postgresql+asyncpg://omegasen:omegasen@localhost:5432/omegasen_test
+      TEST_REDIS_URL: redis://localhost:6379/15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check app tests
+      - run: ruff format --check app tests
+      - name: Migrations Alembic à jour avec les modèles
+        env:
+          DATABASE_URL: postgresql+asyncpg://omegasen:omegasen@localhost:5432/omegasen
+        run: alembic upgrade head && alembic check
+      - run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npx prisma generate
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
-      - run: npx prisma migrate deploy
       - run: npm run build

@@ -1,23 +1,32 @@
-# Base PostgreSQL locale pour le développement et les tests.
-# Usage : npm run db:up
+# Infrastructure pour le développement local (backend et frontend lancés hors Docker).
+# Usage : docker compose -f docker-compose.dev.yml up -d
+name: omegasen-dev
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: omegasen-postgres-dev
-    restart: unless-stopped
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: omegasen
       POSTGRES_PASSWORD: omegasen
       POSTGRES_DB: omegasen
-    ports:
-      - "54329:5432"
-    volumes:
-      - omegasen-pg-dev:/var/lib/postgresql/data
+    ports: ["54330:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U omegasen"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ["63790:6379"]
+  minio:
+    # Les images officielles minio/minio ne sont plus publiées : renseigner MINIO_IMAGE
+    # (build interne ou miroir de confiance) dans .env.
+    image: ${MINIO_IMAGE:-minio/minio:latest}
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: omegasen
+      MINIO_ROOT_PASSWORD: omegasen-secret
+    ports: ["9010:9000", "9011:9001"]
+    volumes: [miniodata:/data]
 volumes:
-  omegasen-pg-dev:
+  pgdata:
+  miniodata:
