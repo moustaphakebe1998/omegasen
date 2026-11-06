@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { rememberOrder } from "@/components/public/recent-orders-store";
 import { EmptyState, Logo } from "@/components/shared/app-shell";
 import { ProductDialog } from "@/components/shared/product-dialog";
 import { Button } from "@/components/ui/button";
@@ -152,13 +151,6 @@ export function RestaurantView({
         setConfirmation(placed);
         return;
       }
-      rememberOrder({
-        token: placed.tracking_token,
-        displayNumber: placed.display_number,
-        restaurantName: placed.restaurant_name,
-        restaurantSlug: placed.restaurant_slug,
-        createdAt: placed.created_at,
-      });
       toast.success(`Commande n° ${placed.display_number} envoyée !`);
       router.push(`/track/${placed.tracking_token}`);
     },

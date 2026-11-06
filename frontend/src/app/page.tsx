@@ -23,8 +23,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { RecentOrders } from "@/components/public/recent-orders";
-import { RestaurantSearch } from "@/components/public/restaurant-search";
 import { Logo } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -110,6 +108,29 @@ const STEPS = [
   },
 ];
 
+const ABOUT = [
+  {
+    icon: Smartphone,
+    title: "Pour vos clients",
+    text: "Ils scannent le QR Code, consultent le menu et commandent depuis leur téléphone, sans application, puis suivent leur commande en direct.",
+  },
+  {
+    icon: Zap,
+    title: "Pour votre équipe",
+    text: "Caisse, écrans cuisine par poste et service en salle partagent les mêmes commandes, mises à jour en temps réel.",
+  },
+  {
+    icon: Users,
+    title: "Pour les gérants",
+    text: "Chaque collaborateur a un rôle et des permissions adaptées : chacun voit et fait uniquement ce qui le concerne.",
+  },
+  {
+    icon: BarChart3,
+    title: "Pour piloter",
+    text: "Chiffre d'affaires, commandes, paiements et réservations sont suivis au même endroit pour décider vite.",
+  },
+];
+
 const STACK = ["Next.js", "FastAPI", "PostgreSQL", "Docker", "MinIO"];
 
 export default function Home() {
@@ -128,8 +149,8 @@ export default function Home() {
             <a href="#comment" className="hover:text-foreground">
               Comment ça marche
             </a>
-            <a href="#restaurants" className="hover:text-foreground">
-              Restaurants
+            <a href="#a-propos" className="hover:text-foreground">
+              Qui sommes-nous
             </a>
           </nav>
           <div className="flex items-center gap-2">
@@ -273,10 +294,37 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="flex flex-col gap-12 py-16">
-          <RecentOrders />
-          <RestaurantSearch />
-        </div>
+        {/* ── Qui sommes-nous ────────────────────────────── */}
+        <section id="a-propos" aria-labelledby="about-title" className="scroll-mt-20 py-16">
+          <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-start">
+            <div>
+              <p className="text-sm font-semibold tracking-wide text-primary uppercase">Qui sommes-nous</p>
+              <h2 id="about-title" className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                OmegaSen, le logiciel qui fait tourner votre restaurant
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                OmegaSen conçoit une plateforme en ligne de gestion et de commande pour les restaurants. Nous réunissons
+                dans un seul outil ce qui est d&apos;habitude éparpillé : le menu, la prise de commande, la caisse, la
+                cuisine, les réservations et le suivi de l&apos;activité.
+              </p>
+              <p className="mt-4 text-muted-foreground">
+                Chaque restaurant dispose de son propre espace, de son QR Code et de son équipe. Notre équipe ouvre les
+                restaurants sur demande, les accompagne et veille au bon fonctionnement de la plateforme.
+              </p>
+            </div>
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {ABOUT.map((a) => (
+                <li key={a.title} className="rounded-2xl border bg-card p-5 shadow-sm">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <a.icon className="size-5" aria-hidden />
+                  </span>
+                  <h3 className="mt-3 font-semibold">{a.title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{a.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
         {/* ── Bandeau final ──────────────────────────────── */}
         <section aria-labelledby="cta-title" className="mx-auto w-full max-w-7xl px-4 pb-16">

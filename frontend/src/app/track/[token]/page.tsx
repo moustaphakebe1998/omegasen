@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-import { rememberOrder } from "@/components/public/recent-orders-store";
 import { EmptyState, Logo } from "@/components/shared/app-shell";
 import { PaymentStatusBadge } from "@/components/shared/status";
 import { Badge } from "@/components/ui/badge";
@@ -111,20 +110,6 @@ export default function TrackPage() {
   const connection = useOrderSocket(token, (e) => {
     if (e.event === "order.updated" && e.data) qc.setQueryData(["tracking", token], e.data as Tracking);
   });
-
-  // Mémorise la commande pour l'accueil (« Vos commandes récentes »).
-  const remembered = useRef(false);
-  useEffect(() => {
-    if (!order || remembered.current) return;
-    remembered.current = true;
-    rememberOrder({
-      token,
-      displayNumber: order.display_number,
-      restaurantName: order.restaurant_name,
-      restaurantSlug: order.restaurant_slug,
-      createdAt: order.created_at,
-    });
-  }, [order, token]);
 
   // Vibration + titre d'onglet quand la commande devient prête.
   const previous = useRef<OrderStatus | null>(null);

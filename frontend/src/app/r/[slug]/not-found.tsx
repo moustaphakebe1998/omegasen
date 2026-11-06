@@ -14,12 +14,11 @@ export default function RestaurantNotFound() {
       <div className="max-w-sm space-y-2">
         <h1 className="text-2xl font-bold">Restaurant introuvable</h1>
         <p className="text-muted-foreground">
-          Ce restaurant n&apos;existe pas ou n&apos;est plus disponible. Vérifiez le lien ou recherchez-le depuis
-          l&apos;accueil.
+          Ce restaurant n&apos;existe pas ou n&apos;est plus disponible. Vérifiez le lien ou le QR Code scanné.
         </p>
       </div>
       <Button asChild size="lg">
-        <Link href="/#restaurants">Trouver un restaurant</Link>
+        <Link href="/">Retour à l&apos;accueil</Link>
       </Button>
     </main>
   );

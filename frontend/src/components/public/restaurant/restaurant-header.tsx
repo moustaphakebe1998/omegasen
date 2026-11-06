@@ -3,7 +3,7 @@
 import { ChevronDown, Clock, Mail, MapPin, Phone, UtensilsCrossed } from "lucide-react";
 import { useId, useState } from "react";
 
-import { OpenBadge } from "@/components/public/restaurant-search";
+import { OpenBadge } from "@/components/public/open-badge";
 import type { Schemas } from "@/lib/api/client";
 import { DAYS } from "@/lib/format";
 import { cn } from "@/lib/utils";
