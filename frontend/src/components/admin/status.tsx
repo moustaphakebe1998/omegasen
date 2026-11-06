@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { ApiError, errorMessage, type Schemas } from "@/lib/api/client";
 import { ROLE } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -23,7 +25,7 @@ export type UserStatus = Schemas["UserStatus"];
 export type RestaurantStatus = Schemas["RestaurantStatus"];
 export type MemberRole = Schemas["MemberRole"];
 
-export const ROLES: MemberRole[] = ["OWNER", "MANAGER", "CASHIER", "KITCHEN"];
+export const ROLES: MemberRole[] = ["OWNER", "ADMIN", "MANAGER", "CASHIER", "WAITER", "KITCHEN", "STAFF"];
 
 export const roleLabel = (r: MemberRole) => ROLE[r] ?? r;
 
@@ -120,6 +122,20 @@ export function adminErrorMessage(e: unknown): string {
         return "Ce compte est déjà activé : il n'y a pas de lien à renvoyer.";
       case "membership_incomplete":
         return "Choisissez à la fois le restaurant et le rôle.";
+      case "last_superadmin":
+        return "La plateforme doit garder au moins un super admin actif.";
+      case "superadmin_no_membership":
+        return "Un super admin administre tous les restaurants : il n'est membre d'aucun restaurant.";
+      case "reason_required":
+        return "Indiquez le motif de la suspension ou de la fermeture.";
+      case "must_be_closed":
+        return "Fermez d'abord le restaurant avant de le supprimer.";
+      case "confirmation_mismatch":
+        return "La confirmation saisie ne correspond pas.";
+      case "self_delete":
+        return "Vous ne pouvez pas supprimer votre propre compte.";
+      case "not_activated":
+        return "Ce compte n'est pas encore activé : renvoyez plutôt le lien d'activation.";
     }
   }
   return errorMessage(e);
@@ -155,21 +171,43 @@ export function KpiCard({
   );
 }
 
-const STATUS_CONFIRM: Partial<Record<RestaurantStatus, { title: string; body: string; action: string }>> = {
+const STATUS_CONFIRM: Record<
+  RestaurantStatus,
+  { title: string; body: string; action: string; reason: boolean; destructive: boolean }
+> = {
   SUSPENDED: {
     title: "Suspendre",
-    body: "Le restaurant ne sera plus visible du public et ne pourra plus recevoir de commandes. Son équipe est prévenue.",
+    body: "Le restaurant disparaît du public et ne reçoit plus de commandes. Toute son équipe (propriétaires compris) perd immédiatement l'accès : sessions fermées, connexion refusée avec un message explicite. Aucun compte n'est modifié : la réactivation rétablit les accès.",
     action: "Suspendre",
+    reason: true,
+    destructive: true,
   },
   CLOSED: {
     title: "Fermer",
-    body: "Le restaurant sera marqué comme fermé : il disparaît du public et ne reçoit plus de commandes. Son équipe est prévenue.",
+    body: "Le restaurant est fermé : il disparaît du public et toute son équipe perd l'accès. Ses données restent conservées et consultables par la plateforme.",
     action: "Fermer le restaurant",
+    reason: true,
+    destructive: true,
+  },
+  PENDING: {
+    title: "Mettre en attente",
+    body: "Le restaurant n'est plus public. Seuls ses propriétaires et administrateurs peuvent encore le préparer ; le reste de l'équipe est bloqué jusqu'à l'activation.",
+    action: "Mettre en attente",
+    reason: false,
+    destructive: false,
+  },
+  ACTIVE: {
+    title: "Activer",
+    body: "Le restaurant redevient public. Les comptes encore actifs retrouvent leurs accès, rôles et permissions ; les comptes désactivés individuellement restent bloqués.",
+    action: "Activer",
+    reason: false,
+    destructive: false,
   },
 };
 
 /**
- * Sélecteur de statut d'un restaurant (4 statuts) ; suspension et fermeture demandent confirmation.
+ * Sélecteur de statut d'un restaurant (4 statuts) : chaque changement est confirmé ; suspension et
+ * fermeture exigent un motif (journal d'activité).
  */
 export function RestaurantStatusSelect({
   name,
@@ -180,12 +218,14 @@ export function RestaurantStatusSelect({
 }: {
   name: string;
   value: RestaurantStatus;
-  onChange: (s: RestaurantStatus) => void;
+  onChange: (s: RestaurantStatus, reason?: string) => void;
   pending?: boolean;
   className?: string;
 }) {
   const [confirm, setConfirm] = useState<RestaurantStatus | null>(null);
+  const [reason, setReason] = useState("");
   const c = confirm ? STATUS_CONFIRM[confirm] : undefined;
+  const reasonOk = !c?.reason || reason.trim().length >= 3;
   return (
     <>
       <Select
@@ -194,8 +234,8 @@ export function RestaurantStatusSelect({
         onValueChange={(v) => {
           const s = v as RestaurantStatus;
           if (s === value) return;
-          if (STATUS_CONFIRM[s]) setConfirm(s);
-          else onChange(s);
+          setReason("");
+          setConfirm(s);
         }}
       >
         <SelectTrigger className={cn("w-44", className)} aria-label={`Statut de ${name}`}>
@@ -221,12 +261,25 @@ export function RestaurantStatusSelect({
                 </AlertDialogTitle>
                 <AlertDialogDescription>{c.body}</AlertDialogDescription>
               </AlertDialogHeader>
+              {c.reason && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="status-reason">Motif (obligatoire, visible dans le journal)</Label>
+                  <Textarea
+                    id="status-reason"
+                    value={reason}
+                    maxLength={500}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="ex. Impayés, contrôle sanitaire, demande du restaurateur…"
+                  />
+                </div>
+              )}
               <AlertDialogFooter>
                 <AlertDialogCancel>Annuler</AlertDialogCancel>
                 <Button
-                  variant="destructive"
+                  variant={c.destructive ? "destructive" : "default"}
+                  disabled={!reasonOk}
                   onClick={() => {
-                    onChange(confirm!);
+                    onChange(confirm!, c.reason ? reason.trim() : undefined);
                     setConfirm(null);
                   }}
                 >
@@ -250,6 +303,7 @@ export function ConfirmDialog({
   confirmLabel,
   destructive,
   pending,
+  confirmDisabled,
   onConfirm,
 }: {
   open: boolean;
@@ -259,6 +313,8 @@ export function ConfirmDialog({
   confirmLabel: string;
   destructive?: boolean;
   pending?: boolean;
+  /** Confirmation incomplète (ex. saisie de vérification) : seul le bouton d'action est désactivé. */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
 }) {
   return (
@@ -270,7 +326,11 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Annuler</AlertDialogCancel>
-          <Button variant={destructive ? "destructive" : "default"} disabled={pending} onClick={onConfirm}>
+          <Button
+            variant={destructive ? "destructive" : "default"}
+            disabled={pending || confirmDisabled}
+            onClick={onConfirm}
+          >
             {pending && <Loader2 className="animate-spin" />}
             {confirmLabel}
           </Button>

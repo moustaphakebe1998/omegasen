@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { api, refreshSession, setAccessToken, setOnSessionLost, unwrap, type Schemas } from "@/lib/api/client";
+import {
+  api,
+  refreshSession,
+  setAccessToken,
+  setOnAccessChanged,
+  setOnSessionLost,
+  unwrap,
+  type Schemas,
+} from "@/lib/api/client";
 
 export type User = Schemas["UserOut"];
 export type Role = Schemas["MemberRole"];
@@ -45,6 +53,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
     });
     return () => setOnSessionLost(null);
+  }, []);
+
+  // Droits modifiés côté serveur (restaurant suspendu, rôle ou permissions changés) : profil rechargé.
+  useEffect(() => {
+    let pending = false;
+    setOnAccessChanged(() => {
+      if (pending) return;
+      pending = true;
+      unwrap(api.GET("/api/auth/me"))
+        .then(setUser)
+        .catch(() => undefined)
+        .finally(() => (pending = false));
+    });
+    return () => setOnAccessChanged(null);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -103,10 +125,12 @@ export function homeFor(user: User): string {
   if (user.is_superadmin && user.memberships.length === 0) return "/admin";
   if (user.memberships.length === 1) {
     const m = user.memberships[0];
+    if (m.access_blocked) return `/manage/${m.restaurant_id}`; // écran explicite du motif (suspendu, fermé…)
     // Écran dédié seulement si les permissions effectives le permettent (un collaborateur restreint par le
     // propriétaire, ex. cuisine sans « préparer les commandes », arrive sur la vue d'ensemble).
     if (m.role === "KITCHEN" && m.permissions.includes("orders.prepare")) return `/kitchen/${m.restaurant_id}`;
-    if (m.role === "CASHIER" && m.permissions.includes("orders.create")) return `/pos/${m.restaurant_id}`;
+    if ((m.role === "CASHIER" || m.role === "WAITER") && m.permissions.includes("orders.create"))
+      return `/pos/${m.restaurant_id}`;
     return `/manage/${m.restaurant_id}`;
   }
   return "/manage";

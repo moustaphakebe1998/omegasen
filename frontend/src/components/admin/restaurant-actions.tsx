@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { RESTAURANT_STATUS, type RestaurantStatus } from "@/components/admin/status";
+import { adminErrorMessage, RESTAURANT_STATUS, type RestaurantStatus } from "@/components/admin/status";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
 
@@ -24,18 +25,18 @@ import { api, errorMessage, unwrap } from "@/lib/api/client";
 export function useSetRestaurantStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: RestaurantStatus }) =>
+    mutationFn: ({ id, status, reason }: { id: string; status: RestaurantStatus; reason?: string }) =>
       unwrap(
         api.POST("/api/admin/restaurants/{restaurant_id}/status", {
           params: { path: { restaurant_id: id } },
-          body: { status },
+          body: { status, reason: reason ?? null },
         }),
       ),
     onSuccess: (r) => {
       toast.success(`${r.name} : ${RESTAURANT_STATUS[r.status].label.toLowerCase()}`);
       void qc.invalidateQueries({ queryKey: ["admin"] });
     },
-    onError: (e) => toast.error(errorMessage(e)),
+    onError: (e) => toast.error(adminErrorMessage(e)),
   });
 }
 
@@ -94,6 +95,78 @@ export function RegenerateQrDialog({
           >
             {regenerate.isPending && <Loader2 className="animate-spin" />}
             Régénérer le QR Code
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+/**
+ * Suppression sécurisée d'un restaurant FERMÉ : saisie de son adresse et motif. Suppression logique côté
+ * serveur (commandes, paiements et journal conservés).
+ */
+export function DeleteRestaurantDialog({
+  restaurant: r,
+  open,
+  onOpenChange,
+  onDeleted,
+}: {
+  restaurant: { id: string; name: string; slug: string };
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  onDeleted: () => void;
+}) {
+  const qc = useQueryClient();
+  const [slug, setSlug] = useState("");
+  const [reason, setReason] = useState("");
+  useEffect(() => {
+    setSlug("");
+    setReason("");
+  }, [open]);
+  const del = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.DELETE("/api/admin/restaurants/{restaurant_id}", {
+          params: { path: { restaurant_id: r.id } },
+          body: { confirm_slug: slug.trim(), reason: reason.trim() },
+        }),
+      ),
+    onSuccess: () => {
+      toast.success(`${r.name} supprimé`);
+      void qc.invalidateQueries({ queryKey: ["admin"] });
+      onDeleted();
+    },
+    onError: (e) => toast.error(adminErrorMessage(e)),
+  });
+  const ok = slug.trim() === r.slug && reason.trim().length >= 3;
+  return (
+    <AlertDialog open={open} onOpenChange={(o) => !del.isPending && onOpenChange(o)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Supprimer {r.name} ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Le restaurant disparaît de la plateforme et son équipe perd définitivement l&apos;accès. Les commandes,
+            paiements et le journal d&apos;activité sont conservés.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="del-slug">
+              Saisissez <strong className="font-mono">{r.slug}</strong> pour confirmer
+            </Label>
+            <Input id="del-slug" value={slug} onChange={(e) => setSlug(e.target.value)} autoComplete="off" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="del-reason">Motif</Label>
+            <Input id="del-reason" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} />
+          </div>
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={del.isPending}>Annuler</AlertDialogCancel>
+          <Button variant="destructive" disabled={!ok || del.isPending} onClick={() => del.mutate()}>
+            {del.isPending && <Loader2 className="animate-spin" />}
+            Supprimer définitivement
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

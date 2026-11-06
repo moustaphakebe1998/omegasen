@@ -43,7 +43,7 @@ const schema = z
     email: z.string().trim().email("Adresse email invalide"),
     phone: z.string().trim().max(32, "Numéro trop long").optional(),
     restaurant_id: z.string(),
-    role: z.enum(["OWNER", "MANAGER", "CASHIER", "KITCHEN", NONE]),
+    role: z.enum(["OWNER", "ADMIN", "MANAGER", "CASHIER", "WAITER", "KITCHEN", "STAFF", NONE]),
     is_superadmin: z.boolean(),
   })
   .refine((v) => (v.restaurant_id === NONE) === (v.role === NONE), {

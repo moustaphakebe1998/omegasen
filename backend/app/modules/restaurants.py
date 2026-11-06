@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.audit import audit
-from app.core.deps import AnyMember, Can, Session, SuperAdmin
+from app.core.deps import AnyMember, Can, Session
 from app.core.errors import Conflict, NotFound, Unprocessable
 from app.core.money import SUPPORTED_CURRENCIES
 from app.core.permissions import Perm
@@ -247,16 +247,8 @@ async def unique_qr_code(session: AsyncSession) -> str:
 # ── Restaurant ──────────────────────────────────────────
 
 
-@router.post("", response_model=RestaurantOut, status_code=201)
-async def create(body: RestaurantCreate, admin: SuperAdmin, session: Session):
-    """Création réservée au super admin (le super admin devient propriétaire).
-
-    Pour créer un restaurant au nom d'un restaurateur : POST /api/admin/restaurants ou approbation d'une
-    demande d'ouverture (POST /api/admin/restaurant-requests/{id}/approve).
-    """
-    restaurant = await create_restaurant(session, body, admin)
-    await session.commit()
-    return restaurant_out(await load_restaurant(session, restaurant.id))
+# Création : uniquement par le super admin via POST /api/admin/restaurants (avec un propriétaire désigné)
+# ou en approuvant une demande d'ouverture. Le super admin ne devient jamais propriétaire d'un restaurant.
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantOut)

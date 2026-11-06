@@ -41,30 +41,21 @@ Le stockage d'images de développement (`moto`) est en mémoire. Après un redé
 
 Mot de passe commun : **`BaobabTest2026!`**. Connexion : http://localhost:3100/login
 
-| Profil demandé | Identifiant | Rôle OmegaSen | Arrive sur |
+| Profil | Identifiant | Rôle OmegaSen | Arrive sur |
 |---|---|---|---|
 | Propriétaire | `owner@baobab.test` | `OWNER` | `/manage/{id}` |
-| Administrateur | `admin@baobab.test` | `MANAGER` (toutes les permissions) | `/manage/{id}` |
-| Responsable | `manager@baobab.test` | `MANAGER` (restreint) | `/manage/{id}` |
+| Administrateur | `admin@baobab.test` | `ADMIN` | `/manage/{id}` |
+| Responsable | `manager@baobab.test` | `MANAGER` | `/manage/{id}` |
 | Caissier | `cashier@baobab.test` | `CASHIER` | `/pos/{id}` (caisse) |
-| Serveur | `waiter@baobab.test` | `CASHIER` (restreint) | `/pos/{id}` (prise de commande) |
+| Serveur | `waiter@baobab.test` | `WAITER` | `/pos/{id}` (prise de commande) |
 | Cuisinier | `kitchen@baobab.test` | `KITCHEN` (poste Grill) | `/kitchen/{id}` |
-| Utilisateur standard | `user@baobab.test` | `KITCHEN` (lecture seule) | `/manage/{id}` |
+| Utilisateur standard | `user@baobab.test` | `STAFF` | `/manage/{id}` |
 | Clients | `client.aminata@`, `client.moussa@`, `client.khadija@`, `client.pierre@baobab.test` | compte client | `/compte` |
 | Invitation en attente | `invite@baobab.test` | `CASHIER` | ne peut pas se connecter (lien d'activation non utilisé) |
 
 Le super admin de la plateforme (`SUPERADMIN_EMAIL` dans `.env`) voit aussi Baobab dans `/admin`.
 
-### Adaptation des rôles
-
-OmegaSen n'a que **quatre rôles** de restaurant (`OWNER`, `MANAGER`, `CASHIER`, `KITCHEN`), mais chaque collaborateur peut recevoir des **permissions ajustées** par le propriétaire (`Membership.permission_overrides`, page « Équipe »). Les profils ADMIN, WAITER et STAFF sont construits avec ce mécanisme, sans nouveau rôle ni nouvelle règle. Le backend applique donc exactement ce qu'un propriétaire pourrait configurer lui-même.
-
-- **ADMIN** = `MANAGER` avec toutes les permissions. Différence avec OWNER : il ne peut ni nommer ni retirer un propriétaire, et le propriétaire peut le restreindre.
-- **MANAGER** = `MANAGER` sans informations ni paramètres, images, QR Code, prix, suppressions ni remboursements.
-- **WAITER** = `CASHIER` sans encaissement, annulation ni ruptures. Il prend les commandes par table, suit le service et termine les commandes servies.
-- **STAFF** = `KITCHEN` limité à la consultation du restaurant et du menu.
-
-Dans l'interface, le libellé du rôle affiché reste celui d'OmegaSen (« Responsable », « Caisse », « Cuisine ») : il n'existe pas de libellé « Serveur » ou « Utilisateur ».
+Chaque compte utilise le **préréglage de son rôle** (`backend/app/core/permissions.py`), sans ajustement. Le propriétaire peut ensuite ajouter ou retirer des permissions à chacun dans « Équipe ». La hiérarchie, les règles de suspension et le détail des permissions sont décrits dans [`ACCESS_CONTROL.md`](ACCESS_CONTROL.md).
 
 Permissions effectives (générées depuis le code, vérifiées par `test_permission_matrix_is_enforced_by_the_api`) :
 
@@ -92,6 +83,7 @@ Permissions effectives (générées depuis le code, vérifiées par `test_permis
 | `stats.view` | ✅ | ✅ | ✅ | — | — | — | — |
 | `team.view` | ✅ | ✅ | ✅ | — | — | — | — |
 | `team.manage` | ✅ | ✅ | ✅ | — | — | — | — |
+| `activity.view` | ✅ | ✅ | — | — | — | — | — |
 
 Chaque route du backend exige sa permission (`Can(Perm.…)`). L'interface masque ce qui n'est pas permis, mais **l'API refuse de toute façon** : `403 permission_denied` hors permission, `404` pour un autre restaurant, `401` sans connexion. Un responsable ne peut accorder que les droits qu'il possède.
 
@@ -184,7 +176,6 @@ Si un compte est verrouillé ou limité après beaucoup de tentatives (5 échecs
 
 Rien n'a été simulé pour combler ces manques :
 
-- **Rôles ADMIN, WAITER, STAFF** : pas de rôle dédié (voir § 2). Ils sont obtenus par ajustement des permissions.
 - **Tables** : pas d'entité « table » (plan de salle, statut occupée ou libre). Une table est une étiquette sur la commande (`table_label`), portée par le QR de table.
 - **Statuts** : pas d'« en attente de confirmation », de « confirmée » ni d'« en livraison ». Le cycle est Nouvelle → En préparation → Prête → Terminée, plus Annulée. L'attente de paiement n'existe qu'avec l'option « prépaiement obligatoire », désactivée sur Baobab.
 - **Livraison** : non activée (refusée par l'API).

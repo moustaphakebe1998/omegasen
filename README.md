@@ -7,8 +7,8 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 | Public (découverte, menu, commande, suivi) | `/`, `/r/{slug}`, `/q/{code}`, `/track/{jeton}` | Tout le monde |
 | Demande d'ouverture, activation de compte | `/demande`, `/activate/{jeton}` | Tout le monde |
 | Restaurateur | `/manage`, `/manage/{id}/…` | Membres du restaurant, rubriques selon leurs permissions |
-| Cuisine (KDS) | `/kitchen/{id}` | Propriétaire, gérant, cuisine, caisse |
-| Caisse / guichet | `/pos/{id}` | Propriétaire, gérant, caissier |
+| Cuisine (KDS) | `/kitchen/{id}` | Permission « préparer les commandes » |
+| Caisse / guichet | `/pos/{id}` | Permission « prendre des commandes » (caisse, service en salle…) |
 | Super Admin | `/admin` | Super administrateur |
 | Documentation API | `/api/docs` (Swagger), `/api/redoc` | — |
 
@@ -33,7 +33,8 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 
 ### Principes métier
 
-- **Multi-tenant** : chaque ressource porte un `restaurant_id`. Toute route `/api/restaurants/{id}/…` passe par `require_roles`, qui vérifie l'appartenance de l'utilisateur au restaurant. Un restaurant tiers renvoie 404. Des tests couvrent l'isolation.
+- **Multi-tenant** : chaque ressource porte un `restaurant_id`. Toute route `/api/restaurants/{id}/…` passe par `require_perm` (`Can(Perm.…)`), qui vérifie l'appartenance de l'utilisateur au restaurant, le statut du restaurant et la permission exigée. Un restaurant tiers renvoie 404. Des tests couvrent l'isolation.
+- **Contrôle d'accès** (détails : [`docs/ACCESS_CONTROL.md`](docs/ACCESS_CONTROL.md)) : le **statut du restaurant est la règle centrale** (`app/core/access.py`). Suspendu ou fermé, toute son équipe (propriétaires compris) est bloquée : API refusées, connexion et renouvellement de session refusés avec un message explicite, sessions révoquées, WebSockets fermées. Aucun compte n'est modifié : la réactivation rétablit les accès, sauf pour les comptes désactivés individuellement. En attente (`PENDING`), seuls propriétaires et administrateurs préparent le restaurant. Le super admin garde l'accès à tout.
 - **Ouverture des restaurants** : seul le **super admin** crée un restaurant. Un restaurateur envoie une **demande d'ouverture** (`/demande`) ; les super admins sont notifiés et l'acceptent ou la refusent dans `/admin/requests` (le demandeur reçoit la réponse par email). Statuts d'un restaurant : `PENDING` (en préparation, invisible du public), `ACTIVE`, `SUSPENDED`, `CLOSED`.
 - **Comptes et mots de passe** : jamais de mot de passe provisoire. Tout compte créé (propriétaire, employé invité par son gérant, utilisateur créé par le super admin, client) reçoit par email un **lien d'activation** unique, à usage unique et temporaire (`ACTIVATION_TTL_HOURS`, 72 h par défaut) pour choisir son mot de passe (Argon2id) ; l'activation vaut vérification de l'email. Renvoyer un lien invalide les précédents. **Mot de passe oublié** : lien de réinitialisation (`RESET_TTL_MINUTES`, 60 min) qui ferme toutes les sessions. Page **Mon compte** (`/compte`) : profil, changement de mot de passe, sessions actives (révocation), et pour les clients l'historique des commandes et réservations.
 - **Emails** : envoyés par SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_STARTTLS`/`SMTP_SSL`, `EMAIL_FROM`). Sans `SMTP_HOST` (développement), l'email est seulement écrit dans `.dev-logs/api.log` et l'interface affiche le lien d'activation à copier.
@@ -41,12 +42,17 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 
   | Rôle | Par défaut |
   |---|---|
-  | Super admin OmegaSen | Toute la plateforme : demandes, restaurants, utilisateurs, chiffre d'affaires, journal d'activité |
-  | Administrateur du restaurant (`OWNER`) | Tout son restaurant, toujours (non restreignable) ; seul à nommer ou retirer un propriétaire |
-  | Responsable (`MANAGER`) | Tout son restaurant par défaut ; restreignable ; ne peut accorder que les droits qu'il possède |
+  | Super admin OmegaSen (plateforme) | Tout, sur tous les restaurants (quel que soit leur statut) et tous les comptes, sans être membre d'aucun restaurant |
+  | Propriétaire (`OWNER`) | Tout son restaurant, toujours (non restreignable) ; seul à nommer ou retirer un propriétaire |
+  | Administrateur (`ADMIN`) | Tout par défaut, restreignable ; gère l'équipe sous son rang |
+  | Responsable (`MANAGER`) | Gestion quotidienne (commandes, menu, ruptures, réservations, statistiques, personnel) ; ni paramètres, prix, suppressions, images, QR ni remboursements |
   | Caisse (`CASHIER`) | Prise de commande, encaissement, suivi, réservations, ruptures |
+  | Service en salle (`WAITER`) | Prise de commande par table, suivi, service ; n'encaisse pas |
   | Cuisine (`KITCHEN`) | Écran cuisine (préparation) et ruptures |
+  | Personnel (`STAFF`) | Consultation ; droits accordés individuellement |
   | Client (`CUSTOMER`) | Compte facultatif : historique de ses commandes et réservations |
+
+  Hiérarchie : on ne gère et n'attribue que des rôles strictement inférieurs au sien (le propriétaire gère tout le monde), et on n'accorde jamais une permission qu'on n'a pas.
 - **Équipe** (`/manage/{id}/team`, module `app/modules/team.py`) : le propriétaire ajoute un collaborateur **par invitation** (lien d'activation par email, recommandé) ou **par création directe** avec un mot de passe initial (haché Argon2id, jamais envoyé par email) que l'utilisateur **doit changer à sa première connexion** (toute autre action est refusée avant). Il modifie le rôle, les permissions, le poste affecté (présélectionné sur l'écran cuisine), le nom et le téléphone (comptes propres au restaurant), désactive/réactive, renvoie une invitation (statut en attente / expirée) et retire un collaborateur (le compte n'est supprimé que s'il n'a jamais été activé et n'appartient à aucun autre restaurant). Protections : dernier propriétaire actif, pas de modification de ses propres droits. Toutes les modifications sont tracées (valeurs avant/après) dans le journal d'activité.
 - **Notifications** : centre de notifications (cloche dans les espaces) alimenté en temps réel (`/api/ws/me`) : nouvelle demande d'ouverture, compte activé, nouvelle commande, commande prête, changement de statut d'un restaurant, réservations.
 - **Réservations** : demande depuis la page du restaurant (horaires d'ouverture vérifiés, 30 min à 90 jours à l'avance), suivi et annulation via `/reservation/{jeton}` ; le restaurant confirme, refuse (motif obligatoire), note l'arrivée ou l'absence, et saisit les réservations téléphoniques. Désactivables par restaurant.
@@ -132,12 +138,12 @@ Les comptes cuisine et caisse sont redirigés automatiquement vers leur écran a
 | Profil | Identifiant | Rôle OmegaSen | Arrive sur |
 |---|---|---|---|
 | Propriétaire | `owner@baobab.test` | `OWNER` | Espace de gestion |
-| Administrateur | `admin@baobab.test` | `MANAGER` (toutes les permissions) | Espace de gestion |
-| Responsable | `manager@baobab.test` | `MANAGER` (restreint) | Espace de gestion |
+| Administrateur | `admin@baobab.test` | `ADMIN` | Espace de gestion |
+| Responsable | `manager@baobab.test` | `MANAGER` | Espace de gestion |
 | Caissier | `cashier@baobab.test` | `CASHIER` | Caisse |
-| Serveur | `waiter@baobab.test` | `CASHIER` (sans encaissement ni annulation) | Caisse (prise de commande) |
+| Serveur | `waiter@baobab.test` | `WAITER` | Caisse (prise de commande) |
 | Cuisinier | `kitchen@baobab.test` | `KITCHEN` (poste Grill) | Écran cuisine |
-| Utilisateur standard | `user@baobab.test` | `KITCHEN` (lecture seule) | Espace de gestion (consultation) |
+| Utilisateur standard | `user@baobab.test` | `STAFF` | Espace de gestion (consultation) |
 | Clients | `client.aminata@baobab.test`, `client.moussa@baobab.test`, `client.khadija@baobab.test`, `client.pierre@baobab.test` | compte client | Mon compte (`/compte`) |
 | Invitation en attente | `invite@baobab.test` | `CASHIER` | ne peut pas se connecter (non activé) |
 

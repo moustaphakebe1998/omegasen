@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { errorMessage } from "@/lib/api/client";
+import { errorMessage, lastSessionBlock } from "@/lib/api/client";
 import { homeFor, useAuth } from "@/lib/auth";
 
 const schema = z.object({
@@ -37,7 +37,8 @@ function LoginForm() {
   const next = safeNext(params.get("next"));
   const resetDone = params.get("reset") === "1";
   const initialEmail = prefillEmail(params.get("email"));
-  const [error, setError] = useState<string | null>(null);
+  // Session refusée au chargement (ex. restaurant suspendu depuis la dernière visite) : motif affiché.
+  const [error, setError] = useState<string | null>(() => lastSessionBlock()?.message ?? null);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { email: initialEmail, password: "" },
@@ -125,13 +126,19 @@ function LoginForm() {
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             Vous avez un restaurant ?{" "}
-            <Link href="/demande" className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline">
+            <Link
+              href="/demande"
+              className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline"
+            >
               Demander l&apos;ouverture
             </Link>
           </p>
           <p className="text-center text-xs text-muted-foreground">
             Vous êtes client ?{" "}
-            <Link href="/inscription" className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline">
+            <Link
+              href="/inscription"
+              className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline"
+            >
               Créer un compte client
             </Link>
           </p>

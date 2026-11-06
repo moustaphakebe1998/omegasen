@@ -91,8 +91,6 @@ class DemoEnvironmentError(RuntimeError):
 
 # ── Comptes ─────────────────────────────────────────────
 
-P = Perm
-
 
 @dataclass(frozen=True)
 class StaffProfile:
@@ -108,9 +106,7 @@ class StaffProfile:
     summary: str = ""
 
 
-# Seuls 4 rôles existent (OWNER, MANAGER, CASHIER, KITCHEN). Les profils ADMIN, WAITER et STAFF sont
-# obtenus avec le mécanisme existant d'ajustement des permissions par collaborateur : aucune règle
-# nouvelle, le backend applique exactement ce que le propriétaire pourrait configurer dans « Équipe ».
+# Un compte par rôle de restaurant (préréglages de app/core/permissions.py, sans ajustement).
 STAFF: list[StaffProfile] = [
     StaffProfile(
         "owner",
@@ -119,16 +115,16 @@ STAFF: list[StaffProfile] = [
         "OWNER",
         MemberRole.OWNER,
         phone="+221 77 100 00 01",
-        summary="Accès complet, seul à nommer un propriétaire",
+        summary="Accès complet à son restaurant, seul à nommer un propriétaire",
     ),
     StaffProfile(
         "admin",
         f"admin@{DOMAIN}",
         "Cheikh Ba",
         "ADMIN",
-        MemberRole.MANAGER,
+        MemberRole.ADMIN,
         phone="+221 77 100 00 02",
-        summary="Responsable avec toutes les permissions (préréglage MANAGER)",
+        summary="Administrateur : toutes les permissions, gère l'équipe sous son rang",
     ),
     StaffProfile(
         "manager",
@@ -136,25 +132,6 @@ STAFF: list[StaffProfile] = [
         "Mariama Sarr",
         "MANAGER",
         MemberRole.MANAGER,
-        permissions=frozenset(
-            {
-                P.RESTAURANT_VIEW,
-                P.MENU_VIEW,
-                P.MENU_CREATE,
-                P.MENU_EDIT,
-                P.STOCK_MANAGE,
-                P.ORDERS_HISTORY,
-                P.ORDERS_CREATE,
-                P.ORDERS_PREPARE,
-                P.ORDERS_CANCEL,
-                P.PAYMENTS_RECORD,
-                P.RESERVATIONS_VIEW,
-                P.RESERVATIONS_MANAGE,
-                P.STATS_VIEW,
-                P.TEAM_VIEW,
-                P.TEAM_MANAGE,
-            }
-        ),
         phone="+221 77 100 00 03",
         summary="Gestion quotidienne : sans paramètres, prix, suppressions, images, QR ni remboursements",
     ),
@@ -172,18 +149,7 @@ STAFF: list[StaffProfile] = [
         f"waiter@{DOMAIN}",
         "Ousmane Faye",
         "WAITER",
-        MemberRole.CASHIER,
-        permissions=frozenset(
-            {
-                P.RESTAURANT_VIEW,
-                P.MENU_VIEW,
-                P.ORDERS_HISTORY,
-                P.ORDERS_CREATE,
-                P.ORDERS_PREPARE,
-                P.RESERVATIONS_VIEW,
-                P.RESERVATIONS_MANAGE,
-            }
-        ),
+        MemberRole.WAITER,
         phone="+221 77 100 00 05",
         summary="Service en salle : prise de commande par table, suivi, service ; ni encaissement ni annulation",
     ),
@@ -202,10 +168,9 @@ STAFF: list[StaffProfile] = [
         f"user@{DOMAIN}",
         "Seynabou Kane",
         "STAFF",
-        MemberRole.KITCHEN,
-        permissions=frozenset({P.RESTAURANT_VIEW, P.MENU_VIEW}),
+        MemberRole.STAFF,
         phone="+221 77 100 00 07",
-        summary="Utilisateur standard : consultation du restaurant et du menu uniquement",
+        summary="Personnel : consultation du restaurant et du menu (droits à accorder individuellement)",
     ),
 ]
 

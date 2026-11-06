@@ -40,6 +40,7 @@ class Perm(StrEnum):
     STATS_VIEW = "stats.view"
     TEAM_VIEW = "team.view"
     TEAM_MANAGE = "team.manage"
+    ACTIVITY_VIEW = "activity.view"  # journal d'activité du restaurant (pas le journal global de la plateforme)
 
 
 ALL = frozenset(Perm)
@@ -86,16 +87,40 @@ CATALOG: list[tuple[str, list[tuple[Perm, str]]]] = [
             (Perm.STATS_VIEW, "Consulter les statistiques et le chiffre d'affaires"),
             (Perm.TEAM_VIEW, "Consulter l'équipe"),
             (Perm.TEAM_MANAGE, "Gérer l'équipe et les permissions"),
+            (Perm.ACTIVITY_VIEW, "Consulter le journal d'activité du restaurant"),
         ],
     ),
 ]
 assert {p for _, items in CATALOG for p, _ in items} == ALL, "CATALOG doit couvrir toutes les permissions"
 
+# Préréglages (point de départ) : le propriétaire, ou un membre ayant `team.manage`, ajuste ensuite les
+# permissions de chaque collaborateur sans changer son rôle (`Membership.permission_overrides`).
 ROLE_PERMISSIONS: dict[MemberRole, frozenset[Perm]] = {
-    # Administrateur du restaurant : tout, toujours.
+    # Propriétaire du restaurant : tout, toujours (non restreignable).
     MemberRole.OWNER: ALL,
-    # Responsable : tout par défaut (le propriétaire peut restreindre) ; ne peut jamais nommer de propriétaire.
-    MemberRole.MANAGER: ALL,
+    # Administrateur du restaurant : tout par défaut (restreignable) ; ne nomme ni ne modifie de propriétaire.
+    MemberRole.ADMIN: ALL,
+    # Responsable : gestion quotidienne (commandes, menu, ruptures, réservations, statistiques, équipe),
+    # sans les paramètres de l'établissement, les prix, les suppressions, les images, le QR ni les remboursements.
+    MemberRole.MANAGER: frozenset(
+        {
+            Perm.RESTAURANT_VIEW,
+            Perm.MENU_VIEW,
+            Perm.MENU_CREATE,
+            Perm.MENU_EDIT,
+            Perm.STOCK_MANAGE,
+            Perm.ORDERS_HISTORY,
+            Perm.ORDERS_CREATE,
+            Perm.ORDERS_PREPARE,
+            Perm.ORDERS_CANCEL,
+            Perm.PAYMENTS_RECORD,
+            Perm.RESERVATIONS_VIEW,
+            Perm.RESERVATIONS_MANAGE,
+            Perm.STATS_VIEW,
+            Perm.TEAM_VIEW,
+            Perm.TEAM_MANAGE,
+        }
+    ),
     MemberRole.CASHIER: frozenset(
         {
             Perm.RESTAURANT_VIEW,
@@ -110,8 +135,23 @@ ROLE_PERMISSIONS: dict[MemberRole, frozenset[Perm]] = {
             Perm.RESERVATIONS_MANAGE,
         }
     ),
+    # Service en salle : prise de commande par table, suivi et service ; ni encaissement ni annulation.
+    MemberRole.WAITER: frozenset(
+        {
+            Perm.RESTAURANT_VIEW,
+            Perm.MENU_VIEW,
+            Perm.ORDERS_HISTORY,
+            Perm.ORDERS_CREATE,
+            Perm.ORDERS_PREPARE,
+            Perm.RESERVATIONS_VIEW,
+            Perm.RESERVATIONS_MANAGE,
+        }
+    ),
     MemberRole.KITCHEN: frozenset({Perm.RESTAURANT_VIEW, Perm.MENU_VIEW, Perm.STOCK_MANAGE, Perm.ORDERS_PREPARE}),
+    # Personnel : consultation ; les autres permissions sont accordées individuellement.
+    MemberRole.STAFF: frozenset({Perm.RESTAURANT_VIEW, Perm.MENU_VIEW}),
 }
+assert set(ROLE_PERMISSIONS) == set(MemberRole), "chaque rôle doit avoir un préréglage"
 
 
 def effective_permissions(

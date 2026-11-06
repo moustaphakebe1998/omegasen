@@ -22,6 +22,8 @@ function member(role: User["memberships"][number]["role"], permissions: Perm[]):
         role,
         permissions,
         station_id: null,
+        access_blocked: null,
+        access_message: null,
       },
     ],
   };

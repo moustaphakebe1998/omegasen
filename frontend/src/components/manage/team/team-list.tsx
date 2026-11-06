@@ -39,11 +39,7 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 ];
 
 /** Normalise pour une recherche insensible aux accents et à la casse. */
-const fold = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export function TeamList({ rid, access }: { rid: string; access: Access }) {
   const members = useMembers(rid);
@@ -82,7 +78,7 @@ export function TeamList({ rid, access }: { rid: string; access: Access }) {
   const hasFilter = !!q.trim() || role !== "ALL" || status !== "ALL";
 
   const selfId = access.user?.id;
-  const manageable = (m: Member) => access.canManage && (m.role !== "OWNER" || access.isOwner);
+  const manageable = (m: Member) => access.canManage && access.canManageRole(m.role);
   const href = (m: Member) => `/manage/${rid}/team/${m.id}`;
 
   const resend = async (m: Member) => {
@@ -109,9 +105,27 @@ export function TeamList({ rid, access }: { rid: string; access: Access }) {
       />
 
       <div className="mb-6 grid grid-cols-3 gap-3">
-        <Stat label="Collaborateurs actifs" value={counts.ACTIVE} icon={UserCheck} tone="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300" loading={members.isPending} />
-        <Stat label="Invitations en attente" value={counts.PENDING} icon={MailWarning} tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" loading={members.isPending} />
-        <Stat label="Désactivés" value={counts.DISABLED} icon={UserX} tone="bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300" loading={members.isPending} />
+        <Stat
+          label="Collaborateurs actifs"
+          value={counts.ACTIVE}
+          icon={UserCheck}
+          tone="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
+          loading={members.isPending}
+        />
+        <Stat
+          label="Invitations en attente"
+          value={counts.PENDING}
+          icon={MailWarning}
+          tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+          loading={members.isPending}
+        />
+        <Stat
+          label="Désactivés"
+          value={counts.DISABLED}
+          icon={UserX}
+          tone="bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+          loading={members.isPending}
+        />
       </div>
 
       <div className="mb-6 space-y-3">
@@ -142,7 +156,9 @@ export function TeamList({ rid, access }: { rid: string; access: Access }) {
                 onClick={() => setStatus(f.value)}
                 className={cn(
                   "flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                  status === f.value ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted",
+                  status === f.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-muted",
                 )}
               >
                 {f.label}
@@ -207,7 +223,9 @@ export function TeamList({ rid, access }: { rid: string; access: Access }) {
                   icon={MailWarning}
                   title={hasFilter ? "Aucune invitation ne correspond" : "Aucune invitation en cours"}
                   description={
-                    hasFilter ? "Modifiez la recherche ou les filtres." : "Les personnes invitées apparaissent ici tant qu'elles n'ont pas activé leur compte."
+                    hasFilter
+                      ? "Modifiez la recherche ou les filtres."
+                      : "Les personnes invitées apparaissent ici tant qu'elles n'ont pas activé leur compte."
                   }
                 />
               ) : (

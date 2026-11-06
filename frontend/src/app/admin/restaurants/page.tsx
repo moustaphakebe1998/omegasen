@@ -18,7 +18,12 @@ import { useState } from "react";
 import { PAGE_SIZE, Pagination, SearchInput, useDebounced } from "@/components/admin/common";
 import { AdminCreateRestaurantDialog } from "@/components/admin/create-restaurant-dialog";
 import { RegenerateQrDialog, useSetRestaurantStatus } from "@/components/admin/restaurant-actions";
-import { RestaurantStatusSelect } from "@/components/admin/status";
+import {
+  RESTAURANT_STATUS,
+  RESTAURANT_STATUSES,
+  type RestaurantStatus,
+  RestaurantStatusSelect,
+} from "@/components/admin/status";
 import { EmptyState, PageHeader } from "@/components/shared/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, errorMessage, type Schemas, unwrap } from "@/lib/api/client";
@@ -39,17 +45,29 @@ type AdminRestaurant = Schemas["AdminRestaurant"];
 export default function AdminRestaurantsPage() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
+  const [status, setStatusFilter] = useState<RestaurantStatus | "ALL">(() => {
+    if (typeof window === "undefined") return "ALL";
+    const s = new URLSearchParams(window.location.search).get("status");
+    return s && (RESTAURANT_STATUSES as string[]).includes(s) ? (s as RestaurantStatus) : "ALL";
+  });
   const search = useDebounced(q.trim());
   const [createOpen, setCreateOpen] = useState(false);
   const [qrFor, setQrFor] = useState<AdminRestaurant | null>(null);
   const setStatus = useSetRestaurantStatus();
 
   const list = useQuery({
-    queryKey: ["admin", "restaurants", search, page],
+    queryKey: ["admin", "restaurants", search, status, page],
     queryFn: () =>
       unwrap(
         api.GET("/api/admin/restaurants", {
-          params: { query: { q: search || undefined, page, page_size: PAGE_SIZE } },
+          params: {
+            query: {
+              q: search || undefined,
+              status: status === "ALL" ? undefined : status,
+              page,
+              page_size: PAGE_SIZE,
+            },
+          },
         }),
       ),
     placeholderData: keepPreviousData,
@@ -60,7 +78,7 @@ export default function AdminRestaurantsPage() {
       name={x.name}
       value={x.status}
       pending={setStatus.isPending && setStatus.variables?.id === x.id}
-      onChange={(status) => setStatus.mutate({ id: x.id, status })}
+      onChange={(status, reason) => setStatus.mutate({ id: x.id, status, reason })}
       className={className}
     />
   );
@@ -122,6 +140,26 @@ export default function AdminRestaurantsPage() {
           placeholder="Nom, slug, ville…"
           label="Rechercher un restaurant"
         />
+        <Select
+          value={status}
+          onValueChange={(v) => {
+            setStatusFilter(v as RestaurantStatus | "ALL");
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-44" aria-label="Filtrer par statut">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Tous les statuts</SelectItem>
+            {RESTAURANT_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                <span className={cn("size-2 rounded-full", RESTAURANT_STATUS[s].dot)} aria-hidden />
+                {RESTAURANT_STATUS[s].label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {list.isFetching && !list.isLoading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
       </div>
 

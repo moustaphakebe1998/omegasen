@@ -14,6 +14,25 @@ export type Schemas = components["schemas"];
 let accessToken: string | null = null;
 let refreshing: Promise<string | null> | null = null;
 let onSessionLost: (() => void) | null = null;
+let onAccessChanged: (() => void) | null = null;
+let sessionBlock: { code: string; message: string } | null = null;
+
+/** Codes renvoyés quand le statut d'un restaurant bloque l'accès (app/core/access.py). */
+export const ACCESS_BLOCK_CODES = new Set(["restaurant_suspended", "restaurant_closed", "restaurant_pending"]);
+
+/** Rappel déclenché quand les droits ont changé (statut du restaurant, rôle, permissions) : recharger le profil. */
+export function setOnAccessChanged(cb: (() => void) | null) {
+  onAccessChanged = cb;
+}
+
+export function notifyAccessChanged() {
+  onAccessChanged?.();
+}
+
+/** Motif du dernier refus de session (ex. restaurant suspendu), à afficher sur la page de connexion. */
+export function lastSessionBlock() {
+  return sessionBlock;
+}
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
@@ -58,7 +77,12 @@ export async function toApiError(res: Response): Promise<ApiError> {
 /** Rafraîchit la session (un seul appel concurrent). Retourne le nouveau jeton ou null. */
 export async function refreshSession(): Promise<Schemas["TokenOut"] | null> {
   const res = await fetch("/api/auth/refresh", { method: "POST", credentials: "same-origin" });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const err = await toApiError(res);
+    sessionBlock = ACCESS_BLOCK_CODES.has(err.code) ? { code: err.code, message: err.message } : null;
+    return null;
+  }
+  sessionBlock = null;
   const data = (await res.json()) as Schemas["TokenOut"];
   accessToken = data.access_token;
   return data;
@@ -95,6 +119,8 @@ const authMiddleware: Middleware = {
   async onResponse({ request, response }) {
     if (response.status === 403) {
       await redirectIfPasswordChangeRequired(response);
+      // Restaurant suspendu / fermé pendant la session : le profil est rechargé pour afficher le motif.
+      if (ACCESS_BLOCK_CODES.has((await toApiError(response)).code)) onAccessChanged?.();
       return response;
     }
     if (response.status !== 401 || request.url.includes("/api/auth/")) return response;

@@ -13,10 +13,11 @@ from fastapi import APIRouter, Query, WebSocket, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.access import user_access
 from app.core.db import SessionLocal
 from app.core.deps import CurrentUser, Session, load_user_from_token
-from app.core.errors import AppError, NotFound
-from app.core.realtime import publish, relay
+from app.core.errors import AppError, Forbidden, NotFound
+from app.core.realtime import publish, relay, user_channel
 from app.core.schema import Schema
 from app.models import Membership, Notification, User
 from app.models.enums import MemberRole
@@ -24,10 +25,6 @@ from app.models.enums import MemberRole
 router = APIRouter(tags=["notifications"])
 
 PENDING_KEY = "pending_notifications"
-
-
-def user_channel(user_id: uuid.UUID | str) -> str:
-    return f"rt:user:{user_id}"
 
 
 class NotificationOut(Schema):
@@ -162,8 +159,11 @@ async def my_ws(websocket: WebSocket, token: str | None = None):
     try:
         async with SessionLocal() as session:
             user = await load_user_from_token(session, token)
+        if not await user_access(user.id):
+            raise Forbidden("Compte bloqué")
     except AppError:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
     await websocket.accept()
-    await relay(websocket, user_channel(user.id))
+    # Revérifie le compte (actif, restaurants accessibles) toutes les 30 s et à chaque « access.changed ».
+    await relay(websocket, user_channel(user.id), check=lambda: user_access(user.id))

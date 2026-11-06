@@ -7,10 +7,11 @@ from fastapi import APIRouter, Request, Response
 from pydantic import EmailStr, Field
 from sqlalchemy import select, update
 
+from app.core.access import account_block, restaurant_block
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.deps import CurrentUser, Session
-from app.core.errors import Unauthorized, Unprocessable
+from app.core.errors import Forbidden, Unauthorized, Unprocessable
 from app.core.permissions import Perm, effective_permissions
 from app.core.ratelimit import client_ip, hit
 from app.core.schema import Schema
@@ -52,6 +53,9 @@ class MembershipOut(Schema):
     role: MemberRole
     permissions: list[Perm]  # permissions effectives (rôle + ajustements) — l'interface s'y fie pour l'affichage
     station_id: uuid.UUID | None  # poste affecté (présélection de l'écran cuisine)
+    # Restaurant inaccessible pour ce rôle (suspendu, fermé, en attente d'activation) : code et message.
+    access_blocked: str | None = None
+    access_message: str | None = None
 
 
 class UserOut(Schema):
@@ -104,6 +108,8 @@ async def user_out(session, user: User) -> UserOut:
                 role=m.role,
                 permissions=sorted(effective_permissions(m.role, m.permission_overrides)),
                 station_id=m.station_id,
+                access_blocked=(block := restaurant_block(r, m.role)) and block.code,
+                access_message=block and block.message,
             )
             for m, r in rows.all()
         ],
@@ -170,6 +176,13 @@ async def login(body: LoginIn, request: Request, response: Response, session: Se
 
     if not user.is_active:
         raise Unauthorized("Compte désactivé")
+    # Statut des restaurants : un compte dont tous les restaurants sont suspendus, fermés ou en attente
+    # ne peut pas ouvrir de session (le mot de passe était correct : pas d'échec compté).
+    block = await account_block(session, user)
+    if block:
+        audit(session, "auth.login_blocked", actor_id=user.id, ip=client_ip(request), data={"reason": block.code})
+        await session.commit()
+        raise Forbidden(block.message, code=block.code, details=block.details())
 
     user.failed_logins = 0
     user.locked_until = None
@@ -204,7 +217,7 @@ async def refresh(request: Request, response: Response, session: Session):
         )
         if family_alive and now - token.revoked_at < timedelta(seconds=REUSE_GRACE_SECONDS):
             user = await session.get(User, token.user_id)
-            if user and user.is_active:
+            if user and user.is_active and not await account_block(session, user):
                 return await issue_tokens(session, request, response, user, family_id=token.family_id)
         # Sinon : réutilisation d'un jeton déjà tourné → vol probable → révoque toute la famille.
         await session.execute(
@@ -220,6 +233,16 @@ async def refresh(request: Request, response: Response, session: Session):
     user = await session.get(User, token.user_id)
     if not user or not user.is_active:
         raise Unauthorized("Compte désactivé")
+    block = await account_block(session, user)
+    if block:  # restaurant suspendu / fermé depuis l'ouverture de la session : plus de renouvellement
+        await session.execute(
+            update(RefreshToken)
+            .where(RefreshToken.family_id == token.family_id, RefreshToken.revoked_at.is_(None))
+            .values(revoked_at=now)
+        )
+        await session.commit()
+        response.delete_cookie(REFRESH_COOKIE, path=COOKIE_PATH)
+        raise Forbidden(block.message, code=block.code, details=block.details())
     token.revoked_at = now
     return await issue_tokens(session, request, response, user, family_id=token.family_id)
 

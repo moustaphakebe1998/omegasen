@@ -15,16 +15,22 @@ import {
   QrCode,
   ReceiptText,
   RefreshCw,
+  ScrollText,
   Settings,
   Store,
+  Trash2,
   UtensilsCrossed,
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { RegenerateQrDialog, useSetRestaurantStatus } from "@/components/admin/restaurant-actions";
+import {
+  DeleteRestaurantDialog,
+  RegenerateQrDialog,
+  useSetRestaurantStatus,
+} from "@/components/admin/restaurant-actions";
 import {
   adminErrorMessage,
   InitialsAvatar,
@@ -47,6 +53,8 @@ export default function AdminRestaurantPage() {
   const { id } = useParams<{ id: string }>();
   const setStatus = useSetRestaurantStatus();
   const [qrOpen, setQrOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const router = useRouter();
 
   const detail = useQuery({
     queryKey: ["admin", "restaurants", "detail", id],
@@ -136,7 +144,7 @@ export default function AdminRestaurantPage() {
               name={r.name}
               value={r.status}
               pending={setStatus.isPending}
-              onChange={(status) => setStatus.mutate({ id: r.id, status })}
+              onChange={(status, reason) => setStatus.mutate({ id: r.id, status, reason })}
               className="w-full sm:w-48"
             />
           </div>
@@ -154,7 +162,25 @@ export default function AdminRestaurantPage() {
               Page publique
             </Link>
           </Button>
+          <Button asChild variant="outline">
+            <Link href={`/admin/audit?restaurant_id=${r.id}`}>
+              <ScrollText aria-hidden />
+              Journal d&apos;activité
+            </Link>
+          </Button>
+          {r.status === "CLOSED" && (
+            <Button variant="outline" className="text-destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 aria-hidden />
+              Supprimer
+            </Button>
+          )}
         </div>
+        <DeleteRestaurantDialog
+          restaurant={r}
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          onDeleted={() => router.push("/admin/restaurants")}
+        />
       </section>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">

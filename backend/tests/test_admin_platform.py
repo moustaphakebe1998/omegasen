@@ -15,11 +15,11 @@ async def test_admin_creates_user_with_membership(client, admin, owner, restaura
     rid = restaurant["id"]
     r = await admin.post(
         "/api/admin/users",
-        json={"email": "gerant@example.com", "full_name": "Gérant Test", "restaurant_id": rid, "role": "MANAGER"},
+        json={"email": "gerant@example.com", "full_name": "Gérant Test", "restaurant_id": rid, "role": "ADMIN"},
     )
     assert r.status_code == 201, r.text
     u = r.json()
-    assert u["status"] == "PENDING" and u["memberships"][0]["role"] == "MANAGER" and u["email_sent"] is True
+    assert u["status"] == "PENDING" and u["memberships"][0]["role"] == "ADMIN" and u["email_sent"] is True
     assert OUTBOX[-1].to == "gerant@example.com"
     assert (
         await admin.post("/api/admin/users", json={"email": "gerant@example.com", "full_name": "X Y"})
@@ -90,7 +90,9 @@ async def test_restaurant_status_lifecycle_and_notification(client, admin, owner
     notes = (await owner.get("/api/notifications")).json()
     assert notes["unread"] == 1 and notes["items"][0]["type"] == "restaurant.status_changed"
 
-    await admin.post(f"/api/admin/restaurants/{rid}/status", json={"status": "CLOSED"})
+    r = await admin.post(f"/api/admin/restaurants/{rid}/status", json={"status": "CLOSED"})
+    assert r.status_code == 422 and r.json()["error"]["code"] == "reason_required"
+    await admin.post(f"/api/admin/restaurants/{rid}/status", json={"status": "CLOSED", "reason": "Fin d'activité"})
     r = await owner.get(f"/api/restaurants/{rid}")
     assert r.status_code == 403 and r.json()["error"]["code"] == "restaurant_closed"
     await admin.post(f"/api/admin/restaurants/{rid}/status", json={"status": "ACTIVE"})

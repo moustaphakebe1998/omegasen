@@ -55,7 +55,9 @@ async def test_granular_permissions(client, owner, restaurant, menu):
     manager_perms = ["restaurant.view", "menu.view", "menu.create", "menu.edit", "stock.manage", "team.view"]
     mgr_member = await _direct(owner, rid, "resp@example.com", "MANAGER", permissions=manager_perms)
     assert set(mgr_member["permissions"]) == set(manager_perms)
-    assert mgr_member["permission_overrides"]["prices.edit"] is False
+    # Ajustements minimaux par rapport au préréglage MANAGER (qui n'inclut déjà pas les prix).
+    assert mgr_member["permission_overrides"]["orders.history"] is False
+    assert "prices.edit" not in mgr_member["permissions"]
     api = await login(client, "resp@example.com", "Initial!2026x")
     await api.post(
         "/api/auth/change-password", json={"current_password": "Initial!2026x", "new_password": "Resp!2026xyz"}
@@ -84,8 +86,10 @@ async def test_granular_permissions(client, owner, restaurant, menu):
     # Le propriétaire rétablit les permissions du rôle.
     r = await owner.patch(f"/api/restaurants/{rid}/members/{mgr_member['id']}", json={"reset_permissions": True})
     assert r.json()["permission_overrides"] == {}
+    # Préréglage MANAGER : statistiques rétablies (effet immédiat), prix toujours réservés.
+    assert (await api.get(f"/api/restaurants/{rid}/stats")).status_code == 200
     r = await api.patch(f"/api/restaurants/{rid}/menu/products/{yassa['id']}", json={"price": 4200})
-    assert r.status_code == 200
+    assert r.status_code == 403
 
 
 async def test_manager_cannot_grant_more_than_own(client, owner, restaurant):

@@ -56,7 +56,7 @@ const schema = z
       .trim()
       .max(32)
       .refine((v) => !v || /^[0-9+ ().-]{6,32}$/.test(v), "Numéro de téléphone invalide"),
-    role: z.enum(["OWNER", "MANAGER", "CASHIER", "KITCHEN"]),
+    role: z.enum(["OWNER", "ADMIN", "MANAGER", "CASHIER", "WAITER", "KITCHEN", "STAFF"]),
     mode: z.enum(["invite", "password"]),
     password: z.string(),
     confirm: z.string(),
@@ -64,8 +64,7 @@ const schema = z
   })
   .superRefine((v, ctx) => {
     if (v.mode !== "password") return;
-    if (v.password.length < 10)
-      ctx.addIssue({ code: "custom", path: ["password"], message: "10 caractères minimum" });
+    if (v.password.length < 10) ctx.addIssue({ code: "custom", path: ["password"], message: "10 caractères minimum" });
     else if (v.password.length > 200)
       ctx.addIssue({ code: "custom", path: ["password"], message: "200 caractères maximum" });
     if (v.confirm !== v.password)
@@ -166,8 +165,8 @@ function AddMemberForm({ rid, onOpenChange, grantableRoles, canGrant, catalog, s
         <DialogHeader>
           <DialogTitle>Personnaliser les permissions</DialogTitle>
           <DialogDescription>
-            Préremplies avec les permissions du rôle « {ROLE[role]} ». Décochez ce que cette personne ne doit pas
-            faire, ou accordez-lui des droits supplémentaires.
+            Préremplies avec les permissions du rôle « {ROLE[role]} ». Décochez ce que cette personne ne doit pas faire,
+            ou accordez-lui des droits supplémentaires.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -183,7 +182,7 @@ function AddMemberForm({ rid, onOpenChange, grantableRoles, canGrant, catalog, s
           </Button>
         </div>
         {role === "OWNER" ? (
-          <LockNote>Un administrateur du restaurant a toujours toutes les permissions.</LockNote>
+          <LockNote>Un propriétaire a toujours toutes les permissions.</LockNote>
         ) : (
           <PermissionGrid
             catalog={catalog}
@@ -221,10 +220,22 @@ function AddMemberForm({ rid, onOpenChange, grantableRoles, canGrant, catalog, s
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="am-name" label="Nom complet" error={errors.full_name?.message}>
-          <Input id="am-name" autoComplete="off" autoFocus aria-invalid={!!errors.full_name} {...form.register("full_name")} />
+          <Input
+            id="am-name"
+            autoComplete="off"
+            autoFocus
+            aria-invalid={!!errors.full_name}
+            {...form.register("full_name")}
+          />
         </Field>
         <Field id="am-email" label="Email" error={errors.email?.message}>
-          <Input id="am-email" type="email" autoComplete="off" aria-invalid={!!errors.email} {...form.register("email")} />
+          <Input
+            id="am-email"
+            type="email"
+            autoComplete="off"
+            aria-invalid={!!errors.email}
+            {...form.register("email")}
+          />
         </Field>
         <Field id="am-phone" label="Téléphone" optional error={errors.phone?.message}>
           <Input
@@ -344,7 +355,7 @@ function AddMemberForm({ rid, onOpenChange, grantableRoles, canGrant, catalog, s
           <p className="font-medium">Permissions</p>
           <p className="text-muted-foreground">
             {role === "OWNER"
-              ? "Toutes les permissions (administrateur)."
+              ? "Toutes les permissions (propriétaire)."
               : customized
                 ? `Personnalisées : ${custom!.size} permission${custom!.size > 1 ? "s" : ""}.`
                 : `Celles du rôle « ${ROLE[role]} ».`}
@@ -476,9 +487,7 @@ function AddResult({ result, onClose }: { result: Result; onClose: () => void })
           </span>
           <div className="min-w-0 space-y-1 text-sm">
             <p className="font-semibold">Compte créé</p>
-            <p>
-              Communiquez le mot de passe initial de vive voix ; il devra le changer à sa première connexion.
-            </p>
+            <p>Communiquez le mot de passe initial de vive voix ; il devra le changer à sa première connexion.</p>
             <p className="break-words text-sky-900/80 dark:text-sky-100/80">
               Identifiant : <strong>{m.email}</strong>. Aucun email n&apos;est envoyé.
             </p>

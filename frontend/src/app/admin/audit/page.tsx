@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Loader2, ScrollText } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, ScrollText, X } from "lucide-react";
 import { Fragment, useState } from "react";
 
 import { PAGE_SIZE, Pagination, SearchInput, useDebounced } from "@/components/admin/common";
@@ -17,6 +17,7 @@ const PREFIXES = [
   { value: "admin.", label: "Admin" },
   { value: "user.", label: "Comptes" },
   { value: "auth.", label: "Sécurité" },
+  { value: "admin.restaurant_status", label: "Suspensions / réactivations" },
   { value: "restaurant.", label: "Restaurants" },
   { value: "member.", label: "Équipes" },
   { value: "menu.", label: "Menu" },
@@ -30,14 +31,20 @@ export default function AdminAuditPage() {
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const prefix = useDebounced(action.trim());
+  // Filtres transmis par les fiches restaurant / utilisateur (?restaurant_id=… ou ?actor_id=…).
+  const [scope, setScope] = useState<{ restaurant_id?: string; actor_id?: string }>(() => {
+    if (typeof window === "undefined") return {};
+    const sp = new URLSearchParams(window.location.search);
+    return { restaurant_id: sp.get("restaurant_id") ?? undefined, actor_id: sp.get("actor_id") ?? undefined };
+  });
 
   const list = useQuery({
-    queryKey: ["admin", "audit", prefix, page],
+    queryKey: ["admin", "audit", prefix, scope, page],
     queryFn: () =>
       unwrap(
         api.GET("/api/admin/audit-logs", {
           params: {
-            query: { action: prefix || undefined, page, page_size: PAGE_SIZE },
+            query: { action: prefix || undefined, ...scope, page, page_size: PAGE_SIZE },
           },
         }),
       ),
@@ -65,6 +72,24 @@ export default function AdminAuditPage() {
         />
         {list.isFetching && !list.isLoading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
       </div>
+      {(scope.restaurant_id || scope.actor_id) && (
+        <p className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+          <span className="rounded-full bg-muted px-3 py-1">
+            {scope.restaurant_id ? "Activité d'un restaurant" : "Actions d'un utilisateur"}
+          </span>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => {
+              setScope({});
+              setPage(1);
+              window.history.replaceState(null, "", "/admin/audit");
+            }}
+          >
+            <X className="size-3.5" aria-hidden /> Retirer le filtre
+          </button>
+        </p>
+      )}
       <div className="mb-4 flex flex-wrap gap-2" role="toolbar" aria-label="Filtres rapides">
         {PREFIXES.map((p) => (
           <button

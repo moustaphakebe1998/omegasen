@@ -5,11 +5,13 @@ import { ArrowRight, Inbox, QrCode, ReceiptText, ShoppingBag, Store, TrendingUp,
 import Link from "next/link";
 
 import { fillDays, RevenueSparkline } from "@/components/admin/revenue-charts";
+import { RESTAURANT_STATUS, RESTAURANT_STATUSES } from "@/components/admin/status";
 import { PageHeader } from "@/components/shared/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, errorMessage, unwrap } from "@/lib/api/client";
 import { formatMoney } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const nf = new Intl.NumberFormat("fr-FR");
 
@@ -82,6 +84,29 @@ export default function AdminOverviewPage() {
               <ArrowRight className="size-5 shrink-0" aria-hidden />
             </Link>
           )}
+          <section aria-labelledby="by-status" className="rounded-2xl border bg-card p-4 shadow-xs sm:p-5">
+            <h2 id="by-status" className="mb-3 text-sm font-medium text-muted-foreground">
+              Restaurants par statut
+            </h2>
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {RESTAURANT_STATUSES.map((st) => (
+                <li key={st}>
+                  <Link
+                    href={`/admin/restaurants?status=${st}`}
+                    className="flex items-center gap-3 rounded-xl border p-3 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    <span className={cn("size-2.5 shrink-0 rounded-full", RESTAURANT_STATUS[st].dot)} aria-hidden />
+                    <span className="min-w-0 flex-1 truncate text-sm">{RESTAURANT_STATUS[st].label}</span>
+                    <span className="tabular text-lg font-bold">{nf.format(s.restaurants_by_status[st] ?? 0)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Utilisateurs : {nf.format(s.users_active)} actifs · {nf.format(s.users_disabled)} bloqués ·{" "}
+              {nf.format(s.users_pending)} en attente d&apos;activation · {nf.format(s.superadmins)} super admin(s)
+            </p>
+          </section>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Kpi
               label="Restaurants"
@@ -93,6 +118,7 @@ export default function AdminOverviewPage() {
             <Kpi
               label="Utilisateurs"
               value={nf.format(s.users)}
+              hint={`${nf.format(s.users_active)} actif(s) · ${nf.format(s.users_disabled)} bloqué(s)`}
               icon={Users}
               tone="bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-300"
             />

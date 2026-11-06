@@ -21,6 +21,8 @@ const base: User = {
       role: "KITCHEN",
       permissions: ["restaurant.view", "stock.manage", "orders.prepare"],
       station_id: "s1",
+      access_blocked: null,
+      access_message: null,
     },
   ],
 };

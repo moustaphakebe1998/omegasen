@@ -58,7 +58,7 @@ type Access = ReturnType<typeof teamAccess>;
 const NO_STATION = "none";
 const SELF_NOTE =
   "Vous ne pouvez pas modifier votre propre rôle, vos permissions ou votre statut, ni vous retirer de l'équipe.";
-const OWNER_NOTE = "Seul un administrateur du restaurant peut modifier un administrateur.";
+const OWNER_NOTE = "Vous ne pouvez gérer que les collaborateurs d'un rang inférieur au vôtre.";
 const READ_ONLY_NOTE = "Lecture seule : la permission « Gérer l'équipe et les permissions » est nécessaire.";
 
 export function MemberDetail({ rid, memberId }: { rid: string; memberId: string }) {
@@ -124,7 +124,7 @@ export function MemberDetail({ rid, memberId }: { rid: string; memberId: string 
   }
 
   const self = m.user_id === access.user?.id;
-  const ownerLocked = m.role === "OWNER" && !access.isOwner;
+  const ownerLocked = !access.canManageRole(m.role);
   const canEdit = access.canManage && !ownerLocked;
   const canEditAccess = canEdit && !self;
   const accessNote = !access.canManage ? READ_ONLY_NOTE : ownerLocked ? OWNER_NOTE : self ? SELF_NOTE : null;
@@ -135,7 +135,13 @@ export function MemberDetail({ rid, memberId }: { rid: string; memberId: string 
       <HeaderCard member={m} self={self} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <ProfileCard key={`${m.id}-${m.full_name}-${m.phone}`} rid={rid} member={m} canEdit={canEdit} mutations={mutations} />
+        <ProfileCard
+          key={`${m.id}-${m.full_name}-${m.phone}`}
+          rid={rid}
+          member={m}
+          canEdit={canEdit}
+          mutations={mutations}
+        />
         <RoleCard
           rid={rid}
           member={m}
@@ -436,7 +442,9 @@ function RoleCard({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={NO_STATION}>Aucun poste</SelectItem>
-              {!stationKnown && m.station_id && <SelectItem value={m.station_id}>{m.station_name ?? "Poste"}</SelectItem>}
+              {!stationKnown && m.station_id && (
+                <SelectItem value={m.station_id}>{m.station_name ?? "Poste"}</SelectItem>
+              )}
               {stations.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.name}
@@ -453,9 +461,9 @@ function RoleCard({
       <ConfirmDialog
         open={!!nextRole}
         onOpenChange={(o) => !o && setNextRole(null)}
-        title={nextRole === "OWNER" ? `Nommer ${m.full_name} administrateur ?` : `Changer le rôle de ${m.full_name} ?`}
+        title={nextRole === "OWNER" ? `Nommer ${m.full_name} propriétaire ?` : `Changer le rôle de ${m.full_name} ?`}
         description={nextRole ? roleChangeText(m, nextRole) : null}
-        confirmLabel={nextRole === "OWNER" ? "Nommer administrateur" : "Changer le rôle"}
+        confirmLabel={nextRole === "OWNER" ? "Nommer propriétaire" : "Changer le rôle"}
         destructive={nextRole === "OWNER" || m.role === "OWNER"}
         pending={busy}
         onConfirm={confirmRole}
@@ -472,13 +480,13 @@ function roleChangeText(m: Member, to: MemberRole): React.ReactNode {
       </span>
       {to === "OWNER" ? (
         <span className="block">
-          Un administrateur du restaurant a <strong>toutes les permissions</strong>, sans restriction possible : il
-          pourra gérer l&apos;équipe, nommer ou retirer d&apos;autres administrateurs, y compris vous.
+          Un propriétaire a <strong>toutes les permissions</strong> sur le restaurant, sans restriction possible : il
+          pourra gérer toute l&apos;équipe, nommer ou retirer d&apos;autres propriétaires, y compris vous.
         </span>
       ) : m.role === "OWNER" ? (
         <span className="block">
-          Cette personne perdra ses droits d&apos;administrateur et n&apos;aura plus que les permissions du rôle
-          « {ROLE[to]} ».
+          Cette personne perdra ses droits de propriétaire et n&apos;aura plus que les permissions du rôle « {ROLE[to]}{" "}
+          ».
         </span>
       ) : (
         <span className="block">
@@ -595,7 +603,7 @@ function PermissionsCard({
       title="Permissions"
       description={
         isOwnerRole
-          ? "Un administrateur du restaurant a toujours toutes les permissions."
+          ? "Un propriétaire a toujours toutes les permissions."
           : `Préréglage du rôle « ${ROLE[m.role]} », ajustable permission par permission.`
       }
       icon={isOwnerRole ? ShieldCheck : SlidersHorizontal}
@@ -612,7 +620,7 @@ function PermissionsCard({
       <div className="space-y-4">
         {!isOwnerRole && <PermissionLegend />}
         {!editable && note && !isOwnerRole && <LockNote>{note}</LockNote>}
-        {isOwnerRole && <LockNote>Les permissions d&apos;un administrateur ne sont pas modifiables.</LockNote>}
+        {isOwnerRole && <LockNote>Les permissions d&apos;un propriétaire ne sont pas modifiables.</LockNote>}
         <PermissionGrid
           catalog={catalog}
           value={draft}

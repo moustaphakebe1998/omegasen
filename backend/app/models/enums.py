@@ -2,10 +2,18 @@ from enum import StrEnum
 
 
 class MemberRole(StrEnum):
-    OWNER = "OWNER"
-    MANAGER = "MANAGER"
-    CASHIER = "CASHIER"
-    KITCHEN = "KITCHEN"
+    """Rôle d'un collaborateur dans UN restaurant (le super admin est un rôle de plateforme, voir User).
+
+    Hiérarchie (app/core/access.py, ROLE_RANK) : OWNER > ADMIN > MANAGER > rôles opérationnels.
+    """
+
+    OWNER = "OWNER"  # propriétaire du restaurant
+    ADMIN = "ADMIN"  # administrateur du restaurant
+    MANAGER = "MANAGER"  # responsable (gestion opérationnelle)
+    CASHIER = "CASHIER"  # caisse
+    WAITER = "WAITER"  # service en salle
+    KITCHEN = "KITCHEN"  # cuisine
+    STAFF = "STAFF"  # personnel (permissions accordées individuellement)
 
 
 class RestaurantStatus(StrEnum):

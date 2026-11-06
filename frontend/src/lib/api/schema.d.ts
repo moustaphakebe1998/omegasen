@@ -4,6462 +4,6688 @@
  */
 
 export interface paths {
-    "/api/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Login */
-        post: operations["login_api_auth_login_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refresh */
-        post: operations["refresh_api_auth_refresh_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Logout */
-        post: operations["logout_api_auth_logout_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Me */
-        get: operations["me_api_auth_me_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update Profile */
-        patch: operations["update_profile_api_auth_me_patch"];
-        trace?: never;
-    };
-    "/api/auth/change-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Change Password */
-        post: operations["change_password_api_auth_change_password_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create
-         * @description Création réservée au super admin (le super admin devient propriétaire).
-         *
-         *     Pour créer un restaurant au nom d'un restaurateur : POST /api/admin/restaurants ou approbation d'une
-         *     demande d'ouverture (POST /api/admin/restaurant-requests/{id}/approve).
-         */
-        post: operations["create_api_restaurants_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["get_one_api_restaurants__restaurant_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update One */
-        patch: operations["update_one_api_restaurants__restaurant_id__patch"];
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/opening-hours": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Set Hours */
-        put: operations["set_hours_api_restaurants__restaurant_id__opening_hours_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/stations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Stations */
-        get: operations["list_stations_api_restaurants__restaurant_id__stations_get"];
-        put?: never;
-        /** Create Station */
-        post: operations["create_station_api_restaurants__restaurant_id__stations_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/stations/{station_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Station */
-        delete: operations["delete_station_api_restaurants__restaurant_id__stations__station_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/media": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Media */
-        get: operations["list_media_api_restaurants__restaurant_id__media_get"];
-        put?: never;
-        /** Upload */
-        post: operations["upload_api_restaurants__restaurant_id__media_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/media/{media_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Media */
-        delete: operations["delete_media_api_restaurants__restaurant_id__media__media_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Media */
-        patch: operations["update_media_api_restaurants__restaurant_id__media__media_id__patch"];
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Menu */
-        get: operations["get_menu_api_restaurants__restaurant_id__menu_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Category */
-        post: operations["create_category_api_restaurants__restaurant_id__menu_categories_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu/categories/{category_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Category */
-        delete: operations["delete_category_api_restaurants__restaurant_id__menu_categories__category_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Category */
-        patch: operations["update_category_api_restaurants__restaurant_id__menu_categories__category_id__patch"];
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu/categories/order": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Reorder Categories */
-        put: operations["reorder_categories_api_restaurants__restaurant_id__menu_categories_order_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu/categories/{category_id}/products/order": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Reorder Products */
-        put: operations["reorder_products_api_restaurants__restaurant_id__menu_categories__category_id__products_order_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu/products": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Product */
-        post: operations["create_product_api_restaurants__restaurant_id__menu_products_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu/products/{product_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Product */
-        delete: operations["delete_product_api_restaurants__restaurant_id__menu_products__product_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Product */
-        patch: operations["update_product_api_restaurants__restaurant_id__menu_products__product_id__patch"];
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/menu/products/{product_id}/availability": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set Availability
-         * @description Rupture de stock rapide : accessible à tout le personnel (cuisine comprise).
-         */
-        post: operations["set_availability_api_restaurants__restaurant_id__menu_products__product_id__availability_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/qr": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Qr */
-        get: operations["get_qr_api_restaurants__restaurant_id__qr_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update Qr */
-        patch: operations["update_qr_api_restaurants__restaurant_id__qr_patch"];
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/qr/image.png": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Qr Png */
-        get: operations["qr_png_api_restaurants__restaurant_id__qr_image_png_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/qr/image.svg": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Qr Svg */
-        get: operations["qr_svg_api_restaurants__restaurant_id__qr_image_svg_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/qr/print.pdf": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Qr Pdf */
-        get: operations["qr_pdf_api_restaurants__restaurant_id__qr_print_pdf_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/restaurants/{restaurant_id}/qr/regenerate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Regenerate */
-        post: operations["regenerate_api_admin_restaurants__restaurant_id__qr_regenerate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/qr/{code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Resolve */
-        get: operations["resolve_api_public_qr__code__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Orders */
-        get: operations["list_orders_api_restaurants__restaurant_id__orders_get"];
-        put?: never;
-        /**
-         * Create Pos Order
-         * @description Commande saisie au guichet (caisse). Peut être encaissée immédiatement.
-         */
-        post: operations["create_pos_order_api_restaurants__restaurant_id__orders_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders/active": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Active Orders
-         * @description Écran cuisine : commandes envoyées en cuisine et non terminées (+ terminées récemment).
-         */
-        get: operations["active_orders_api_restaurants__restaurant_id__orders_active_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders/awaiting-payment": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Awaiting Payment
-         * @description Commandes publiques en attente de paiement (restaurants avec prépaiement obligatoire).
-         */
-        get: operations["awaiting_payment_api_restaurants__restaurant_id__orders_awaiting_payment_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders/transitions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Transition Rules
-         * @description Transitions de statut permises au rôle courant (source unique pour les écrans).
-         */
-        get: operations["transition_rules_api_restaurants__restaurant_id__orders_transitions_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders/{order_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Order */
-        get: operations["get_order_api_restaurants__restaurant_id__orders__order_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders/{order_id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Set Status */
-        post: operations["set_status_api_restaurants__restaurant_id__orders__order_id__status_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders/{order_id}/payments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Add Payment */
-        post: operations["add_payment_api_restaurants__restaurant_id__orders__order_id__payments_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/orders/{order_id}/payments/{payment_id}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refund */
-        post: operations["refund_api_restaurants__restaurant_id__orders__order_id__payments__payment_id__refund_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/restaurants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Restaurants */
-        get: operations["list_restaurants_api_public_restaurants_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/restaurants/{slug}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Restaurant */
-        get: operations["get_restaurant_api_public_restaurants__slug__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/restaurants/{slug}/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Order */
-        post: operations["create_order_api_public_restaurants__slug__orders_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/orders/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Track */
-        get: operations["track_api_public_orders__token__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/orders/{token}/checkout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Checkout */
-        post: operations["checkout_api_public_orders__token__checkout_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/stats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Stats */
-        get: operations["stats_api_restaurants__restaurant_id__stats_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/stats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Platform Stats */
-        get: operations["platform_stats_api_admin_stats_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/restaurants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Restaurants */
-        get: operations["list_restaurants_api_admin_restaurants_get"];
-        put?: never;
-        /** Create */
-        post: operations["create_api_admin_restaurants_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/restaurants/{restaurant_id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Set Status */
-        post: operations["set_status_api_admin_restaurants__restaurant_id__status_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Users */
-        get: operations["list_users_api_admin_users_get"];
-        put?: never;
-        /**
-         * Create User
-         * @description Crée un compte (personnel ou super admin) : l'utilisateur reçoit un lien pour choisir son mot de passe.
-         */
-        post: operations["create_user_api_admin_users_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/users/{user_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get User */
-        get: operations["get_user_api_admin_users__user_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update User */
-        patch: operations["update_user_api_admin_users__user_id__patch"];
-        trace?: never;
-    };
-    "/api/admin/users/{user_id}/resend-activation": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Resend Activation */
-        post: operations["resend_activation_api_admin_users__user_id__resend_activation_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/users/{user_id}/memberships": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Add Membership */
-        post: operations["add_membership_api_admin_users__user_id__memberships_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/users/{user_id}/memberships/{membership_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove Membership */
-        delete: operations["remove_membership_api_admin_users__user_id__memberships__membership_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Membership */
-        patch: operations["update_membership_api_admin_users__user_id__memberships__membership_id__patch"];
-        trace?: never;
-    };
-    "/api/admin/revenue": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Revenue
-         * @description Chiffre d'affaires TTC encaissé (commandes payées, non annulées), par jour, devise et restaurant.
-         */
-        get: operations["revenue_api_admin_revenue_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/restaurants/{restaurant_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Restaurant Detail */
-        get: operations["restaurant_detail_api_admin_restaurants__restaurant_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/audit-logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Audit Logs */
-        get: operations["audit_logs_api_admin_audit_logs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/restaurant-requests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit */
-        post: operations["submit_api_public_restaurant_requests_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/restaurant-requests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Requests */
-        get: operations["list_requests_api_admin_restaurant_requests_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/restaurant-requests/{request_id}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Approve */
-        post: operations["approve_api_admin_restaurant_requests__request_id__approve_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/restaurant-requests/{request_id}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reject */
-        post: operations["reject_api_admin_restaurant_requests__request_id__reject_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/activation/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Activation Info */
-        get: operations["activation_info_api_auth_activation__token__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/activate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Activate */
-        post: operations["activate_api_auth_activate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/forgot-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Forgot Password
-         * @description Répond toujours 202 (ne révèle pas si l'adresse existe).
-         */
-        post: operations["forgot_password_api_auth_forgot_password_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/reset/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Reset Info */
-        get: operations["reset_info_api_auth_reset__token__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/reset-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reset Password */
-        post: operations["reset_password_api_auth_reset_password_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Customer Signup
-         * @description Compte client facultatif : envoie un lien d'activation (choix du mot de passe = email vérifié).
-         */
-        post: operations["customer_signup_api_auth_signup_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Sessions */
-        get: operations["list_sessions_api_auth_sessions_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/sessions/{family_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Revoke Session */
-        delete: operations["revoke_session_api_auth_sessions__family_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/sessions/revoke-others": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoke Other Sessions */
-        post: operations["revoke_other_sessions_api_auth_sessions_revoke_others_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/me/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** My Orders */
-        get: operations["my_orders_api_me_orders_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/me/reservations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** My Reservations */
-        get: operations["my_reservations_api_me_reservations_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/notifications": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Notifications */
-        get: operations["list_notifications_api_notifications_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/notifications/{notification_id}/read": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Mark Read */
-        post: operations["mark_read_api_notifications__notification_id__read_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/notifications/read-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Mark All Read */
-        post: operations["mark_all_read_api_notifications_read_all_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/restaurants/{slug}/reservations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Request Reservation */
-        post: operations["request_reservation_api_public_restaurants__slug__reservations_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/reservations/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Track Reservation */
-        get: operations["track_reservation_api_public_reservations__token__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/public/reservations/{token}/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Cancel Reservation */
-        post: operations["cancel_reservation_api_public_reservations__token__cancel_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/reservations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Reservations */
-        get: operations["list_reservations_api_restaurants__restaurant_id__reservations_get"];
-        put?: never;
-        /** Create Reservation */
-        post: operations["create_reservation_api_restaurants__restaurant_id__reservations_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/reservations/{reservation_id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Set Status */
-        post: operations["set_status_api_restaurants__restaurant_id__reservations__reservation_id__status_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/permissions/catalog": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Permission Catalog
-         * @description Libellés des permissions et préréglages de chaque rôle (pour la grille de l'interface).
-         */
-        get: operations["permission_catalog_api_restaurants__restaurant_id__permissions_catalog_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/members": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Members */
-        get: operations["list_members_api_restaurants__restaurant_id__members_get"];
-        put?: never;
-        /** Add Member */
-        post: operations["add_member_api_restaurants__restaurant_id__members_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/members/{member_id}/resend-invite": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Resend Invite */
-        post: operations["resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/restaurants/{restaurant_id}/members/{member_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove Member */
-        delete: operations["remove_member_api_restaurants__restaurant_id__members__member_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Member */
-        patch: operations["update_member_api_restaurants__restaurant_id__members__member_id__patch"];
-        trace?: never;
-    };
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Health */
-        get: operations["health_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
+  "/api/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Login */
+    post: operations["login_api_auth_login_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/refresh": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Refresh */
+    post: operations["refresh_api_auth_refresh_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Logout */
+    post: operations["logout_api_auth_logout_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Me */
+    get: operations["me_api_auth_me_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Update Profile */
+    patch: operations["update_profile_api_auth_me_patch"];
+    trace?: never;
+  };
+  "/api/auth/change-password": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Change Password */
+    post: operations["change_password_api_auth_change_password_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get One */
+    get: operations["get_one_api_restaurants__restaurant_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Update One */
+    patch: operations["update_one_api_restaurants__restaurant_id__patch"];
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/opening-hours": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Set Hours */
+    put: operations["set_hours_api_restaurants__restaurant_id__opening_hours_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/stations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Stations */
+    get: operations["list_stations_api_restaurants__restaurant_id__stations_get"];
+    put?: never;
+    /** Create Station */
+    post: operations["create_station_api_restaurants__restaurant_id__stations_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/stations/{station_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Station */
+    delete: operations["delete_station_api_restaurants__restaurant_id__stations__station_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/media": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Media */
+    get: operations["list_media_api_restaurants__restaurant_id__media_get"];
+    put?: never;
+    /** Upload */
+    post: operations["upload_api_restaurants__restaurant_id__media_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/media/{media_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Media */
+    delete: operations["delete_media_api_restaurants__restaurant_id__media__media_id__delete"];
+    options?: never;
+    head?: never;
+    /** Update Media */
+    patch: operations["update_media_api_restaurants__restaurant_id__media__media_id__patch"];
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Menu */
+    get: operations["get_menu_api_restaurants__restaurant_id__menu_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu/categories": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Category */
+    post: operations["create_category_api_restaurants__restaurant_id__menu_categories_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu/categories/{category_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Category */
+    delete: operations["delete_category_api_restaurants__restaurant_id__menu_categories__category_id__delete"];
+    options?: never;
+    head?: never;
+    /** Update Category */
+    patch: operations["update_category_api_restaurants__restaurant_id__menu_categories__category_id__patch"];
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu/categories/order": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Reorder Categories */
+    put: operations["reorder_categories_api_restaurants__restaurant_id__menu_categories_order_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu/categories/{category_id}/products/order": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Reorder Products */
+    put: operations["reorder_products_api_restaurants__restaurant_id__menu_categories__category_id__products_order_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu/products": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Product */
+    post: operations["create_product_api_restaurants__restaurant_id__menu_products_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu/products/{product_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Product */
+    delete: operations["delete_product_api_restaurants__restaurant_id__menu_products__product_id__delete"];
+    options?: never;
+    head?: never;
+    /** Update Product */
+    patch: operations["update_product_api_restaurants__restaurant_id__menu_products__product_id__patch"];
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/menu/products/{product_id}/availability": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Set Availability
+     * @description Rupture de stock rapide : accessible à tout le personnel (cuisine comprise).
+     */
+    post: operations["set_availability_api_restaurants__restaurant_id__menu_products__product_id__availability_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/qr": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Qr */
+    get: operations["get_qr_api_restaurants__restaurant_id__qr_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Update Qr */
+    patch: operations["update_qr_api_restaurants__restaurant_id__qr_patch"];
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/qr/image.png": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Qr Png */
+    get: operations["qr_png_api_restaurants__restaurant_id__qr_image_png_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/qr/image.svg": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Qr Svg */
+    get: operations["qr_svg_api_restaurants__restaurant_id__qr_image_svg_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/qr/print.pdf": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Qr Pdf */
+    get: operations["qr_pdf_api_restaurants__restaurant_id__qr_print_pdf_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/restaurants/{restaurant_id}/qr/regenerate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Regenerate */
+    post: operations["regenerate_api_admin_restaurants__restaurant_id__qr_regenerate_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/qr/{code}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Resolve */
+    get: operations["resolve_api_public_qr__code__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Orders */
+    get: operations["list_orders_api_restaurants__restaurant_id__orders_get"];
+    put?: never;
+    /**
+     * Create Pos Order
+     * @description Commande saisie au guichet (caisse). Peut être encaissée immédiatement.
+     */
+    post: operations["create_pos_order_api_restaurants__restaurant_id__orders_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders/active": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Active Orders
+     * @description Écran cuisine : commandes envoyées en cuisine et non terminées (+ terminées récemment).
+     */
+    get: operations["active_orders_api_restaurants__restaurant_id__orders_active_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders/awaiting-payment": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Awaiting Payment
+     * @description Commandes publiques en attente de paiement (restaurants avec prépaiement obligatoire).
+     */
+    get: operations["awaiting_payment_api_restaurants__restaurant_id__orders_awaiting_payment_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders/transitions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Transition Rules
+     * @description Transitions de statut permises au rôle courant (source unique pour les écrans).
+     */
+    get: operations["transition_rules_api_restaurants__restaurant_id__orders_transitions_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders/{order_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Order */
+    get: operations["get_order_api_restaurants__restaurant_id__orders__order_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders/{order_id}/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Set Status */
+    post: operations["set_status_api_restaurants__restaurant_id__orders__order_id__status_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders/{order_id}/payments": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Add Payment */
+    post: operations["add_payment_api_restaurants__restaurant_id__orders__order_id__payments_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/orders/{order_id}/payments/{payment_id}/refund": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Refund */
+    post: operations["refund_api_restaurants__restaurant_id__orders__order_id__payments__payment_id__refund_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/restaurants": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Restaurants */
+    get: operations["list_restaurants_api_public_restaurants_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/restaurants/{slug}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Restaurant */
+    get: operations["get_restaurant_api_public_restaurants__slug__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/restaurants/{slug}/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Order */
+    post: operations["create_order_api_public_restaurants__slug__orders_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/orders/{token}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Track */
+    get: operations["track_api_public_orders__token__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/orders/{token}/checkout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Checkout */
+    post: operations["checkout_api_public_orders__token__checkout_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/stats": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Stats */
+    get: operations["stats_api_restaurants__restaurant_id__stats_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/stats": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Platform Stats */
+    get: operations["platform_stats_api_admin_stats_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/restaurants": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Restaurants */
+    get: operations["list_restaurants_api_admin_restaurants_get"];
+    put?: never;
+    /** Create */
+    post: operations["create_api_admin_restaurants_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/restaurants/{restaurant_id}/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Set Status
+     * @description Change le statut d'un restaurant (règle centrale d'accès, app/core/access.py).
+     *
+     *     SUSPENDED / CLOSED / PENDING : tous les membres concernés perdent aussitôt leur accès (chaque requête relit
+     *     le statut), leurs sessions sont révoquées s'ils n'ont plus aucun restaurant accessible et leurs WebSockets
+     *     se ferment. Aucun compte n'est modifié : à la réactivation, chacun retrouve son rôle et ses permissions,
+     *     sauf les comptes désactivés individuellement.
+     */
+    post: operations["set_status_api_admin_restaurants__restaurant_id__status_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/restaurants/{restaurant_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Restaurant Detail */
+    get: operations["restaurant_detail_api_admin_restaurants__restaurant_id__get"];
+    put?: never;
+    post?: never;
+    /**
+     * Delete Restaurant
+     * @description Suppression sécurisée : seulement un restaurant déjà FERMÉ, avec saisie de son adresse et un motif.
+     *
+     *     Suppression logique (`deleted_at`) : commandes, paiements et journal sont conservés (obligations comptables
+     *     et historique) ; le restaurant disparaît des listes et de l'espace public, ses membres perdent l'accès.
+     */
+    delete: operations["delete_restaurant_api_admin_restaurants__restaurant_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Users */
+    get: operations["list_users_api_admin_users_get"];
+    put?: never;
+    /**
+     * Create User
+     * @description Crée un compte (personnel ou super admin) : l'utilisateur reçoit un lien pour choisir son mot de passe.
+     */
+    post: operations["create_user_api_admin_users_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{user_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get User */
+    get: operations["get_user_api_admin_users__user_id__get"];
+    put?: never;
+    post?: never;
+    /**
+     * Delete User
+     * @description Supprime un compte (saisie de son email pour confirmer). Refusé pour soi-même, pour le dernier super
+     *     admin et pour le dernier propriétaire actif d'un restaurant (désigner d'abord un autre propriétaire).
+     *
+     *     Les commandes, paiements et journaux restent (l'auteur devient anonyme) ; les sessions disparaissent.
+     */
+    delete: operations["delete_user_api_admin_users__user_id__delete"];
+    options?: never;
+    head?: never;
+    /** Update User */
+    patch: operations["update_user_api_admin_users__user_id__patch"];
+    trace?: never;
+  };
+  "/api/admin/users/{user_id}/password-reset": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Admin Password Reset
+     * @description Envoie un lien de réinitialisation (le super admin ne voit ni ne choisit jamais le mot de passe).
+     *
+     *     Les sessions en cours sont fermées : le compte devra se reconnecter avec son nouveau mot de passe.
+     */
+    post: operations["admin_password_reset_api_admin_users__user_id__password_reset_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{user_id}/resend-activation": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Resend Activation */
+    post: operations["resend_activation_api_admin_users__user_id__resend_activation_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{user_id}/memberships": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Add Membership */
+    post: operations["add_membership_api_admin_users__user_id__memberships_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{user_id}/memberships/{membership_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Remove Membership */
+    delete: operations["remove_membership_api_admin_users__user_id__memberships__membership_id__delete"];
+    options?: never;
+    head?: never;
+    /**
+     * Update Membership
+     * @description Rôle, permissions individuelles et statut d'un rattachement (le super admin n'est limité par aucune
+     *     hiérarchie de restaurant ; seule la protection du dernier propriétaire actif s'applique).
+     */
+    patch: operations["update_membership_api_admin_users__user_id__memberships__membership_id__patch"];
+    trace?: never;
+  };
+  "/api/admin/revenue": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Revenue
+     * @description Chiffre d'affaires TTC encaissé (commandes payées, non annulées), par jour, devise et restaurant.
+     */
+    get: operations["revenue_api_admin_revenue_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/audit-logs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Audit Logs
+     * @description Journal global de la plateforme (réservé au super admin).
+     */
+    get: operations["audit_logs_api_admin_audit_logs_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/restaurant-requests": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Submit */
+    post: operations["submit_api_public_restaurant_requests_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/restaurant-requests": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Requests */
+    get: operations["list_requests_api_admin_restaurant_requests_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/restaurant-requests/{request_id}/approve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Approve */
+    post: operations["approve_api_admin_restaurant_requests__request_id__approve_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/restaurant-requests/{request_id}/reject": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reject */
+    post: operations["reject_api_admin_restaurant_requests__request_id__reject_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/activation/{token}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Activation Info */
+    get: operations["activation_info_api_auth_activation__token__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/activate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Activate */
+    post: operations["activate_api_auth_activate_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/forgot-password": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Forgot Password
+     * @description Répond toujours 202 (ne révèle pas si l'adresse existe).
+     */
+    post: operations["forgot_password_api_auth_forgot_password_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/reset/{token}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Reset Info */
+    get: operations["reset_info_api_auth_reset__token__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/reset-password": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reset Password */
+    post: operations["reset_password_api_auth_reset_password_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/signup": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Customer Signup
+     * @description Compte client facultatif : envoie un lien d'activation (choix du mot de passe = email vérifié).
+     */
+    post: operations["customer_signup_api_auth_signup_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/sessions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Sessions */
+    get: operations["list_sessions_api_auth_sessions_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/sessions/{family_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Revoke Session */
+    delete: operations["revoke_session_api_auth_sessions__family_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/sessions/revoke-others": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Revoke Other Sessions */
+    post: operations["revoke_other_sessions_api_auth_sessions_revoke_others_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** My Orders */
+    get: operations["my_orders_api_me_orders_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/me/reservations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** My Reservations */
+    get: operations["my_reservations_api_me_reservations_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/notifications": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Notifications */
+    get: operations["list_notifications_api_notifications_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/notifications/{notification_id}/read": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Mark Read */
+    post: operations["mark_read_api_notifications__notification_id__read_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/notifications/read-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Mark All Read */
+    post: operations["mark_all_read_api_notifications_read_all_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/restaurants/{slug}/reservations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Request Reservation */
+    post: operations["request_reservation_api_public_restaurants__slug__reservations_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/reservations/{token}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Track Reservation */
+    get: operations["track_reservation_api_public_reservations__token__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/public/reservations/{token}/cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancel Reservation */
+    post: operations["cancel_reservation_api_public_reservations__token__cancel_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/reservations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Reservations */
+    get: operations["list_reservations_api_restaurants__restaurant_id__reservations_get"];
+    put?: never;
+    /** Create Reservation */
+    post: operations["create_reservation_api_restaurants__restaurant_id__reservations_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/reservations/{reservation_id}/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Set Status */
+    post: operations["set_status_api_restaurants__restaurant_id__reservations__reservation_id__status_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/permissions/catalog": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Permission Catalog
+     * @description Libellés des permissions et préréglages de chaque rôle (pour la grille de l'interface).
+     */
+    get: operations["permission_catalog_api_restaurants__restaurant_id__permissions_catalog_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/members": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Members */
+    get: operations["list_members_api_restaurants__restaurant_id__members_get"];
+    put?: never;
+    /** Add Member */
+    post: operations["add_member_api_restaurants__restaurant_id__members_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/members/{member_id}/resend-invite": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Resend Invite */
+    post: operations["resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/members/{member_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Remove Member */
+    delete: operations["remove_member_api_restaurants__restaurant_id__members__member_id__delete"];
+    options?: never;
+    head?: never;
+    /** Update Member */
+    patch: operations["update_member_api_restaurants__restaurant_id__members__member_id__patch"];
+    trace?: never;
+  };
+  "/api/restaurants/{restaurant_id}/activity": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Restaurant Activity
+     * @description Activité de l'équipe sur CE restaurant uniquement (le journal global est réservé au super admin).
+     *
+     *     Les actions de la plateforme sont attribuées à « Équipe OmegaSen » sans révéler le compte du super admin.
+     */
+    get: operations["restaurant_activity_api_restaurants__restaurant_id__activity_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Health */
+    get: operations["health_health_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /**
-         * AccountType
-         * @enum {string}
-         */
-        AccountType: "STAFF" | "CUSTOMER";
-        /** AdminMembership */
-        AdminMembership: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Restaurant Id
-             * Format: uuid
-             */
-            restaurant_id: string;
-            /** Restaurant Name */
-            restaurant_name: string;
-            role: components["schemas"]["MemberRole"];
-            /** Is Active */
-            is_active: boolean;
-        };
-        /** AdminRestaurant */
-        AdminRestaurant: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Slug */
-            slug: string;
-            /** Name */
-            name: string;
-            /** City */
-            city: string | null;
-            /** Currency */
-            currency: string;
-            status: components["schemas"]["RestaurantStatus"];
-            /** Accepting Orders */
-            accepting_orders: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Qr Code */
-            qr_code: string | null;
-            /** Qr Active */
-            qr_active: boolean | null;
-            /** Owners */
-            owners: string[];
-            /** Orders 30D */
-            orders_30d: number;
-            /** Activation Url */
-            activation_url: string | null;
-            /** Email Sent */
-            email_sent: boolean | null;
-        };
-        /** AdminRestaurantCreate */
-        AdminRestaurantCreate: {
-            /** Description */
-            description?: string | null;
-            /** Cuisine */
-            cuisine?: string | null;
-            /** Phone */
-            phone?: string | null;
-            /** Email */
-            email?: string | null;
-            /** Website */
-            website?: string | null;
-            /** Address Line */
-            address_line?: string | null;
-            /** City */
-            city?: string | null;
-            /** Postal Code */
-            postal_code?: string | null;
-            /** Latitude */
-            latitude?: number | null;
-            /** Longitude */
-            longitude?: number | null;
-            /** Name */
-            name: string;
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
-            /** Country */
-            country?: string | null;
-            /** Timezone */
-            timezone?: string | null;
-            /** Vat Rate Bp */
-            vat_rate_bp?: number | null;
-            /**
-             * Owner Email
-             * Format: email
-             */
-            owner_email: string;
-            /** Owner Full Name */
-            owner_full_name?: string | null;
-            /** @default ACTIVE */
-            status: components["schemas"]["RestaurantStatus"];
-        };
-        /** AdminRestaurantDetail */
-        AdminRestaurantDetail: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Slug */
-            slug: string;
-            /** Name */
-            name: string;
-            /** City */
-            city: string | null;
-            /** Currency */
-            currency: string;
-            status: components["schemas"]["RestaurantStatus"];
-            /** Accepting Orders */
-            accepting_orders: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Qr Code */
-            qr_code: string | null;
-            /** Qr Active */
-            qr_active: boolean | null;
-            /** Owners */
-            owners: string[];
-            /** Orders 30D */
-            orders_30d: number;
-            /** Activation Url */
-            activation_url: string | null;
-            /** Email Sent */
-            email_sent: boolean | null;
-            /** Cuisine */
-            cuisine: string | null;
-            /** Phone */
-            phone: string | null;
-            /** Email */
-            email: string | null;
-            /** Address Line */
-            address_line: string | null;
-            /** Logo Url */
-            logo_url: string | null;
-            /** Cover Url */
-            cover_url: string | null;
-            /** Members */
-            members: components["schemas"]["AdminMembership"][];
-            /** Staff */
-            staff: components["schemas"]["StaffRow"][];
-            /** Products */
-            products: number;
-            /** Categories */
-            categories: number;
-            /** Revenue 30D */
-            revenue_30d: number;
-            /** Reservations Upcoming */
-            reservations_upcoming: number;
-        };
-        /** AdminUser */
-        AdminUser: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Email */
-            email: string;
-            /** Full Name */
-            full_name: string;
-            /** Phone */
-            phone: string | null;
-            account_type: components["schemas"]["AccountType"];
-            status: components["schemas"]["UserStatus"];
-            /** Is Superadmin */
-            is_superadmin: boolean;
-            /** Is Active */
-            is_active: boolean;
-            /** Last Login At */
-            last_login_at: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Restaurants */
-            restaurants: number;
-            /**
-             * Memberships
-             * @default []
-             */
-            memberships: components["schemas"]["AdminMembership"][];
-            /** Activation Url */
-            activation_url: string | null;
-            /** Email Sent */
-            email_sent: boolean | null;
-        };
-        /** AdminUserCreate */
-        AdminUserCreate: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Full Name */
-            full_name: string;
-            /** Phone */
-            phone?: string | null;
-            /**
-             * Is Superadmin
-             * @default false
-             */
-            is_superadmin: boolean;
-            /** Restaurant Id */
-            restaurant_id?: string | null;
-            role?: components["schemas"]["MemberRole"] | null;
-        };
-        /** AdminUserUpdate */
-        AdminUserUpdate: {
-            /** Full Name */
-            full_name?: string | null;
-            /** Phone */
-            phone?: string | null;
-            /** Is Active */
-            is_active?: boolean | null;
-            /** Is Superadmin */
-            is_superadmin?: boolean | null;
-        };
-        /**
-         * ApproveIn
-         * @description Valeurs reprises de la demande, modifiables par l'admin avant création.
-         */
-        ApproveIn: {
-            /** Name */
-            name?: string | null;
-            /**
-             * Currency
-             * @default XOF
-             */
-            currency: string;
-            /** City */
-            city?: string | null;
-            /** Cuisine */
-            cuisine?: string | null;
-            /** Review Note */
-            review_note?: string | null;
-        };
-        /** ApproveOut */
-        ApproveOut: {
-            request: components["schemas"]["RequestOut"];
-            /**
-             * Restaurant Id
-             * Format: uuid
-             */
-            restaurant_id: string;
-            /** Restaurant Slug */
-            restaurant_slug: string;
-            /** Owner Email */
-            owner_email: string;
-            /** Activation Url */
-            activation_url: string | null;
-            /** Email Sent */
-            email_sent: boolean | null;
-        };
-        /** AuditOut */
-        AuditOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Action */
-            action: string;
-            /** Actor Email */
-            actor_email: string | null;
-            /** Restaurant Name */
-            restaurant_name: string | null;
-            /** Entity */
-            entity: string | null;
-            /** Entity Id */
-            entity_id: string | null;
-            /** Data */
-            data: {
-                [key: string]: unknown;
-            };
-            /** Ip Address */
-            ip_address: string | null;
-        };
-        /** AvailabilityIn */
-        AvailabilityIn: {
-            /** Is Available */
-            is_available: boolean;
-        };
-        /** Body_upload_api_restaurants__restaurant_id__media_post */
-        Body_upload_api_restaurants__restaurant_id__media_post: {
-            /**
-             * File
-             * Format: binary
-             */
-            file: string;
-            kind: components["schemas"]["MediaKind"];
-            /** Alt */
-            alt?: string | null;
-        };
-        /** Bucket */
-        Bucket: {
-            /** Key */
-            key: string;
-            /** Orders */
-            orders: number;
-            /** Revenue */
-            revenue: number;
-        };
-        /** CategoryIn */
-        CategoryIn: {
-            /** Name */
-            name: string;
-            /** Description */
-            description?: string | null;
-            /**
-             * Is Visible
-             * @default true
-             */
-            is_visible: boolean;
-        };
-        /** CategoryOut */
-        CategoryOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /** Description */
-            description: string | null;
-            /** Is Visible */
-            is_visible: boolean;
-            /** Sort Order */
-            sort_order: number;
-            /** Products */
-            products: components["schemas"]["ProductOut"][];
-        };
-        /** CategoryUpdate */
-        CategoryUpdate: {
-            /** Name */
-            name?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Is Visible */
-            is_visible?: boolean | null;
-        };
-        /** ChangePasswordIn */
-        ChangePasswordIn: {
-            /** Current Password */
-            current_password: string;
-            /** New Password */
-            new_password: string;
-        };
-        /** CheckoutIn */
-        CheckoutIn: {
-            /** Success Url */
-            success_url: string;
-            /** Cancel Url */
-            cancel_url: string;
-        };
-        /** CheckoutSession */
-        CheckoutSession: {
-            /** Provider */
-            provider: string;
-            /** Redirect Url */
-            redirect_url: string;
-            /** External Ref */
-            external_ref: string;
-        };
-        /** ForgotIn */
-        ForgotIn: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** HoursSlot */
-        HoursSlot: {
-            /** Day Of Week */
-            day_of_week: number;
-            /**
-             * Opens At
-             * Format: time
-             */
-            opens_at: string;
-            /**
-             * Closes At
-             * Format: time
-             */
-            closes_at: string;
-        };
-        /** ItemIn */
-        ItemIn: {
-            /**
-             * Product Id
-             * Format: uuid
-             */
-            product_id: string;
-            /** Quantity */
-            quantity: number;
-            /** Option Ids */
-            option_ids?: string[];
-            /** Note */
-            note?: string | null;
-        };
-        /** ItemOptionOut */
-        ItemOptionOut: {
-            /** Group Name */
-            group_name: string;
-            /** Option Name */
-            option_name: string;
-            /** Price Delta */
-            price_delta: number;
-        };
-        /** ItemOut */
-        ItemOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Product Id */
-            product_id: string | null;
-            /** Station Id */
-            station_id: string | null;
-            /** Product Name */
-            product_name: string;
-            /** Unit Price */
-            unit_price: number;
-            /** Quantity */
-            quantity: number;
-            /** Line Total */
-            line_total: number;
-            /** Note */
-            note: string | null;
-            /** Options */
-            options: components["schemas"]["ItemOptionOut"][];
-        };
-        /** LoginIn */
-        LoginIn: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Password */
-            password: string;
-        };
-        /**
-         * MediaKind
-         * @enum {string}
-         */
-        MediaKind: "LOGO" | "COVER" | "GALLERY" | "PRODUCT";
-        /** MediaOut */
-        MediaOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            kind: components["schemas"]["MediaKind"];
-            /** Url */
-            url: string;
-            /** Medium Url */
-            medium_url: string;
-            /** Thumb Url */
-            thumb_url: string;
-            /** Width */
-            width: number;
-            /** Height */
-            height: number;
-            /** Size Bytes */
-            size_bytes: number;
-            /** Alt */
-            alt: string | null;
-            /** Sort Order */
-            sort_order: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** MediaUpdate */
-        MediaUpdate: {
-            /** Alt */
-            alt?: string | null;
-            /** Sort Order */
-            sort_order?: number | null;
-        };
-        /** MemberCreate */
-        MemberCreate: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Full Name */
-            full_name: string;
-            role: components["schemas"]["MemberRole"];
-            /** Phone */
-            phone?: string | null;
-            /**
-             * Mode
-             * @default invite
-             * @enum {string}
-             */
-            mode: "invite" | "password";
-            /** Password */
-            password?: string | null;
-            /** Permissions */
-            permissions?: components["schemas"]["Perm"][] | null;
-            /** Station Id */
-            station_id?: string | null;
-        };
-        /** MemberOut */
-        MemberOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-            /** Email */
-            email: string;
-            /** Full Name */
-            full_name: string;
-            /** Phone */
-            phone: string | null;
-            role: components["schemas"]["MemberRole"];
-            /** Is Active */
-            is_active: boolean;
-            /** Activated */
-            activated: boolean;
-            /** Must Change Password */
-            must_change_password: boolean;
-            /** Invite Status */
-            invite_status: ("PENDING" | "EXPIRED") | null;
-            /** Invite Expires At */
-            invite_expires_at: string | null;
-            /** Station Id */
-            station_id: string | null;
-            /** Station Name */
-            station_name: string | null;
-            /** Permissions */
-            permissions: components["schemas"]["Perm"][];
-            /** Permission Overrides */
-            permission_overrides: {
-                [key: string]: boolean;
-            };
-            /** Editable Profile */
-            editable_profile: boolean;
-            /** Last Login At */
-            last_login_at: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Activation Url */
-            activation_url: string | null;
-            /** Email Sent */
-            email_sent: boolean | null;
-        };
-        /**
-         * MemberRole
-         * @enum {string}
-         */
-        MemberRole: "OWNER" | "MANAGER" | "CASHIER" | "KITCHEN";
-        /** MemberUpdate */
-        MemberUpdate: {
-            /** Full Name */
-            full_name?: string | null;
-            /** Phone */
-            phone?: string | null;
-            role?: components["schemas"]["MemberRole"] | null;
-            /** Is Active */
-            is_active?: boolean | null;
-            /** Station Id */
-            station_id?: string | null;
-            /** Permissions */
-            permissions?: components["schemas"]["Perm"][] | null;
-            /**
-             * Reset Permissions
-             * @default false
-             */
-            reset_permissions: boolean;
-        };
-        /** MembershipIn */
-        MembershipIn: {
-            /**
-             * Restaurant Id
-             * Format: uuid
-             */
-            restaurant_id: string;
-            role: components["schemas"]["MemberRole"];
-        };
-        /** MembershipOut */
-        MembershipOut: {
-            /**
-             * Restaurant Id
-             * Format: uuid
-             */
-            restaurant_id: string;
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Restaurant Slug */
-            restaurant_slug: string;
-            restaurant_status: components["schemas"]["RestaurantStatus"];
-            role: components["schemas"]["MemberRole"];
-            /** Permissions */
-            permissions: components["schemas"]["Perm"][];
-            /** Station Id */
-            station_id: string | null;
-        };
-        /** MembershipPatch */
-        MembershipPatch: {
-            role?: components["schemas"]["MemberRole"] | null;
-            /** Is Active */
-            is_active?: boolean | null;
-        };
-        /** MyOrder */
-        MyOrder: {
-            /** Reference */
-            reference: string;
-            /** Display Number */
-            display_number: string;
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Restaurant Slug */
-            restaurant_slug: string;
-            /** Total */
-            total: number;
-            /** Currency */
-            currency: string;
-            status: components["schemas"]["OrderStatus"];
-            payment_status: components["schemas"]["PaymentStatus"];
-            /** Tracking Token */
-            tracking_token: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** MyReservation */
-        MyReservation: {
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Restaurant Slug */
-            restaurant_slug: string;
-            /**
-             * Starts At
-             * Format: date-time
-             */
-            starts_at: string;
-            /** Party Size */
-            party_size: number;
-            status: components["schemas"]["ReservationStatus"];
-            /** Tracking Token */
-            tracking_token: string;
-        };
-        /** NotificationOut */
-        NotificationOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Type */
-            type: string;
-            /** Title */
-            title: string;
-            /** Body */
-            body: string | null;
-            /** Link */
-            link: string | null;
-            /** Restaurant Id */
-            restaurant_id: string | null;
-            /** Data */
-            data: {
-                [key: string]: unknown;
-            };
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Read At */
-            read_at: string | null;
-        };
-        /** NotificationPage */
-        NotificationPage: {
-            /** Items */
-            items: components["schemas"]["NotificationOut"][];
-            /** Unread */
-            unread: number;
-        };
-        /** OptionGroupIn */
-        OptionGroupIn: {
-            /** Id */
-            id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Min Choices
-             * @default 0
-             */
-            min_choices: number;
-            /**
-             * Max Choices
-             * @default 1
-             */
-            max_choices: number;
-            /** Options */
-            options: components["schemas"]["OptionIn"][];
-        };
-        /** OptionGroupOut */
-        OptionGroupOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /** Min Choices */
-            min_choices: number;
-            /** Max Choices */
-            max_choices: number;
-            /** Options */
-            options: components["schemas"]["OptionOut"][];
-        };
-        /** OptionIn */
-        OptionIn: {
-            /** Id */
-            id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Price Delta
-             * @default 0
-             */
-            price_delta: number;
-            /**
-             * Is Available
-             * @default true
-             */
-            is_available: boolean;
-        };
-        /** OptionOut */
-        OptionOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /**
-             * Price Delta
-             * @default 0
-             */
-            price_delta: number;
-            /**
-             * Is Available
-             * @default true
-             */
-            is_available: boolean;
-        };
-        /**
-         * OrderChannel
-         * @enum {string}
-         */
-        OrderChannel: "QR" | "POS" | "ONLINE" | "KIOSK";
-        /** OrderOut */
-        OrderOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Restaurant Id
-             * Format: uuid
-             */
-            restaurant_id: string;
-            /** Reference */
-            reference: string;
-            /** Number */
-            number: number;
-            /** Display Number */
-            display_number: string;
-            channel: components["schemas"]["OrderChannel"];
-            service_mode: components["schemas"]["ServiceMode"];
-            status: components["schemas"]["OrderStatus"];
-            payment_status: components["schemas"]["PaymentStatus"];
-            payment_preference: components["schemas"]["PaymentPreference"] | null;
-            /** Customer Name */
-            customer_name: string | null;
-            /** Customer Phone */
-            customer_phone: string | null;
-            /** Table Label */
-            table_label: string | null;
-            /** Note */
-            note: string | null;
-            /** Currency */
-            currency: string;
-            /** Subtotal */
-            subtotal: number;
-            /** Discount */
-            discount: number;
-            /** Total */
-            total: number;
-            /** Tax Total */
-            tax_total: number;
-            /** Amount Paid */
-            amount_paid: number;
-            /** Tracking Token */
-            tracking_token: string;
-            /** Sent To Kitchen At */
-            sent_to_kitchen_at: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Preparing At */
-            preparing_at: string | null;
-            /** Ready At */
-            ready_at: string | null;
-            /** Completed At */
-            completed_at: string | null;
-            /** Cancelled At */
-            cancelled_at: string | null;
-            /** Cancel Reason */
-            cancel_reason: string | null;
-            /** Is Late */
-            is_late: boolean;
-            /** Allowed Transitions */
-            allowed_transitions: components["schemas"]["OrderStatus"][];
-            /** Items */
-            items: components["schemas"]["ItemOut"][];
-            /** Payments */
-            payments: components["schemas"]["PaymentBrief"][];
-        };
-        /** OrderPage */
-        OrderPage: {
-            /** Items */
-            items: components["schemas"]["OrderOut"][];
-            /** Total */
-            total: number;
-            /** Page */
-            page: number;
-            /** Page Size */
-            page_size: number;
-        };
-        /**
-         * OrderStatus
-         * @enum {string}
-         */
-        OrderStatus: "NEW" | "PREPARING" | "READY" | "COMPLETED" | "CANCELLED";
-        /** Page[AdminRestaurant] */
-        Page_AdminRestaurant_: {
-            /** Items */
-            items: components["schemas"]["AdminRestaurant"][];
-            /** Total */
-            total: number;
-        };
-        /** Page[AdminUser] */
-        Page_AdminUser_: {
-            /** Items */
-            items: components["schemas"]["AdminUser"][];
-            /** Total */
-            total: number;
-        };
-        /** Page[AuditOut] */
-        Page_AuditOut_: {
-            /** Items */
-            items: components["schemas"]["AuditOut"][];
-            /** Total */
-            total: number;
-        };
-        /** PaymentBrief */
-        PaymentBrief: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Method */
-            method: string;
-            /** Status */
-            status: string;
-            /** Amount */
-            amount: number;
-            /** Amount Tendered */
-            amount_tendered: number | null;
-            /** Paid At */
-            paid_at: string | null;
-        };
-        /** PaymentIn */
-        PaymentIn: {
-            method: components["schemas"]["PaymentMethod"];
-            /**
-             * Amount
-             * @description Par défaut : le reste à payer
-             */
-            amount?: number | null;
-            /** Amount Tendered */
-            amount_tendered?: number | null;
-            /** External Ref */
-            external_ref?: string | null;
-        };
-        /**
-         * PaymentMethod
-         * @enum {string}
-         */
-        PaymentMethod: "CASH" | "CARD" | "ONLINE" | "MOBILE_MONEY" | "OTHER";
-        /**
-         * PaymentPreference
-         * @description Intention du client au moment de la commande (pas un paiement effectué).
-         * @enum {string}
-         */
-        PaymentPreference: "AT_COUNTER" | "ONLINE" | "ON_DELIVERY";
-        /**
-         * PaymentStatus
-         * @enum {string}
-         */
-        PaymentStatus: "UNPAID" | "PARTIALLY_PAID" | "PAID" | "REFUNDED";
-        /**
-         * Perm
-         * @enum {string}
-         */
-        Perm: "restaurant.view" | "restaurant.edit" | "settings.edit" | "media.manage" | "qr.manage" | "menu.view" | "menu.create" | "menu.edit" | "menu.delete" | "prices.edit" | "stock.manage" | "orders.history" | "orders.create" | "orders.prepare" | "orders.cancel" | "payments.record" | "payments.refund" | "reservations.view" | "reservations.manage" | "stats.view" | "team.view" | "team.manage";
-        /** PermissionCatalog */
-        PermissionCatalog: {
-            /** Groups */
-            groups: components["schemas"]["PermissionGroup"][];
-            /** Role Defaults */
-            role_defaults: {
-                [key: string]: components["schemas"]["Perm"][];
-            };
-        };
-        /** PermissionGroup */
-        PermissionGroup: {
-            /** Label */
-            label: string;
-            /** Items */
-            items: components["schemas"]["PermissionItem"][];
-        };
-        /** PermissionItem */
-        PermissionItem: {
-            key: components["schemas"]["Perm"];
-            /** Label */
-            label: string;
-        };
-        /** PlacedOrderOut */
-        PlacedOrderOut: {
-            /** Reference */
-            reference: string;
-            /** Display Number */
-            display_number: string;
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Restaurant Slug */
-            restaurant_slug: string;
-            channel: components["schemas"]["OrderChannel"];
-            service_mode: components["schemas"]["ServiceMode"];
-            status: components["schemas"]["OrderStatus"];
-            payment_status: components["schemas"]["PaymentStatus"];
-            payment_preference: components["schemas"]["PaymentPreference"] | null;
-            /** Customer Name */
-            customer_name: string | null;
-            /** Currency */
-            currency: string;
-            /** Total */
-            total: number;
-            /** Tax Total */
-            tax_total: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Preparing At */
-            preparing_at: string | null;
-            /** Ready At */
-            ready_at: string | null;
-            /** Completed At */
-            completed_at: string | null;
-            /** Cancelled At */
-            cancelled_at: string | null;
-            /** Items */
-            items: components["schemas"]["ItemOut"][];
-            /** Tracking Token */
-            tracking_token: string;
-        };
-        /** PlatformStats */
-        PlatformStats: {
-            /** Restaurants */
-            restaurants: number;
-            /** Active Restaurants */
-            active_restaurants: number;
-            /** Users */
-            users: number;
-            /** Orders Today */
-            orders_today: number;
-            /** Orders 30D */
-            orders_30d: number;
-            /** Revenue 30D By Currency */
-            revenue_30d_by_currency: {
-                [key: string]: number;
-            };
-            /** Qr Scans Total */
-            qr_scans_total: number;
-            /** Pending Requests */
-            pending_requests: number;
-        };
-        /** PosOrderIn */
-        PosOrderIn: {
-            service_mode: components["schemas"]["ServiceMode"];
-            /** Items */
-            items: components["schemas"]["ItemIn"][];
-            /** Customer Name */
-            customer_name?: string | null;
-            /** Customer Phone */
-            customer_phone?: string | null;
-            /** Table Label */
-            table_label?: string | null;
-            /** Note */
-            note?: string | null;
-            payment_preference?: components["schemas"]["PaymentPreference"] | null;
-            /** Idempotency Key */
-            idempotency_key?: string | null;
-            payment?: components["schemas"]["PosPaymentIn"] | null;
-        };
-        /** PosPaymentIn */
-        PosPaymentIn: {
-            /** Method */
-            method: string;
-            /** Amount Tendered */
-            amount_tendered?: number | null;
-            /** External Ref */
-            external_ref?: string | null;
-        };
-        /** ProductCreate */
-        ProductCreate: {
-            /** Name */
-            name: string;
-            /** Description */
-            description?: string | null;
-            /** Price */
-            price: number;
-            /** Promo Price */
-            promo_price?: number | null;
-            /** Promo Starts At */
-            promo_starts_at?: string | null;
-            /** Promo Ends At */
-            promo_ends_at?: string | null;
-            /**
-             * Is Available
-             * @default true
-             */
-            is_available: boolean;
-            /**
-             * Is Visible
-             * @default true
-             */
-            is_visible: boolean;
-            /**
-             * Is Featured
-             * @default false
-             */
-            is_featured: boolean;
-            /** Allergens */
-            allergens?: string[];
-            /** Tags */
-            tags?: string[];
-            /** Preparation Minutes */
-            preparation_minutes?: number | null;
-            /** Vat Rate Bp */
-            vat_rate_bp?: number | null;
-            /** Image Media Id */
-            image_media_id?: string | null;
-            /** Station Id */
-            station_id?: string | null;
-            /**
-             * Category Id
-             * Format: uuid
-             */
-            category_id: string;
-            /** Option Groups */
-            option_groups?: components["schemas"]["OptionGroupIn"][];
-        };
-        /** ProductOut */
-        ProductOut: {
-            /** Name */
-            name: string;
-            /** Description */
-            description: string | null;
-            /** Price */
-            price: number;
-            /** Promo Price */
-            promo_price: number | null;
-            /** Promo Starts At */
-            promo_starts_at: string | null;
-            /** Promo Ends At */
-            promo_ends_at: string | null;
-            /**
-             * Is Available
-             * @default true
-             */
-            is_available: boolean;
-            /**
-             * Is Visible
-             * @default true
-             */
-            is_visible: boolean;
-            /**
-             * Is Featured
-             * @default false
-             */
-            is_featured: boolean;
-            /** Allergens */
-            allergens: string[];
-            /** Tags */
-            tags: string[];
-            /** Preparation Minutes */
-            preparation_minutes: number | null;
-            /** Vat Rate Bp */
-            vat_rate_bp: number | null;
-            /** Image Media Id */
-            image_media_id: string | null;
-            /** Station Id */
-            station_id: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Category Id
-             * Format: uuid
-             */
-            category_id: string;
-            /** Sort Order */
-            sort_order: number;
-            /** Effective Price */
-            effective_price: number;
-            /** Image Url */
-            image_url: string | null;
-            /** Image Thumb Url */
-            image_thumb_url: string | null;
-            /** Option Groups */
-            option_groups: components["schemas"]["OptionGroupOut"][];
-        };
-        /** ProductUpdate */
-        ProductUpdate: {
-            /** Category Id */
-            category_id?: string | null;
-            /** Name */
-            name?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Price */
-            price?: number | null;
-            /** Promo Price */
-            promo_price?: number | null;
-            /** Promo Starts At */
-            promo_starts_at?: string | null;
-            /** Promo Ends At */
-            promo_ends_at?: string | null;
-            /** Is Available */
-            is_available?: boolean | null;
-            /** Is Visible */
-            is_visible?: boolean | null;
-            /** Is Featured */
-            is_featured?: boolean | null;
-            /** Allergens */
-            allergens?: string[] | null;
-            /** Tags */
-            tags?: string[] | null;
-            /** Preparation Minutes */
-            preparation_minutes?: number | null;
-            /** Vat Rate Bp */
-            vat_rate_bp?: number | null;
-            /** Image Media Id */
-            image_media_id?: string | null;
-            /** Station Id */
-            station_id?: string | null;
-            /** Option Groups */
-            option_groups?: components["schemas"]["OptionGroupIn"][] | null;
-        };
-        /** ProfileIn */
-        ProfileIn: {
-            /** Full Name */
-            full_name?: string | null;
-            /** Phone */
-            phone?: string | null;
-        };
-        /** PublicOrderIn */
-        PublicOrderIn: {
-            service_mode: components["schemas"]["ServiceMode"];
-            /** Items */
-            items: components["schemas"]["ItemIn"][];
-            /** Customer Name */
-            customer_name?: string | null;
-            /** Customer Phone */
-            customer_phone?: string | null;
-            /** Table Label */
-            table_label?: string | null;
-            /** Note */
-            note?: string | null;
-            payment_preference?: components["schemas"]["PaymentPreference"] | null;
-            /** Idempotency Key */
-            idempotency_key?: string | null;
-            /**
-             * Channel
-             * @default ONLINE
-             * @enum {string}
-             */
-            channel: "QR" | "ONLINE" | "KIOSK";
-        };
-        /** PublicReservationOut */
-        PublicReservationOut: {
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Restaurant Slug */
-            restaurant_slug: string;
-            /** Restaurant Timezone */
-            restaurant_timezone: string;
-            /**
-             * Starts At
-             * Format: date-time
-             */
-            starts_at: string;
-            /** Party Size */
-            party_size: number;
-            /** Customer Name */
-            customer_name: string;
-            status: components["schemas"]["ReservationStatus"];
-            /** Staff Note */
-            staff_note: string | null;
-            /** Tracking Token */
-            tracking_token: string;
-            /** Can Cancel */
-            can_cancel: boolean;
-        };
-        /** PublicRestaurant */
-        PublicRestaurant: {
-            /** Slug */
-            slug: string;
-            /** Name */
-            name: string;
-            /** Cuisine */
-            cuisine: string | null;
-            /** City */
-            city: string | null;
-            /** Description */
-            description: string | null;
-            /** Logo Url */
-            logo_url: string | null;
-            /** Cover Url */
-            cover_url: string | null;
-            /** Is Open Now */
-            is_open_now: boolean;
-            /** Currency */
-            currency: string;
-            /** Phone */
-            phone: string | null;
-            /** Email */
-            email: string | null;
-            /** Website */
-            website: string | null;
-            /** Address Line */
-            address_line: string | null;
-            /** Postal Code */
-            postal_code: string | null;
-            /** Country */
-            country: string;
-            /** Latitude */
-            latitude: number | null;
-            /** Longitude */
-            longitude: number | null;
-            /** Accepting Orders */
-            accepting_orders: boolean;
-            /** Dine In Enabled */
-            dine_in_enabled: boolean;
-            /** Takeaway Enabled */
-            takeaway_enabled: boolean;
-            /** Require Prepayment */
-            require_prepayment: boolean;
-            /** Reservations Enabled */
-            reservations_enabled: boolean;
-            /** Timezone */
-            timezone: string;
-            /** Opening Hours */
-            opening_hours: components["schemas"]["HoursSlot"][];
-            /** Gallery */
-            gallery: components["schemas"]["MediaOut"][];
-            /** Menu */
-            menu: components["schemas"]["CategoryOut"][];
-        };
-        /** PublicRestaurantCard */
-        PublicRestaurantCard: {
-            /** Slug */
-            slug: string;
-            /** Name */
-            name: string;
-            /** Cuisine */
-            cuisine: string | null;
-            /** City */
-            city: string | null;
-            /** Description */
-            description: string | null;
-            /** Logo Url */
-            logo_url: string | null;
-            /** Cover Url */
-            cover_url: string | null;
-            /** Is Open Now */
-            is_open_now: boolean;
-            /** Currency */
-            currency: string;
-        };
-        /** QrOut */
-        QrOut: {
-            /** Code */
-            code: string;
-            /** Url */
-            url: string;
-            /** Is Active */
-            is_active: boolean;
-            /** Foreground Color */
-            foreground_color: string;
-            /** Background Color */
-            background_color: string;
-            /** With Logo */
-            with_logo: boolean;
-            /** Scan Count */
-            scan_count: number;
-            /** Last Scanned At */
-            last_scanned_at: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Regenerated At */
-            regenerated_at: string | null;
-        };
-        /** QrResolveOut */
-        QrResolveOut: {
-            /** Active */
-            active: boolean;
-            /** Restaurant Slug */
-            restaurant_slug: string | null;
-            /** Restaurant Name */
-            restaurant_name: string | null;
-        };
-        /** QrUpdate */
-        QrUpdate: {
-            /** Is Active */
-            is_active?: boolean | null;
-            /** Foreground Color */
-            foreground_color?: string | null;
-            /** Background Color */
-            background_color?: string | null;
-            /** With Logo */
-            with_logo?: boolean | null;
-        };
-        /** RefundIn */
-        RefundIn: {
-            /** Reason */
-            reason: string;
-        };
-        /** RejectIn */
-        RejectIn: {
-            /** Review Note */
-            review_note: string;
-        };
-        /** ReorderIn */
-        ReorderIn: {
-            /** Ids */
-            ids: string[];
-        };
-        /** RequestIn */
-        RequestIn: {
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Contact Name */
-            contact_name: string;
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Phone */
-            phone?: string | null;
-            /** City */
-            city?: string | null;
-            /** Cuisine */
-            cuisine?: string | null;
-            /** Message */
-            message?: string | null;
-        };
-        /** RequestOut */
-        RequestOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Contact Name */
-            contact_name: string;
-            /** Email */
-            email: string;
-            /** Phone */
-            phone: string | null;
-            /** City */
-            city: string | null;
-            /** Cuisine */
-            cuisine: string | null;
-            /** Message */
-            message: string | null;
-            status: components["schemas"]["RequestStatus"];
-            /** Review Note */
-            review_note: string | null;
-            /** Reviewed At */
-            reviewed_at: string | null;
-            /** Restaurant Id */
-            restaurant_id: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** RequestPage */
-        RequestPage: {
-            /** Items */
-            items: components["schemas"]["RequestOut"][];
-            /** Total */
-            total: number;
-            /** Pending */
-            pending: number;
-        };
-        /** RequestReceipt */
-        RequestReceipt: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            status: components["schemas"]["RequestStatus"];
-        };
-        /**
-         * RequestStatus
-         * @enum {string}
-         */
-        RequestStatus: "PENDING" | "APPROVED" | "REJECTED";
-        /** ReservationIn */
-        ReservationIn: {
-            /**
-             * Starts At
-             * Format: date-time
-             */
-            starts_at: string;
-            /** Party Size */
-            party_size: number;
-            /** Customer Name */
-            customer_name: string;
-            /** Customer Phone */
-            customer_phone: string;
-            /** Customer Email */
-            customer_email?: string | null;
-            /** Note */
-            note?: string | null;
-        };
-        /** ReservationOut */
-        ReservationOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Starts At
-             * Format: date-time
-             */
-            starts_at: string;
-            /** Party Size */
-            party_size: number;
-            /** Customer Name */
-            customer_name: string;
-            /** Customer Phone */
-            customer_phone: string;
-            /** Customer Email */
-            customer_email: string | null;
-            /** Note */
-            note: string | null;
-            status: components["schemas"]["ReservationStatus"];
-            /** Staff Note */
-            staff_note: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Allowed Transitions */
-            allowed_transitions: components["schemas"]["ReservationStatus"][];
-        };
-        /**
-         * ReservationStatus
-         * @enum {string}
-         */
-        ReservationStatus: "PENDING" | "CONFIRMED" | "DECLINED" | "CANCELLED" | "SEATED" | "NO_SHOW";
-        /** RestaurantCreate */
-        RestaurantCreate: {
-            /** Description */
-            description?: string | null;
-            /** Cuisine */
-            cuisine?: string | null;
-            /** Phone */
-            phone?: string | null;
-            /** Email */
-            email?: string | null;
-            /** Website */
-            website?: string | null;
-            /** Address Line */
-            address_line?: string | null;
-            /** City */
-            city?: string | null;
-            /** Postal Code */
-            postal_code?: string | null;
-            /** Latitude */
-            latitude?: number | null;
-            /** Longitude */
-            longitude?: number | null;
-            /** Name */
-            name: string;
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
-            /** Country */
-            country?: string | null;
-            /** Timezone */
-            timezone?: string | null;
-            /** Vat Rate Bp */
-            vat_rate_bp?: number | null;
-        };
-        /** RestaurantList */
-        RestaurantList: {
-            /** Items */
-            items: components["schemas"]["PublicRestaurantCard"][];
-            /** Total */
-            total: number;
-        };
-        /** RestaurantOut */
-        RestaurantOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Slug */
-            slug: string;
-            /** Name */
-            name: string;
-            /** Description */
-            description: string | null;
-            /** Cuisine */
-            cuisine: string | null;
-            /** Phone */
-            phone: string | null;
-            /** Email */
-            email: string | null;
-            /** Website */
-            website: string | null;
-            /** Address Line */
-            address_line: string | null;
-            /** City */
-            city: string | null;
-            /** Postal Code */
-            postal_code: string | null;
-            /** Country */
-            country: string;
-            /** Latitude */
-            latitude: number | null;
-            /** Longitude */
-            longitude: number | null;
-            /** Currency */
-            currency: string;
-            /** Timezone */
-            timezone: string;
-            /** Vat Rate Bp */
-            vat_rate_bp: number;
-            status: components["schemas"]["RestaurantStatus"];
-            /** Accepting Orders */
-            accepting_orders: boolean;
-            /** Dine In Enabled */
-            dine_in_enabled: boolean;
-            /** Takeaway Enabled */
-            takeaway_enabled: boolean;
-            /** Require Prepayment */
-            require_prepayment: boolean;
-            /** Late After Minutes */
-            late_after_minutes: number;
-            /** Reservations Enabled */
-            reservations_enabled: boolean;
-            /** Logo Media Id */
-            logo_media_id: string | null;
-            /** Cover Media Id */
-            cover_media_id: string | null;
-            /** Logo Url */
-            logo_url: string | null;
-            /** Cover Url */
-            cover_url: string | null;
-            /** Opening Hours */
-            opening_hours: components["schemas"]["HoursSlot"][];
-            /** Is Open Now */
-            is_open_now: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /**
-         * RestaurantStatus
-         * @enum {string}
-         */
-        RestaurantStatus: "PENDING" | "ACTIVE" | "SUSPENDED" | "CLOSED";
-        /** RestaurantUpdate */
-        RestaurantUpdate: {
-            /** Description */
-            description?: string | null;
-            /** Cuisine */
-            cuisine?: string | null;
-            /** Phone */
-            phone?: string | null;
-            /** Email */
-            email?: string | null;
-            /** Website */
-            website?: string | null;
-            /** Address Line */
-            address_line?: string | null;
-            /** City */
-            city?: string | null;
-            /** Postal Code */
-            postal_code?: string | null;
-            /** Latitude */
-            latitude?: number | null;
-            /** Longitude */
-            longitude?: number | null;
-            /** Name */
-            name?: string | null;
-            /** Slug */
-            slug?: string | null;
-            /** Timezone */
-            timezone?: string | null;
-            /** Vat Rate Bp */
-            vat_rate_bp?: number | null;
-            /** Accepting Orders */
-            accepting_orders?: boolean | null;
-            /** Dine In Enabled */
-            dine_in_enabled?: boolean | null;
-            /** Takeaway Enabled */
-            takeaway_enabled?: boolean | null;
-            /** Require Prepayment */
-            require_prepayment?: boolean | null;
-            /** Late After Minutes */
-            late_after_minutes?: number | null;
-            /** Reservations Enabled */
-            reservations_enabled?: boolean | null;
-            /** Logo Media Id */
-            logo_media_id?: string | null;
-            /** Cover Media Id */
-            cover_media_id?: string | null;
-        };
-        /** RevenueByRestaurant */
-        RevenueByRestaurant: {
-            /**
-             * Restaurant Id
-             * Format: uuid
-             */
-            restaurant_id: string;
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Currency */
-            currency: string;
-            /** Revenue */
-            revenue: number;
-            /** Orders */
-            orders: number;
-        };
-        /** RevenuePoint */
-        RevenuePoint: {
-            /**
-             * Day
-             * Format: date
-             */
-            day: string;
-            /** Currency */
-            currency: string;
-            /** Revenue */
-            revenue: number;
-            /** Orders */
-            orders: number;
-        };
-        /** RevenueReport */
-        RevenueReport: {
-            /** Days */
-            days: number;
-            /** Series */
-            series: components["schemas"]["RevenuePoint"][];
-            /** Totals By Currency */
-            totals_by_currency: {
-                [key: string]: number;
-            };
-            /** By Restaurant */
-            by_restaurant: components["schemas"]["RevenueByRestaurant"][];
-        };
-        /**
-         * ServiceMode
-         * @enum {string}
-         */
-        ServiceMode: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
-        /** SessionOut */
-        SessionOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** User Agent */
-            user_agent: string | null;
-            /** Ip Address */
-            ip_address: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Last Used At
-             * Format: date-time
-             */
-            last_used_at: string;
-            /** Current */
-            current: boolean;
-        };
-        /** SetPasswordIn */
-        SetPasswordIn: {
-            /** Token */
-            token: string;
-            /** Password */
-            password: string;
-        };
-        /** SignupIn */
-        SignupIn: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Full Name */
-            full_name: string;
-            /** Phone */
-            phone?: string | null;
-        };
-        /**
-         * StaffReservationIn
-         * @description Réservation saisie par le restaurant (ex. par téléphone) : confirmée directement.
-         */
-        StaffReservationIn: {
-            /**
-             * Starts At
-             * Format: date-time
-             */
-            starts_at: string;
-            /** Party Size */
-            party_size: number;
-            /** Customer Name */
-            customer_name: string;
-            /** Customer Phone */
-            customer_phone: string;
-            /** Customer Email */
-            customer_email?: string | null;
-            /** Note */
-            note?: string | null;
-        };
-        /** StaffRow */
-        StaffRow: {
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-            /** Email */
-            email: string;
-            /** Full Name */
-            full_name: string;
-            role: components["schemas"]["MemberRole"];
-            status: components["schemas"]["UserStatus"];
-        };
-        /** StationIn */
-        StationIn: {
-            /** Name */
-            name: string;
-            /**
-             * Sort Order
-             * @default 0
-             */
-            sort_order: number;
-        };
-        /** StationOut */
-        StationOut: {
-            /** Name */
-            name: string;
-            /**
-             * Sort Order
-             * @default 0
-             */
-            sort_order: number;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-        };
-        /** StatsOut */
-        StatsOut: {
-            /** Currency */
-            currency: string;
-            /**
-             * Date From
-             * Format: date
-             */
-            date_from: string;
-            /**
-             * Date To
-             * Format: date
-             */
-            date_to: string;
-            /** Orders */
-            orders: number;
-            /** Cancelled */
-            cancelled: number;
-            /** Revenue */
-            revenue: number;
-            /** Tax */
-            tax: number;
-            /** Average Ticket */
-            average_ticket: number;
-            /** Avg Preparation Minutes */
-            avg_preparation_minutes: number | null;
-            /** By Channel */
-            by_channel: components["schemas"]["Bucket"][];
-            /** By Service Mode */
-            by_service_mode: components["schemas"]["Bucket"][];
-            /** By Day */
-            by_day: components["schemas"]["Bucket"][];
-            /** By Hour */
-            by_hour: components["schemas"]["Bucket"][];
-            /** Top Products */
-            top_products: components["schemas"]["TopProduct"][];
-            /** Qr Scans Total */
-            qr_scans_total: number;
-        };
-        /** TokenInfo */
-        TokenInfo: {
-            /** Email */
-            email: string;
-            /** Full Name */
-            full_name: string;
-        };
-        /** TokenOut */
-        TokenOut: {
-            /** Access Token */
-            access_token: string;
-            /**
-             * Token Type
-             * @default bearer
-             */
-            token_type: string;
-            /** Expires In */
-            expires_in: number;
-            user: components["schemas"]["UserOut"];
-        };
-        /** TopProduct */
-        TopProduct: {
-            /** Name */
-            name: string;
-            /** Quantity */
-            quantity: number;
-            /** Revenue */
-            revenue: number;
-        };
-        /** TrackingOut */
-        TrackingOut: {
-            /** Reference */
-            reference: string;
-            /** Display Number */
-            display_number: string;
-            /** Restaurant Name */
-            restaurant_name: string;
-            /** Restaurant Slug */
-            restaurant_slug: string;
-            channel: components["schemas"]["OrderChannel"];
-            service_mode: components["schemas"]["ServiceMode"];
-            status: components["schemas"]["OrderStatus"];
-            payment_status: components["schemas"]["PaymentStatus"];
-            payment_preference: components["schemas"]["PaymentPreference"] | null;
-            /** Customer Name */
-            customer_name: string | null;
-            /** Currency */
-            currency: string;
-            /** Total */
-            total: number;
-            /** Tax Total */
-            tax_total: number;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Preparing At */
-            preparing_at: string | null;
-            /** Ready At */
-            ready_at: string | null;
-            /** Completed At */
-            completed_at: string | null;
-            /** Cancelled At */
-            cancelled_at: string | null;
-            /** Items */
-            items: components["schemas"]["ItemOut"][];
-        };
-        /** UserOut */
-        UserOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Email */
-            email: string;
-            /** Full Name */
-            full_name: string;
-            /** Phone */
-            phone: string | null;
-            /** Is Superadmin */
-            is_superadmin: boolean;
-            account_type: components["schemas"]["AccountType"];
-            /** Must Change Password */
-            must_change_password: boolean;
-            /** Memberships */
-            memberships: components["schemas"]["MembershipOut"][];
-        };
-        /**
-         * UserStatus
-         * @enum {string}
-         */
-        UserStatus: "PENDING" | "ACTIVE" | "DISABLED";
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-        };
-        /** StatusIn */
-        app__modules__admin__StatusIn: {
-            status: components["schemas"]["RestaurantStatus"];
-        };
-        /** StatusIn */
-        app__modules__orders__StatusIn: {
-            status: components["schemas"]["OrderStatus"];
-            /** Reason */
-            reason?: string | null;
-        };
-        /** StatusIn */
-        app__modules__reservations__StatusIn: {
-            status: components["schemas"]["ReservationStatus"];
-            /** Staff Note */
-            staff_note?: string | null;
-        };
+  schemas: {
+    /**
+     * AccountType
+     * @enum {string}
+     */
+    AccountType: "STAFF" | "CUSTOMER";
+    /** ActivityOut */
+    ActivityOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Action */
+      action: string;
+      /** Actor Name */
+      actor_name: string | null;
+      /** Entity */
+      entity: string | null;
+      /** Entity Id */
+      entity_id: string | null;
+      /** Data */
+      data: {
+        [key: string]: unknown;
+      };
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /** ActivityPage */
+    ActivityPage: {
+      /** Items */
+      items: components["schemas"]["ActivityOut"][];
+      /** Total */
+      total: number;
+    };
+    /** AdminMembership */
+    AdminMembership: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Restaurant Id
+       * Format: uuid
+       */
+      restaurant_id: string;
+      /** Restaurant Name */
+      restaurant_name: string;
+      restaurant_status: components["schemas"]["RestaurantStatus"] | null;
+      role: components["schemas"]["MemberRole"];
+      /** Is Active */
+      is_active: boolean;
+      /**
+       * Permissions
+       * @default []
+       */
+      permissions: components["schemas"]["Perm"][];
+      /**
+       * Permission Overrides
+       * @default {}
+       */
+      permission_overrides: {
+        [key: string]: boolean;
+      };
+    };
+    /** AdminRestaurant */
+    AdminRestaurant: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Slug */
+      slug: string;
+      /** Name */
+      name: string;
+      /** City */
+      city: string | null;
+      /** Currency */
+      currency: string;
+      status: components["schemas"]["RestaurantStatus"];
+      /** Accepting Orders */
+      accepting_orders: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Qr Code */
+      qr_code: string | null;
+      /** Qr Active */
+      qr_active: boolean | null;
+      /** Owners */
+      owners: string[];
+      /** Orders 30D */
+      orders_30d: number;
+      /** Activation Url */
+      activation_url: string | null;
+      /** Email Sent */
+      email_sent: boolean | null;
+    };
+    /** AdminRestaurantCreate */
+    AdminRestaurantCreate: {
+      /** Description */
+      description?: string | null;
+      /** Cuisine */
+      cuisine?: string | null;
+      /** Phone */
+      phone?: string | null;
+      /** Email */
+      email?: string | null;
+      /** Website */
+      website?: string | null;
+      /** Address Line */
+      address_line?: string | null;
+      /** City */
+      city?: string | null;
+      /** Postal Code */
+      postal_code?: string | null;
+      /** Latitude */
+      latitude?: number | null;
+      /** Longitude */
+      longitude?: number | null;
+      /** Name */
+      name: string;
+      /**
+       * Currency
+       * @default EUR
+       */
+      currency: string;
+      /** Country */
+      country?: string | null;
+      /** Timezone */
+      timezone?: string | null;
+      /** Vat Rate Bp */
+      vat_rate_bp?: number | null;
+      /**
+       * Owner Email
+       * Format: email
+       */
+      owner_email: string;
+      /** Owner Full Name */
+      owner_full_name?: string | null;
+      /** @default ACTIVE */
+      status: components["schemas"]["RestaurantStatus"];
+    };
+    /** AdminRestaurantDetail */
+    AdminRestaurantDetail: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Slug */
+      slug: string;
+      /** Name */
+      name: string;
+      /** City */
+      city: string | null;
+      /** Currency */
+      currency: string;
+      status: components["schemas"]["RestaurantStatus"];
+      /** Accepting Orders */
+      accepting_orders: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Qr Code */
+      qr_code: string | null;
+      /** Qr Active */
+      qr_active: boolean | null;
+      /** Owners */
+      owners: string[];
+      /** Orders 30D */
+      orders_30d: number;
+      /** Activation Url */
+      activation_url: string | null;
+      /** Email Sent */
+      email_sent: boolean | null;
+      /** Cuisine */
+      cuisine: string | null;
+      /** Phone */
+      phone: string | null;
+      /** Email */
+      email: string | null;
+      /** Address Line */
+      address_line: string | null;
+      /** Logo Url */
+      logo_url: string | null;
+      /** Cover Url */
+      cover_url: string | null;
+      /** Members */
+      members: components["schemas"]["AdminMembership"][];
+      /** Staff */
+      staff: components["schemas"]["StaffRow"][];
+      /** Products */
+      products: number;
+      /** Categories */
+      categories: number;
+      /** Revenue 30D */
+      revenue_30d: number;
+      /** Reservations Upcoming */
+      reservations_upcoming: number;
+    };
+    /** AdminUser */
+    AdminUser: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Email */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /** Phone */
+      phone: string | null;
+      account_type: components["schemas"]["AccountType"];
+      status: components["schemas"]["UserStatus"];
+      /** Is Superadmin */
+      is_superadmin: boolean;
+      /** Is Active */
+      is_active: boolean;
+      /** Last Login At */
+      last_login_at: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Restaurants */
+      restaurants: number;
+      /**
+       * Memberships
+       * @default []
+       */
+      memberships: components["schemas"]["AdminMembership"][];
+      /** Activation Url */
+      activation_url: string | null;
+      /** Email Sent */
+      email_sent: boolean | null;
+    };
+    /** AdminUserCreate */
+    AdminUserCreate: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /** Phone */
+      phone?: string | null;
+      /**
+       * Is Superadmin
+       * @default false
+       */
+      is_superadmin: boolean;
+      /** Restaurant Id */
+      restaurant_id?: string | null;
+      role?: components["schemas"]["MemberRole"] | null;
+    };
+    /** AdminUserUpdate */
+    AdminUserUpdate: {
+      /** Full Name */
+      full_name?: string | null;
+      /** Phone */
+      phone?: string | null;
+      /** Is Active */
+      is_active?: boolean | null;
+      /** Is Superadmin */
+      is_superadmin?: boolean | null;
+    };
+    /**
+     * ApproveIn
+     * @description Valeurs reprises de la demande, modifiables par l'admin avant création.
+     */
+    ApproveIn: {
+      /** Name */
+      name?: string | null;
+      /**
+       * Currency
+       * @default XOF
+       */
+      currency: string;
+      /** City */
+      city?: string | null;
+      /** Cuisine */
+      cuisine?: string | null;
+      /** Review Note */
+      review_note?: string | null;
+    };
+    /** ApproveOut */
+    ApproveOut: {
+      request: components["schemas"]["RequestOut"];
+      /**
+       * Restaurant Id
+       * Format: uuid
+       */
+      restaurant_id: string;
+      /** Restaurant Slug */
+      restaurant_slug: string;
+      /** Owner Email */
+      owner_email: string;
+      /** Activation Url */
+      activation_url: string | null;
+      /** Email Sent */
+      email_sent: boolean | null;
+    };
+    /** AuditOut */
+    AuditOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Action */
+      action: string;
+      /** Actor Email */
+      actor_email: string | null;
+      /** Restaurant Name */
+      restaurant_name: string | null;
+      /** Entity */
+      entity: string | null;
+      /** Entity Id */
+      entity_id: string | null;
+      /** Data */
+      data: {
+        [key: string]: unknown;
+      };
+      /** Ip Address */
+      ip_address: string | null;
+    };
+    /** AvailabilityIn */
+    AvailabilityIn: {
+      /** Is Available */
+      is_available: boolean;
+    };
+    /** Body_upload_api_restaurants__restaurant_id__media_post */
+    Body_upload_api_restaurants__restaurant_id__media_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+      kind: components["schemas"]["MediaKind"];
+      /** Alt */
+      alt?: string | null;
+    };
+    /** Bucket */
+    Bucket: {
+      /** Key */
+      key: string;
+      /** Orders */
+      orders: number;
+      /** Revenue */
+      revenue: number;
+    };
+    /** CategoryIn */
+    CategoryIn: {
+      /** Name */
+      name: string;
+      /** Description */
+      description?: string | null;
+      /**
+       * Is Visible
+       * @default true
+       */
+      is_visible: boolean;
+    };
+    /** CategoryOut */
+    CategoryOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description: string | null;
+      /** Is Visible */
+      is_visible: boolean;
+      /** Sort Order */
+      sort_order: number;
+      /** Products */
+      products: components["schemas"]["ProductOut"][];
+    };
+    /** CategoryUpdate */
+    CategoryUpdate: {
+      /** Name */
+      name?: string | null;
+      /** Description */
+      description?: string | null;
+      /** Is Visible */
+      is_visible?: boolean | null;
+    };
+    /** ChangePasswordIn */
+    ChangePasswordIn: {
+      /** Current Password */
+      current_password: string;
+      /** New Password */
+      new_password: string;
+    };
+    /** CheckoutIn */
+    CheckoutIn: {
+      /** Success Url */
+      success_url: string;
+      /** Cancel Url */
+      cancel_url: string;
+    };
+    /** CheckoutSession */
+    CheckoutSession: {
+      /** Provider */
+      provider: string;
+      /** Redirect Url */
+      redirect_url: string;
+      /** External Ref */
+      external_ref: string;
+    };
+    /** DeleteRestaurantIn */
+    DeleteRestaurantIn: {
+      /** Confirm Slug */
+      confirm_slug: string;
+      /** Reason */
+      reason: string;
+    };
+    /** DeleteUserIn */
+    DeleteUserIn: {
+      /** Confirm Email */
+      confirm_email: string;
+    };
+    /** ForgotIn */
+    ForgotIn: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
+    };
+    /** HoursSlot */
+    HoursSlot: {
+      /** Day Of Week */
+      day_of_week: number;
+      /**
+       * Opens At
+       * Format: time
+       */
+      opens_at: string;
+      /**
+       * Closes At
+       * Format: time
+       */
+      closes_at: string;
+    };
+    /** ItemIn */
+    ItemIn: {
+      /**
+       * Product Id
+       * Format: uuid
+       */
+      product_id: string;
+      /** Quantity */
+      quantity: number;
+      /** Option Ids */
+      option_ids?: string[];
+      /** Note */
+      note?: string | null;
+    };
+    /** ItemOptionOut */
+    ItemOptionOut: {
+      /** Group Name */
+      group_name: string;
+      /** Option Name */
+      option_name: string;
+      /** Price Delta */
+      price_delta: number;
+    };
+    /** ItemOut */
+    ItemOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Product Id */
+      product_id: string | null;
+      /** Station Id */
+      station_id: string | null;
+      /** Product Name */
+      product_name: string;
+      /** Unit Price */
+      unit_price: number;
+      /** Quantity */
+      quantity: number;
+      /** Line Total */
+      line_total: number;
+      /** Note */
+      note: string | null;
+      /** Options */
+      options: components["schemas"]["ItemOptionOut"][];
+    };
+    /** LoginIn */
+    LoginIn: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Password */
+      password: string;
+    };
+    /**
+     * MediaKind
+     * @enum {string}
+     */
+    MediaKind: "LOGO" | "COVER" | "GALLERY" | "PRODUCT";
+    /** MediaOut */
+    MediaOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      kind: components["schemas"]["MediaKind"];
+      /** Url */
+      url: string;
+      /** Medium Url */
+      medium_url: string;
+      /** Thumb Url */
+      thumb_url: string;
+      /** Width */
+      width: number;
+      /** Height */
+      height: number;
+      /** Size Bytes */
+      size_bytes: number;
+      /** Alt */
+      alt: string | null;
+      /** Sort Order */
+      sort_order: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** MediaUpdate */
+    MediaUpdate: {
+      /** Alt */
+      alt?: string | null;
+      /** Sort Order */
+      sort_order?: number | null;
+    };
+    /** MemberCreate */
+    MemberCreate: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      role: components["schemas"]["MemberRole"];
+      /** Phone */
+      phone?: string | null;
+      /**
+       * Mode
+       * @default invite
+       * @enum {string}
+       */
+      mode: "invite" | "password";
+      /** Password */
+      password?: string | null;
+      /** Permissions */
+      permissions?: components["schemas"]["Perm"][] | null;
+      /** Station Id */
+      station_id?: string | null;
+    };
+    /** MemberOut */
+    MemberOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string;
+      /** Email */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /** Phone */
+      phone: string | null;
+      role: components["schemas"]["MemberRole"];
+      /** Is Active */
+      is_active: boolean;
+      /** Activated */
+      activated: boolean;
+      /** Must Change Password */
+      must_change_password: boolean;
+      /** Invite Status */
+      invite_status: ("PENDING" | "EXPIRED") | null;
+      /** Invite Expires At */
+      invite_expires_at: string | null;
+      /** Station Id */
+      station_id: string | null;
+      /** Station Name */
+      station_name: string | null;
+      /** Permissions */
+      permissions: components["schemas"]["Perm"][];
+      /** Permission Overrides */
+      permission_overrides: {
+        [key: string]: boolean;
+      };
+      /** Editable Profile */
+      editable_profile: boolean;
+      /** Last Login At */
+      last_login_at: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Activation Url */
+      activation_url: string | null;
+      /** Email Sent */
+      email_sent: boolean | null;
+    };
+    /**
+     * MemberRole
+     * @description Rôle d'un collaborateur dans UN restaurant (le super admin est un rôle de plateforme, voir User).
+     *
+     *     Hiérarchie (app/core/access.py, ROLE_RANK) : OWNER > ADMIN > MANAGER > rôles opérationnels.
+     * @enum {string}
+     */
+    MemberRole: "OWNER" | "ADMIN" | "MANAGER" | "CASHIER" | "WAITER" | "KITCHEN" | "STAFF";
+    /** MemberUpdate */
+    MemberUpdate: {
+      /** Full Name */
+      full_name?: string | null;
+      /** Phone */
+      phone?: string | null;
+      role?: components["schemas"]["MemberRole"] | null;
+      /** Is Active */
+      is_active?: boolean | null;
+      /** Station Id */
+      station_id?: string | null;
+      /** Permissions */
+      permissions?: components["schemas"]["Perm"][] | null;
+      /**
+       * Reset Permissions
+       * @default false
+       */
+      reset_permissions: boolean;
+    };
+    /** MembershipIn */
+    MembershipIn: {
+      /**
+       * Restaurant Id
+       * Format: uuid
+       */
+      restaurant_id: string;
+      role: components["schemas"]["MemberRole"];
+    };
+    /** MembershipOut */
+    MembershipOut: {
+      /**
+       * Restaurant Id
+       * Format: uuid
+       */
+      restaurant_id: string;
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Restaurant Slug */
+      restaurant_slug: string;
+      restaurant_status: components["schemas"]["RestaurantStatus"];
+      role: components["schemas"]["MemberRole"];
+      /** Permissions */
+      permissions: components["schemas"]["Perm"][];
+      /** Station Id */
+      station_id: string | null;
+      /** Access Blocked */
+      access_blocked: string | null;
+      /** Access Message */
+      access_message: string | null;
+    };
+    /** MembershipPatch */
+    MembershipPatch: {
+      role?: components["schemas"]["MemberRole"] | null;
+      /** Is Active */
+      is_active?: boolean | null;
+      /** Permissions */
+      permissions?: components["schemas"]["Perm"][] | null;
+      /**
+       * Reset Permissions
+       * @default false
+       */
+      reset_permissions: boolean;
+    };
+    /** MyOrder */
+    MyOrder: {
+      /** Reference */
+      reference: string;
+      /** Display Number */
+      display_number: string;
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Restaurant Slug */
+      restaurant_slug: string;
+      /** Total */
+      total: number;
+      /** Currency */
+      currency: string;
+      status: components["schemas"]["OrderStatus"];
+      payment_status: components["schemas"]["PaymentStatus"];
+      /** Tracking Token */
+      tracking_token: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** MyReservation */
+    MyReservation: {
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Restaurant Slug */
+      restaurant_slug: string;
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string;
+      /** Party Size */
+      party_size: number;
+      status: components["schemas"]["ReservationStatus"];
+      /** Tracking Token */
+      tracking_token: string;
+    };
+    /** NotificationOut */
+    NotificationOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Type */
+      type: string;
+      /** Title */
+      title: string;
+      /** Body */
+      body: string | null;
+      /** Link */
+      link: string | null;
+      /** Restaurant Id */
+      restaurant_id: string | null;
+      /** Data */
+      data: {
+        [key: string]: unknown;
+      };
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Read At */
+      read_at: string | null;
+    };
+    /** NotificationPage */
+    NotificationPage: {
+      /** Items */
+      items: components["schemas"]["NotificationOut"][];
+      /** Unread */
+      unread: number;
+    };
+    /** OptionGroupIn */
+    OptionGroupIn: {
+      /** Id */
+      id?: string | null;
+      /** Name */
+      name: string;
+      /**
+       * Min Choices
+       * @default 0
+       */
+      min_choices: number;
+      /**
+       * Max Choices
+       * @default 1
+       */
+      max_choices: number;
+      /** Options */
+      options: components["schemas"]["OptionIn"][];
+    };
+    /** OptionGroupOut */
+    OptionGroupOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Name */
+      name: string;
+      /** Min Choices */
+      min_choices: number;
+      /** Max Choices */
+      max_choices: number;
+      /** Options */
+      options: components["schemas"]["OptionOut"][];
+    };
+    /** OptionIn */
+    OptionIn: {
+      /** Id */
+      id?: string | null;
+      /** Name */
+      name: string;
+      /**
+       * Price Delta
+       * @default 0
+       */
+      price_delta: number;
+      /**
+       * Is Available
+       * @default true
+       */
+      is_available: boolean;
+    };
+    /** OptionOut */
+    OptionOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Name */
+      name: string;
+      /**
+       * Price Delta
+       * @default 0
+       */
+      price_delta: number;
+      /**
+       * Is Available
+       * @default true
+       */
+      is_available: boolean;
+    };
+    /**
+     * OrderChannel
+     * @enum {string}
+     */
+    OrderChannel: "QR" | "POS" | "ONLINE" | "KIOSK";
+    /** OrderOut */
+    OrderOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Restaurant Id
+       * Format: uuid
+       */
+      restaurant_id: string;
+      /** Reference */
+      reference: string;
+      /** Number */
+      number: number;
+      /** Display Number */
+      display_number: string;
+      channel: components["schemas"]["OrderChannel"];
+      service_mode: components["schemas"]["ServiceMode"];
+      status: components["schemas"]["OrderStatus"];
+      payment_status: components["schemas"]["PaymentStatus"];
+      payment_preference: components["schemas"]["PaymentPreference"] | null;
+      /** Customer Name */
+      customer_name: string | null;
+      /** Customer Phone */
+      customer_phone: string | null;
+      /** Table Label */
+      table_label: string | null;
+      /** Note */
+      note: string | null;
+      /** Currency */
+      currency: string;
+      /** Subtotal */
+      subtotal: number;
+      /** Discount */
+      discount: number;
+      /** Total */
+      total: number;
+      /** Tax Total */
+      tax_total: number;
+      /** Amount Paid */
+      amount_paid: number;
+      /** Tracking Token */
+      tracking_token: string;
+      /** Sent To Kitchen At */
+      sent_to_kitchen_at: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Preparing At */
+      preparing_at: string | null;
+      /** Ready At */
+      ready_at: string | null;
+      /** Completed At */
+      completed_at: string | null;
+      /** Cancelled At */
+      cancelled_at: string | null;
+      /** Cancel Reason */
+      cancel_reason: string | null;
+      /** Is Late */
+      is_late: boolean;
+      /** Allowed Transitions */
+      allowed_transitions: components["schemas"]["OrderStatus"][];
+      /** Items */
+      items: components["schemas"]["ItemOut"][];
+      /** Payments */
+      payments: components["schemas"]["PaymentBrief"][];
+    };
+    /** OrderPage */
+    OrderPage: {
+      /** Items */
+      items: components["schemas"]["OrderOut"][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Page Size */
+      page_size: number;
+    };
+    /**
+     * OrderStatus
+     * @enum {string}
+     */
+    OrderStatus: "NEW" | "PREPARING" | "READY" | "COMPLETED" | "CANCELLED";
+    /** Page[AdminRestaurant] */
+    Page_AdminRestaurant_: {
+      /** Items */
+      items: components["schemas"]["AdminRestaurant"][];
+      /** Total */
+      total: number;
+    };
+    /** Page[AdminUser] */
+    Page_AdminUser_: {
+      /** Items */
+      items: components["schemas"]["AdminUser"][];
+      /** Total */
+      total: number;
+    };
+    /** Page[AuditOut] */
+    Page_AuditOut_: {
+      /** Items */
+      items: components["schemas"]["AuditOut"][];
+      /** Total */
+      total: number;
+    };
+    /** PaymentBrief */
+    PaymentBrief: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Method */
+      method: string;
+      /** Status */
+      status: string;
+      /** Amount */
+      amount: number;
+      /** Amount Tendered */
+      amount_tendered: number | null;
+      /** Paid At */
+      paid_at: string | null;
+    };
+    /** PaymentIn */
+    PaymentIn: {
+      method: components["schemas"]["PaymentMethod"];
+      /**
+       * Amount
+       * @description Par défaut : le reste à payer
+       */
+      amount?: number | null;
+      /** Amount Tendered */
+      amount_tendered?: number | null;
+      /** External Ref */
+      external_ref?: string | null;
+    };
+    /**
+     * PaymentMethod
+     * @enum {string}
+     */
+    PaymentMethod: "CASH" | "CARD" | "ONLINE" | "MOBILE_MONEY" | "OTHER";
+    /**
+     * PaymentPreference
+     * @description Intention du client au moment de la commande (pas un paiement effectué).
+     * @enum {string}
+     */
+    PaymentPreference: "AT_COUNTER" | "ONLINE" | "ON_DELIVERY";
+    /**
+     * PaymentStatus
+     * @enum {string}
+     */
+    PaymentStatus: "UNPAID" | "PARTIALLY_PAID" | "PAID" | "REFUNDED";
+    /**
+     * Perm
+     * @enum {string}
+     */
+    Perm:
+      | "restaurant.view"
+      | "restaurant.edit"
+      | "settings.edit"
+      | "media.manage"
+      | "qr.manage"
+      | "menu.view"
+      | "menu.create"
+      | "menu.edit"
+      | "menu.delete"
+      | "prices.edit"
+      | "stock.manage"
+      | "orders.history"
+      | "orders.create"
+      | "orders.prepare"
+      | "orders.cancel"
+      | "payments.record"
+      | "payments.refund"
+      | "reservations.view"
+      | "reservations.manage"
+      | "stats.view"
+      | "team.view"
+      | "team.manage"
+      | "activity.view";
+    /** PermissionCatalog */
+    PermissionCatalog: {
+      /** Groups */
+      groups: components["schemas"]["PermissionGroup"][];
+      /** Role Defaults */
+      role_defaults: {
+        [key: string]: components["schemas"]["Perm"][];
+      };
+      /** Assignable Roles */
+      assignable_roles: components["schemas"]["MemberRole"][];
+    };
+    /** PermissionGroup */
+    PermissionGroup: {
+      /** Label */
+      label: string;
+      /** Items */
+      items: components["schemas"]["PermissionItem"][];
+    };
+    /** PermissionItem */
+    PermissionItem: {
+      key: components["schemas"]["Perm"];
+      /** Label */
+      label: string;
+    };
+    /** PlacedOrderOut */
+    PlacedOrderOut: {
+      /** Reference */
+      reference: string;
+      /** Display Number */
+      display_number: string;
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Restaurant Slug */
+      restaurant_slug: string;
+      channel: components["schemas"]["OrderChannel"];
+      service_mode: components["schemas"]["ServiceMode"];
+      status: components["schemas"]["OrderStatus"];
+      payment_status: components["schemas"]["PaymentStatus"];
+      payment_preference: components["schemas"]["PaymentPreference"] | null;
+      /** Customer Name */
+      customer_name: string | null;
+      /** Currency */
+      currency: string;
+      /** Total */
+      total: number;
+      /** Tax Total */
+      tax_total: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Preparing At */
+      preparing_at: string | null;
+      /** Ready At */
+      ready_at: string | null;
+      /** Completed At */
+      completed_at: string | null;
+      /** Cancelled At */
+      cancelled_at: string | null;
+      /** Items */
+      items: components["schemas"]["ItemOut"][];
+      /** Tracking Token */
+      tracking_token: string;
+    };
+    /** PlatformStats */
+    PlatformStats: {
+      /** Restaurants */
+      restaurants: number;
+      /** Active Restaurants */
+      active_restaurants: number;
+      /** Restaurants By Status */
+      restaurants_by_status: {
+        [key: string]: number;
+      };
+      /** Users */
+      users: number;
+      /** Users Active */
+      users_active: number;
+      /** Users Disabled */
+      users_disabled: number;
+      /** Users Pending */
+      users_pending: number;
+      /** Superadmins */
+      superadmins: number;
+      /** Orders Today */
+      orders_today: number;
+      /** Orders 30D */
+      orders_30d: number;
+      /** Revenue 30D By Currency */
+      revenue_30d_by_currency: {
+        [key: string]: number;
+      };
+      /** Qr Scans Total */
+      qr_scans_total: number;
+      /** Pending Requests */
+      pending_requests: number;
+    };
+    /** PosOrderIn */
+    PosOrderIn: {
+      service_mode: components["schemas"]["ServiceMode"];
+      /** Items */
+      items: components["schemas"]["ItemIn"][];
+      /** Customer Name */
+      customer_name?: string | null;
+      /** Customer Phone */
+      customer_phone?: string | null;
+      /** Table Label */
+      table_label?: string | null;
+      /** Note */
+      note?: string | null;
+      payment_preference?: components["schemas"]["PaymentPreference"] | null;
+      /** Idempotency Key */
+      idempotency_key?: string | null;
+      payment?: components["schemas"]["PosPaymentIn"] | null;
+    };
+    /** PosPaymentIn */
+    PosPaymentIn: {
+      /** Method */
+      method: string;
+      /** Amount Tendered */
+      amount_tendered?: number | null;
+      /** External Ref */
+      external_ref?: string | null;
+    };
+    /** ProductCreate */
+    ProductCreate: {
+      /** Name */
+      name: string;
+      /** Description */
+      description?: string | null;
+      /** Price */
+      price: number;
+      /** Promo Price */
+      promo_price?: number | null;
+      /** Promo Starts At */
+      promo_starts_at?: string | null;
+      /** Promo Ends At */
+      promo_ends_at?: string | null;
+      /**
+       * Is Available
+       * @default true
+       */
+      is_available: boolean;
+      /**
+       * Is Visible
+       * @default true
+       */
+      is_visible: boolean;
+      /**
+       * Is Featured
+       * @default false
+       */
+      is_featured: boolean;
+      /** Allergens */
+      allergens?: string[];
+      /** Tags */
+      tags?: string[];
+      /** Preparation Minutes */
+      preparation_minutes?: number | null;
+      /** Vat Rate Bp */
+      vat_rate_bp?: number | null;
+      /** Image Media Id */
+      image_media_id?: string | null;
+      /** Station Id */
+      station_id?: string | null;
+      /**
+       * Category Id
+       * Format: uuid
+       */
+      category_id: string;
+      /** Option Groups */
+      option_groups?: components["schemas"]["OptionGroupIn"][];
+    };
+    /** ProductOut */
+    ProductOut: {
+      /** Name */
+      name: string;
+      /** Description */
+      description: string | null;
+      /** Price */
+      price: number;
+      /** Promo Price */
+      promo_price: number | null;
+      /** Promo Starts At */
+      promo_starts_at: string | null;
+      /** Promo Ends At */
+      promo_ends_at: string | null;
+      /**
+       * Is Available
+       * @default true
+       */
+      is_available: boolean;
+      /**
+       * Is Visible
+       * @default true
+       */
+      is_visible: boolean;
+      /**
+       * Is Featured
+       * @default false
+       */
+      is_featured: boolean;
+      /** Allergens */
+      allergens: string[];
+      /** Tags */
+      tags: string[];
+      /** Preparation Minutes */
+      preparation_minutes: number | null;
+      /** Vat Rate Bp */
+      vat_rate_bp: number | null;
+      /** Image Media Id */
+      image_media_id: string | null;
+      /** Station Id */
+      station_id: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Category Id
+       * Format: uuid
+       */
+      category_id: string;
+      /** Sort Order */
+      sort_order: number;
+      /** Effective Price */
+      effective_price: number;
+      /** Image Url */
+      image_url: string | null;
+      /** Image Thumb Url */
+      image_thumb_url: string | null;
+      /** Option Groups */
+      option_groups: components["schemas"]["OptionGroupOut"][];
+    };
+    /** ProductUpdate */
+    ProductUpdate: {
+      /** Category Id */
+      category_id?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Description */
+      description?: string | null;
+      /** Price */
+      price?: number | null;
+      /** Promo Price */
+      promo_price?: number | null;
+      /** Promo Starts At */
+      promo_starts_at?: string | null;
+      /** Promo Ends At */
+      promo_ends_at?: string | null;
+      /** Is Available */
+      is_available?: boolean | null;
+      /** Is Visible */
+      is_visible?: boolean | null;
+      /** Is Featured */
+      is_featured?: boolean | null;
+      /** Allergens */
+      allergens?: string[] | null;
+      /** Tags */
+      tags?: string[] | null;
+      /** Preparation Minutes */
+      preparation_minutes?: number | null;
+      /** Vat Rate Bp */
+      vat_rate_bp?: number | null;
+      /** Image Media Id */
+      image_media_id?: string | null;
+      /** Station Id */
+      station_id?: string | null;
+      /** Option Groups */
+      option_groups?: components["schemas"]["OptionGroupIn"][] | null;
+    };
+    /** ProfileIn */
+    ProfileIn: {
+      /** Full Name */
+      full_name?: string | null;
+      /** Phone */
+      phone?: string | null;
+    };
+    /** PublicOrderIn */
+    PublicOrderIn: {
+      service_mode: components["schemas"]["ServiceMode"];
+      /** Items */
+      items: components["schemas"]["ItemIn"][];
+      /** Customer Name */
+      customer_name?: string | null;
+      /** Customer Phone */
+      customer_phone?: string | null;
+      /** Table Label */
+      table_label?: string | null;
+      /** Note */
+      note?: string | null;
+      payment_preference?: components["schemas"]["PaymentPreference"] | null;
+      /** Idempotency Key */
+      idempotency_key?: string | null;
+      /**
+       * Channel
+       * @default ONLINE
+       * @enum {string}
+       */
+      channel: "QR" | "ONLINE" | "KIOSK";
+    };
+    /** PublicReservationOut */
+    PublicReservationOut: {
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Restaurant Slug */
+      restaurant_slug: string;
+      /** Restaurant Timezone */
+      restaurant_timezone: string;
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string;
+      /** Party Size */
+      party_size: number;
+      /** Customer Name */
+      customer_name: string;
+      status: components["schemas"]["ReservationStatus"];
+      /** Staff Note */
+      staff_note: string | null;
+      /** Tracking Token */
+      tracking_token: string;
+      /** Can Cancel */
+      can_cancel: boolean;
+    };
+    /** PublicRestaurant */
+    PublicRestaurant: {
+      /** Slug */
+      slug: string;
+      /** Name */
+      name: string;
+      /** Cuisine */
+      cuisine: string | null;
+      /** City */
+      city: string | null;
+      /** Description */
+      description: string | null;
+      /** Logo Url */
+      logo_url: string | null;
+      /** Cover Url */
+      cover_url: string | null;
+      /** Is Open Now */
+      is_open_now: boolean;
+      /** Currency */
+      currency: string;
+      /** Phone */
+      phone: string | null;
+      /** Email */
+      email: string | null;
+      /** Website */
+      website: string | null;
+      /** Address Line */
+      address_line: string | null;
+      /** Postal Code */
+      postal_code: string | null;
+      /** Country */
+      country: string;
+      /** Latitude */
+      latitude: number | null;
+      /** Longitude */
+      longitude: number | null;
+      /** Accepting Orders */
+      accepting_orders: boolean;
+      /** Dine In Enabled */
+      dine_in_enabled: boolean;
+      /** Takeaway Enabled */
+      takeaway_enabled: boolean;
+      /** Require Prepayment */
+      require_prepayment: boolean;
+      /** Reservations Enabled */
+      reservations_enabled: boolean;
+      /** Timezone */
+      timezone: string;
+      /** Opening Hours */
+      opening_hours: components["schemas"]["HoursSlot"][];
+      /** Gallery */
+      gallery: components["schemas"]["MediaOut"][];
+      /** Menu */
+      menu: components["schemas"]["CategoryOut"][];
+    };
+    /** PublicRestaurantCard */
+    PublicRestaurantCard: {
+      /** Slug */
+      slug: string;
+      /** Name */
+      name: string;
+      /** Cuisine */
+      cuisine: string | null;
+      /** City */
+      city: string | null;
+      /** Description */
+      description: string | null;
+      /** Logo Url */
+      logo_url: string | null;
+      /** Cover Url */
+      cover_url: string | null;
+      /** Is Open Now */
+      is_open_now: boolean;
+      /** Currency */
+      currency: string;
+    };
+    /** QrOut */
+    QrOut: {
+      /** Code */
+      code: string;
+      /** Url */
+      url: string;
+      /** Is Active */
+      is_active: boolean;
+      /** Foreground Color */
+      foreground_color: string;
+      /** Background Color */
+      background_color: string;
+      /** With Logo */
+      with_logo: boolean;
+      /** Scan Count */
+      scan_count: number;
+      /** Last Scanned At */
+      last_scanned_at: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Regenerated At */
+      regenerated_at: string | null;
+    };
+    /** QrResolveOut */
+    QrResolveOut: {
+      /** Active */
+      active: boolean;
+      /** Restaurant Slug */
+      restaurant_slug: string | null;
+      /** Restaurant Name */
+      restaurant_name: string | null;
+    };
+    /** QrUpdate */
+    QrUpdate: {
+      /** Is Active */
+      is_active?: boolean | null;
+      /** Foreground Color */
+      foreground_color?: string | null;
+      /** Background Color */
+      background_color?: string | null;
+      /** With Logo */
+      with_logo?: boolean | null;
+    };
+    /** RefundIn */
+    RefundIn: {
+      /** Reason */
+      reason: string;
+    };
+    /** RejectIn */
+    RejectIn: {
+      /** Review Note */
+      review_note: string;
+    };
+    /** ReorderIn */
+    ReorderIn: {
+      /** Ids */
+      ids: string[];
+    };
+    /** RequestIn */
+    RequestIn: {
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Contact Name */
+      contact_name: string;
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Phone */
+      phone?: string | null;
+      /** City */
+      city?: string | null;
+      /** Cuisine */
+      cuisine?: string | null;
+      /** Message */
+      message?: string | null;
+    };
+    /** RequestOut */
+    RequestOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Contact Name */
+      contact_name: string;
+      /** Email */
+      email: string;
+      /** Phone */
+      phone: string | null;
+      /** City */
+      city: string | null;
+      /** Cuisine */
+      cuisine: string | null;
+      /** Message */
+      message: string | null;
+      status: components["schemas"]["RequestStatus"];
+      /** Review Note */
+      review_note: string | null;
+      /** Reviewed At */
+      reviewed_at: string | null;
+      /** Restaurant Id */
+      restaurant_id: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** RequestPage */
+    RequestPage: {
+      /** Items */
+      items: components["schemas"]["RequestOut"][];
+      /** Total */
+      total: number;
+      /** Pending */
+      pending: number;
+    };
+    /** RequestReceipt */
+    RequestReceipt: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      status: components["schemas"]["RequestStatus"];
+    };
+    /**
+     * RequestStatus
+     * @enum {string}
+     */
+    RequestStatus: "PENDING" | "APPROVED" | "REJECTED";
+    /** ReservationIn */
+    ReservationIn: {
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string;
+      /** Party Size */
+      party_size: number;
+      /** Customer Name */
+      customer_name: string;
+      /** Customer Phone */
+      customer_phone: string;
+      /** Customer Email */
+      customer_email?: string | null;
+      /** Note */
+      note?: string | null;
+    };
+    /** ReservationOut */
+    ReservationOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string;
+      /** Party Size */
+      party_size: number;
+      /** Customer Name */
+      customer_name: string;
+      /** Customer Phone */
+      customer_phone: string;
+      /** Customer Email */
+      customer_email: string | null;
+      /** Note */
+      note: string | null;
+      status: components["schemas"]["ReservationStatus"];
+      /** Staff Note */
+      staff_note: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Allowed Transitions */
+      allowed_transitions: components["schemas"]["ReservationStatus"][];
+    };
+    /**
+     * ReservationStatus
+     * @enum {string}
+     */
+    ReservationStatus: "PENDING" | "CONFIRMED" | "DECLINED" | "CANCELLED" | "SEATED" | "NO_SHOW";
+    /** RestaurantList */
+    RestaurantList: {
+      /** Items */
+      items: components["schemas"]["PublicRestaurantCard"][];
+      /** Total */
+      total: number;
+    };
+    /** RestaurantOut */
+    RestaurantOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Slug */
+      slug: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description: string | null;
+      /** Cuisine */
+      cuisine: string | null;
+      /** Phone */
+      phone: string | null;
+      /** Email */
+      email: string | null;
+      /** Website */
+      website: string | null;
+      /** Address Line */
+      address_line: string | null;
+      /** City */
+      city: string | null;
+      /** Postal Code */
+      postal_code: string | null;
+      /** Country */
+      country: string;
+      /** Latitude */
+      latitude: number | null;
+      /** Longitude */
+      longitude: number | null;
+      /** Currency */
+      currency: string;
+      /** Timezone */
+      timezone: string;
+      /** Vat Rate Bp */
+      vat_rate_bp: number;
+      status: components["schemas"]["RestaurantStatus"];
+      /** Accepting Orders */
+      accepting_orders: boolean;
+      /** Dine In Enabled */
+      dine_in_enabled: boolean;
+      /** Takeaway Enabled */
+      takeaway_enabled: boolean;
+      /** Require Prepayment */
+      require_prepayment: boolean;
+      /** Late After Minutes */
+      late_after_minutes: number;
+      /** Reservations Enabled */
+      reservations_enabled: boolean;
+      /** Logo Media Id */
+      logo_media_id: string | null;
+      /** Cover Media Id */
+      cover_media_id: string | null;
+      /** Logo Url */
+      logo_url: string | null;
+      /** Cover Url */
+      cover_url: string | null;
+      /** Opening Hours */
+      opening_hours: components["schemas"]["HoursSlot"][];
+      /** Is Open Now */
+      is_open_now: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /**
+     * RestaurantStatus
+     * @enum {string}
+     */
+    RestaurantStatus: "PENDING" | "ACTIVE" | "SUSPENDED" | "CLOSED";
+    /** RestaurantUpdate */
+    RestaurantUpdate: {
+      /** Description */
+      description?: string | null;
+      /** Cuisine */
+      cuisine?: string | null;
+      /** Phone */
+      phone?: string | null;
+      /** Email */
+      email?: string | null;
+      /** Website */
+      website?: string | null;
+      /** Address Line */
+      address_line?: string | null;
+      /** City */
+      city?: string | null;
+      /** Postal Code */
+      postal_code?: string | null;
+      /** Latitude */
+      latitude?: number | null;
+      /** Longitude */
+      longitude?: number | null;
+      /** Name */
+      name?: string | null;
+      /** Slug */
+      slug?: string | null;
+      /** Timezone */
+      timezone?: string | null;
+      /** Vat Rate Bp */
+      vat_rate_bp?: number | null;
+      /** Accepting Orders */
+      accepting_orders?: boolean | null;
+      /** Dine In Enabled */
+      dine_in_enabled?: boolean | null;
+      /** Takeaway Enabled */
+      takeaway_enabled?: boolean | null;
+      /** Require Prepayment */
+      require_prepayment?: boolean | null;
+      /** Late After Minutes */
+      late_after_minutes?: number | null;
+      /** Reservations Enabled */
+      reservations_enabled?: boolean | null;
+      /** Logo Media Id */
+      logo_media_id?: string | null;
+      /** Cover Media Id */
+      cover_media_id?: string | null;
+    };
+    /** RevenueByRestaurant */
+    RevenueByRestaurant: {
+      /**
+       * Restaurant Id
+       * Format: uuid
+       */
+      restaurant_id: string;
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Currency */
+      currency: string;
+      /** Revenue */
+      revenue: number;
+      /** Orders */
+      orders: number;
+    };
+    /** RevenuePoint */
+    RevenuePoint: {
+      /**
+       * Day
+       * Format: date
+       */
+      day: string;
+      /** Currency */
+      currency: string;
+      /** Revenue */
+      revenue: number;
+      /** Orders */
+      orders: number;
+    };
+    /** RevenueReport */
+    RevenueReport: {
+      /** Days */
+      days: number;
+      /** Series */
+      series: components["schemas"]["RevenuePoint"][];
+      /** Totals By Currency */
+      totals_by_currency: {
+        [key: string]: number;
+      };
+      /** By Restaurant */
+      by_restaurant: components["schemas"]["RevenueByRestaurant"][];
+    };
+    /**
+     * ServiceMode
+     * @enum {string}
+     */
+    ServiceMode: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
+    /** SessionOut */
+    SessionOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** User Agent */
+      user_agent: string | null;
+      /** Ip Address */
+      ip_address: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Last Used At
+       * Format: date-time
+       */
+      last_used_at: string;
+      /** Current */
+      current: boolean;
+    };
+    /** SetPasswordIn */
+    SetPasswordIn: {
+      /** Token */
+      token: string;
+      /** Password */
+      password: string;
+    };
+    /** SignupIn */
+    SignupIn: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /** Phone */
+      phone?: string | null;
+    };
+    /**
+     * StaffReservationIn
+     * @description Réservation saisie par le restaurant (ex. par téléphone) : confirmée directement.
+     */
+    StaffReservationIn: {
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string;
+      /** Party Size */
+      party_size: number;
+      /** Customer Name */
+      customer_name: string;
+      /** Customer Phone */
+      customer_phone: string;
+      /** Customer Email */
+      customer_email?: string | null;
+      /** Note */
+      note?: string | null;
+    };
+    /** StaffRow */
+    StaffRow: {
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string;
+      /** Email */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      role: components["schemas"]["MemberRole"];
+      status: components["schemas"]["UserStatus"];
+    };
+    /** StationIn */
+    StationIn: {
+      /** Name */
+      name: string;
+      /**
+       * Sort Order
+       * @default 0
+       */
+      sort_order: number;
+    };
+    /** StationOut */
+    StationOut: {
+      /** Name */
+      name: string;
+      /**
+       * Sort Order
+       * @default 0
+       */
+      sort_order: number;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+    };
+    /** StatsOut */
+    StatsOut: {
+      /** Currency */
+      currency: string;
+      /**
+       * Date From
+       * Format: date
+       */
+      date_from: string;
+      /**
+       * Date To
+       * Format: date
+       */
+      date_to: string;
+      /** Orders */
+      orders: number;
+      /** Cancelled */
+      cancelled: number;
+      /** Revenue */
+      revenue: number;
+      /** Tax */
+      tax: number;
+      /** Average Ticket */
+      average_ticket: number;
+      /** Avg Preparation Minutes */
+      avg_preparation_minutes: number | null;
+      /** By Channel */
+      by_channel: components["schemas"]["Bucket"][];
+      /** By Service Mode */
+      by_service_mode: components["schemas"]["Bucket"][];
+      /** By Day */
+      by_day: components["schemas"]["Bucket"][];
+      /** By Hour */
+      by_hour: components["schemas"]["Bucket"][];
+      /** Top Products */
+      top_products: components["schemas"]["TopProduct"][];
+      /** Qr Scans Total */
+      qr_scans_total: number;
+    };
+    /** TokenInfo */
+    TokenInfo: {
+      /** Email */
+      email: string;
+      /** Full Name */
+      full_name: string;
+    };
+    /** TokenOut */
+    TokenOut: {
+      /** Access Token */
+      access_token: string;
+      /**
+       * Token Type
+       * @default bearer
+       */
+      token_type: string;
+      /** Expires In */
+      expires_in: number;
+      user: components["schemas"]["UserOut"];
+    };
+    /** TopProduct */
+    TopProduct: {
+      /** Name */
+      name: string;
+      /** Quantity */
+      quantity: number;
+      /** Revenue */
+      revenue: number;
+    };
+    /** TrackingOut */
+    TrackingOut: {
+      /** Reference */
+      reference: string;
+      /** Display Number */
+      display_number: string;
+      /** Restaurant Name */
+      restaurant_name: string;
+      /** Restaurant Slug */
+      restaurant_slug: string;
+      channel: components["schemas"]["OrderChannel"];
+      service_mode: components["schemas"]["ServiceMode"];
+      status: components["schemas"]["OrderStatus"];
+      payment_status: components["schemas"]["PaymentStatus"];
+      payment_preference: components["schemas"]["PaymentPreference"] | null;
+      /** Customer Name */
+      customer_name: string | null;
+      /** Currency */
+      currency: string;
+      /** Total */
+      total: number;
+      /** Tax Total */
+      tax_total: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Preparing At */
+      preparing_at: string | null;
+      /** Ready At */
+      ready_at: string | null;
+      /** Completed At */
+      completed_at: string | null;
+      /** Cancelled At */
+      cancelled_at: string | null;
+      /** Items */
+      items: components["schemas"]["ItemOut"][];
+    };
+    /** UserOut */
+    UserOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Email */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /** Phone */
+      phone: string | null;
+      /** Is Superadmin */
+      is_superadmin: boolean;
+      account_type: components["schemas"]["AccountType"];
+      /** Must Change Password */
+      must_change_password: boolean;
+      /** Memberships */
+      memberships: components["schemas"]["MembershipOut"][];
+    };
+    /**
+     * UserStatus
+     * @enum {string}
+     */
+    UserStatus: "PENDING" | "ACTIVE" | "DISABLED";
+    /** ValidationError */
+    ValidationError: {
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+    };
+    /** StatusIn */
+    app__modules__admin__StatusIn: {
+      status: components["schemas"]["RestaurantStatus"];
+      /** Reason */
+      reason?: string | null;
+    };
+    /** StatusIn */
+    app__modules__orders__StatusIn: {
+      status: components["schemas"]["OrderStatus"];
+      /** Reason */
+      reason?: string | null;
+    };
+    /** StatusIn */
+    app__modules__reservations__StatusIn: {
+      status: components["schemas"]["ReservationStatus"];
+      /** Staff Note */
+      staff_note?: string | null;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    login_api_auth_login_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    refresh_api_auth_refresh_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenOut"];
-                };
-            };
-        };
-    };
-    logout_api_auth_logout_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    me_api_auth_me_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserOut"];
-                };
-            };
-        };
-    };
-    update_profile_api_auth_me_patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProfileIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    change_password_api_auth_change_password_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangePasswordIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_api_restaurants_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RestaurantCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RestaurantOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_one_api_restaurants__restaurant_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RestaurantOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_one_api_restaurants__restaurant_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RestaurantUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RestaurantOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_hours_api_restaurants__restaurant_id__opening_hours_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["HoursSlot"][];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HoursSlot"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_stations_api_restaurants__restaurant_id__stations_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StationOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_station_api_restaurants__restaurant_id__stations_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StationIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_station_api_restaurants__restaurant_id__stations__station_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                station_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_media_api_restaurants__restaurant_id__media_get: {
-        parameters: {
-            query?: {
-                kind?: components["schemas"]["MediaKind"] | null;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MediaOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    upload_api_restaurants__restaurant_id__media_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_api_restaurants__restaurant_id__media_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MediaOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_media_api_restaurants__restaurant_id__media__media_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_media_api_restaurants__restaurant_id__media__media_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MediaUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MediaOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_menu_api_restaurants__restaurant_id__menu_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_category_api_restaurants__restaurant_id__menu_categories_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CategoryIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_category_api_restaurants__restaurant_id__menu_categories__category_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_category_api_restaurants__restaurant_id__menu_categories__category_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CategoryUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reorder_categories_api_restaurants__restaurant_id__menu_categories_order_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReorderIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reorder_products_api_restaurants__restaurant_id__menu_categories__category_id__products_order_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReorderIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_product_api_restaurants__restaurant_id__menu_products_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProductCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProductOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_product_api_restaurants__restaurant_id__menu_products__product_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                product_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_product_api_restaurants__restaurant_id__menu_products__product_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                product_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProductUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProductOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_availability_api_restaurants__restaurant_id__menu_products__product_id__availability_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                product_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AvailabilityIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProductOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_qr_api_restaurants__restaurant_id__qr_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QrOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_qr_api_restaurants__restaurant_id__qr_patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QrUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QrOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    qr_png_api_restaurants__restaurant_id__qr_image_png_get: {
-        parameters: {
-            query?: {
-                size?: number;
-                download?: boolean;
-                /** @description Étiquette de table encodée dans le QR (ex. T5) */
-                table?: string | null;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/png": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    qr_svg_api_restaurants__restaurant_id__qr_image_svg_get: {
-        parameters: {
-            query?: {
-                /** @description Étiquette de table encodée dans le QR (ex. T5) */
-                table?: string | null;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/svg+xml": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    qr_pdf_api_restaurants__restaurant_id__qr_print_pdf_get: {
-        parameters: {
-            query?: {
-                page?: "A4" | "A6";
-                /** @description Étiquette de table encodée dans le QR (ex. T5) */
-                table?: string | null;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/pdf": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    regenerate_api_admin_restaurants__restaurant_id__qr_regenerate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QrOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    resolve_api_public_qr__code__get: {
-        parameters: {
-            query?: {
-                count?: boolean;
-            };
-            header?: never;
-            path: {
-                code: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QrResolveOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_orders_api_restaurants__restaurant_id__orders_get: {
-        parameters: {
-            query?: {
-                status?: components["schemas"]["OrderStatus"][] | null;
-                channel?: components["schemas"]["OrderChannel"] | null;
-                payment_status?: components["schemas"]["PaymentStatus"] | null;
-                day?: string | null;
-                q?: string | null;
-                page?: number;
-                page_size?: number;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderPage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_pos_order_api_restaurants__restaurant_id__orders_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PosOrderIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    active_orders_api_restaurants__restaurant_id__orders_active_get: {
-        parameters: {
-            query?: {
-                station_id?: string | null;
-                include_completed_minutes?: number;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    awaiting_payment_api_restaurants__restaurant_id__orders_awaiting_payment_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    transition_rules_api_restaurants__restaurant_id__orders_transitions_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: components["schemas"]["OrderStatus"][];
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_order_api_restaurants__restaurant_id__orders__order_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                order_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_status_api_restaurants__restaurant_id__orders__order_id__status_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                order_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["app__modules__orders__StatusIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_payment_api_restaurants__restaurant_id__orders__order_id__payments_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                order_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PaymentIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    refund_api_restaurants__restaurant_id__orders__order_id__payments__payment_id__refund_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                order_id: string;
-                payment_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefundIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_restaurants_api_public_restaurants_get: {
-        parameters: {
-            query?: {
-                q?: string | null;
-                city?: string | null;
-                page?: number;
-                page_size?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RestaurantList"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_restaurant_api_public_restaurants__slug__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicRestaurant"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_order_api_public_restaurants__slug__orders_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PublicOrderIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlacedOrderOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    track_api_public_orders__token__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrackingOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    checkout_api_public_orders__token__checkout_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CheckoutIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CheckoutSession"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-            /** @description Paiement en ligne non configuré */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    stats_api_restaurants__restaurant_id__stats_get: {
-        parameters: {
-            query?: {
-                from?: string | null;
-                to?: string | null;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StatsOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    platform_stats_api_admin_stats_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlatformStats"];
-                };
-            };
-        };
-    };
-    list_restaurants_api_admin_restaurants_get: {
-        parameters: {
-            query?: {
-                q?: string | null;
-                page?: number;
-                page_size?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Page_AdminRestaurant_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_api_admin_restaurants_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminRestaurantCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminRestaurant"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_status_api_admin_restaurants__restaurant_id__status_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["app__modules__admin__StatusIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminRestaurant"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_users_api_admin_users_get: {
-        parameters: {
-            query?: {
-                q?: string | null;
-                status?: components["schemas"]["UserStatus"] | null;
-                account_type?: components["schemas"]["AccountType"] | null;
-                restaurant_id?: string | null;
-                page?: number;
-                page_size?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Page_AdminUser_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_user_api_admin_users_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminUserCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_user_api_admin_users__user_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_user_api_admin_users__user_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminUserUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    resend_activation_api_admin_users__user_id__resend_activation_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_membership_api_admin_users__user_id__memberships_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MembershipIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_membership_api_admin_users__user_id__memberships__membership_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-                membership_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_membership_api_admin_users__user_id__memberships__membership_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-                membership_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MembershipPatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    revenue_api_admin_revenue_get: {
-        parameters: {
-            query?: {
-                days?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RevenueReport"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    restaurant_detail_api_admin_restaurants__restaurant_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminRestaurantDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    audit_logs_api_admin_audit_logs_get: {
-        parameters: {
-            query?: {
-                action?: string | null;
-                restaurant_id?: string | null;
-                page?: number;
-                page_size?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Page_AuditOut_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    submit_api_public_restaurant_requests_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RequestIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RequestReceipt"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_requests_api_admin_restaurant_requests_get: {
-        parameters: {
-            query?: {
-                status?: components["schemas"]["RequestStatus"] | null;
-                page?: number;
-                page_size?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RequestPage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    approve_api_admin_restaurant_requests__request_id__approve_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                request_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApproveIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApproveOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reject_api_admin_restaurant_requests__request_id__reject_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                request_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RejectIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RequestOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    activation_info_api_auth_activation__token__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenInfo"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    activate_api_auth_activate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetPasswordIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    forgot_password_api_auth_forgot_password_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ForgotIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reset_info_api_auth_reset__token__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenInfo"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reset_password_api_auth_reset_password_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetPasswordIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    customer_signup_api_auth_signup_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SignupIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_sessions_api_auth_sessions_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionOut"][];
-                };
-            };
-        };
-    };
-    revoke_session_api_auth_sessions__family_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                family_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    revoke_other_sessions_api_auth_sessions_revoke_others_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    my_orders_api_me_orders_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyOrder"][];
-                };
-            };
-        };
-    };
-    my_reservations_api_me_reservations_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyReservation"][];
-                };
-            };
-        };
-    };
-    list_notifications_api_notifications_get: {
-        parameters: {
-            query?: {
-                unread_only?: boolean;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotificationPage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    mark_read_api_notifications__notification_id__read_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                notification_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotificationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    mark_all_read_api_notifications_read_all_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    request_reservation_api_public_restaurants__slug__reservations_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReservationIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicReservationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    track_reservation_api_public_reservations__token__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicReservationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    cancel_reservation_api_public_reservations__token__cancel_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicReservationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_reservations_api_restaurants__restaurant_id__reservations_get: {
-        parameters: {
-            query?: {
-                status?: components["schemas"]["ReservationStatus"] | null;
-                /** @description Jour (heure locale du restaurant) */
-                day?: string | null;
-                upcoming?: boolean;
-            };
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReservationOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_reservation_api_restaurants__restaurant_id__reservations_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StaffReservationIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReservationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_status_api_restaurants__restaurant_id__reservations__reservation_id__status_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                reservation_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["app__modules__reservations__StatusIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReservationOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    permission_catalog_api_restaurants__restaurant_id__permissions_catalog_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PermissionCatalog"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_members_api_restaurants__restaurant_id__members_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_member_api_restaurants__restaurant_id__members_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MemberCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                member_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_member_api_restaurants__restaurant_id__members__member_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                member_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_member_api_restaurants__restaurant_id__members__member_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                member_id: string;
-                restaurant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MemberUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    health_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
+  login_api_auth_login_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TokenOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  refresh_api_auth_refresh_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TokenOut"];
+        };
+      };
+    };
+  };
+  logout_api_auth_logout_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  me_api_auth_me_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserOut"];
+        };
+      };
+    };
+  };
+  update_profile_api_auth_me_patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProfileIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_password_api_auth_change_password_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangePasswordIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_one_api_restaurants__restaurant_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RestaurantOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_one_api_restaurants__restaurant_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RestaurantUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RestaurantOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  set_hours_api_restaurants__restaurant_id__opening_hours_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["HoursSlot"][];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HoursSlot"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_stations_api_restaurants__restaurant_id__stations_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StationOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_station_api_restaurants__restaurant_id__stations_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["StationIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StationOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_station_api_restaurants__restaurant_id__stations__station_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        station_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_media_api_restaurants__restaurant_id__media_get: {
+    parameters: {
+      query?: {
+        kind?: components["schemas"]["MediaKind"] | null;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MediaOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  upload_api_restaurants__restaurant_id__media_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_upload_api_restaurants__restaurant_id__media_post"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MediaOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_media_api_restaurants__restaurant_id__media__media_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        media_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_media_api_restaurants__restaurant_id__media__media_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        media_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MediaUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MediaOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_menu_api_restaurants__restaurant_id__menu_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CategoryOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_category_api_restaurants__restaurant_id__menu_categories_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CategoryIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CategoryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_category_api_restaurants__restaurant_id__menu_categories__category_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        category_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_category_api_restaurants__restaurant_id__menu_categories__category_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        category_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CategoryUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CategoryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reorder_categories_api_restaurants__restaurant_id__menu_categories_order_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ReorderIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reorder_products_api_restaurants__restaurant_id__menu_categories__category_id__products_order_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        category_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ReorderIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_product_api_restaurants__restaurant_id__menu_products_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProductCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProductOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_product_api_restaurants__restaurant_id__menu_products__product_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        product_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_product_api_restaurants__restaurant_id__menu_products__product_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        product_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProductUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProductOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  set_availability_api_restaurants__restaurant_id__menu_products__product_id__availability_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        product_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AvailabilityIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProductOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_qr_api_restaurants__restaurant_id__qr_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["QrOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_qr_api_restaurants__restaurant_id__qr_patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["QrUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["QrOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  qr_png_api_restaurants__restaurant_id__qr_image_png_get: {
+    parameters: {
+      query?: {
+        size?: number;
+        download?: boolean;
+        /** @description Étiquette de table encodée dans le QR (ex. T5) */
+        table?: string | null;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "image/png": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  qr_svg_api_restaurants__restaurant_id__qr_image_svg_get: {
+    parameters: {
+      query?: {
+        /** @description Étiquette de table encodée dans le QR (ex. T5) */
+        table?: string | null;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "image/svg+xml": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  qr_pdf_api_restaurants__restaurant_id__qr_print_pdf_get: {
+    parameters: {
+      query?: {
+        page?: "A4" | "A6";
+        /** @description Étiquette de table encodée dans le QR (ex. T5) */
+        table?: string | null;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pdf": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  regenerate_api_admin_restaurants__restaurant_id__qr_regenerate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["QrOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  resolve_api_public_qr__code__get: {
+    parameters: {
+      query?: {
+        count?: boolean;
+      };
+      header?: never;
+      path: {
+        code: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["QrResolveOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_orders_api_restaurants__restaurant_id__orders_get: {
+    parameters: {
+      query?: {
+        status?: components["schemas"]["OrderStatus"][] | null;
+        channel?: components["schemas"]["OrderChannel"] | null;
+        payment_status?: components["schemas"]["PaymentStatus"] | null;
+        day?: string | null;
+        q?: string | null;
+        page?: number;
+        page_size?: number;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderPage"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_pos_order_api_restaurants__restaurant_id__orders_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PosOrderIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  active_orders_api_restaurants__restaurant_id__orders_active_get: {
+    parameters: {
+      query?: {
+        station_id?: string | null;
+        include_completed_minutes?: number;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  awaiting_payment_api_restaurants__restaurant_id__orders_awaiting_payment_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  transition_rules_api_restaurants__restaurant_id__orders_transitions_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            [key: string]: components["schemas"]["OrderStatus"][];
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_order_api_restaurants__restaurant_id__orders__order_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        order_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  set_status_api_restaurants__restaurant_id__orders__order_id__status_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        order_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["app__modules__orders__StatusIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  add_payment_api_restaurants__restaurant_id__orders__order_id__payments_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        order_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PaymentIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  refund_api_restaurants__restaurant_id__orders__order_id__payments__payment_id__refund_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        order_id: string;
+        payment_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RefundIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OrderOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_restaurants_api_public_restaurants_get: {
+    parameters: {
+      query?: {
+        q?: string | null;
+        city?: string | null;
+        page?: number;
+        page_size?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RestaurantList"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_restaurant_api_public_restaurants__slug__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicRestaurant"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_order_api_public_restaurants__slug__orders_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PublicOrderIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlacedOrderOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  track_api_public_orders__token__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TrackingOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  checkout_api_public_orders__token__checkout_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CheckoutIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CheckoutSession"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Paiement en ligne non configuré */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  stats_api_restaurants__restaurant_id__stats_get: {
+    parameters: {
+      query?: {
+        from?: string | null;
+        to?: string | null;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StatsOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  platform_stats_api_admin_stats_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformStats"];
+        };
+      };
+    };
+  };
+  list_restaurants_api_admin_restaurants_get: {
+    parameters: {
+      query?: {
+        q?: string | null;
+        status?: components["schemas"]["RestaurantStatus"] | null;
+        page?: number;
+        page_size?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_AdminRestaurant_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_api_admin_restaurants_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdminRestaurantCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminRestaurant"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  set_status_api_admin_restaurants__restaurant_id__status_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["app__modules__admin__StatusIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminRestaurant"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  restaurant_detail_api_admin_restaurants__restaurant_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminRestaurantDetail"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_restaurant_api_admin_restaurants__restaurant_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeleteRestaurantIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_users_api_admin_users_get: {
+    parameters: {
+      query?: {
+        q?: string | null;
+        status?: components["schemas"]["UserStatus"] | null;
+        account_type?: components["schemas"]["AccountType"] | null;
+        restaurant_id?: string | null;
+        page?: number;
+        page_size?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_AdminUser_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_user_api_admin_users_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdminUserCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_user_api_admin_users__user_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_user_api_admin_users__user_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeleteUserIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_user_api_admin_users__user_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdminUserUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  admin_password_reset_api_admin_users__user_id__password_reset_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  resend_activation_api_admin_users__user_id__resend_activation_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  add_membership_api_admin_users__user_id__memberships_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MembershipIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  remove_membership_api_admin_users__user_id__memberships__membership_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+        membership_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_membership_api_admin_users__user_id__memberships__membership_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+        membership_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MembershipPatch"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminUser"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  revenue_api_admin_revenue_get: {
+    parameters: {
+      query?: {
+        days?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RevenueReport"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  audit_logs_api_admin_audit_logs_get: {
+    parameters: {
+      query?: {
+        action?: string | null;
+        restaurant_id?: string | null;
+        actor_id?: string | null;
+        entity_id?: string | null;
+        page?: number;
+        page_size?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_AuditOut_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  submit_api_public_restaurant_requests_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RequestIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RequestReceipt"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_requests_api_admin_restaurant_requests_get: {
+    parameters: {
+      query?: {
+        status?: components["schemas"]["RequestStatus"] | null;
+        page?: number;
+        page_size?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RequestPage"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  approve_api_admin_restaurant_requests__request_id__approve_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        request_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ApproveIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApproveOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reject_api_admin_restaurant_requests__request_id__reject_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        request_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RejectIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RequestOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  activation_info_api_auth_activation__token__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TokenInfo"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  activate_api_auth_activate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SetPasswordIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TokenOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  forgot_password_api_auth_forgot_password_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ForgotIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reset_info_api_auth_reset__token__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TokenInfo"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reset_password_api_auth_reset_password_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SetPasswordIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  customer_signup_api_auth_signup_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SignupIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_sessions_api_auth_sessions_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SessionOut"][];
+        };
+      };
+    };
+  };
+  revoke_session_api_auth_sessions__family_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        family_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  revoke_other_sessions_api_auth_sessions_revoke_others_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  my_orders_api_me_orders_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MyOrder"][];
+        };
+      };
+    };
+  };
+  my_reservations_api_me_reservations_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MyReservation"][];
+        };
+      };
+    };
+  };
+  list_notifications_api_notifications_get: {
+    parameters: {
+      query?: {
+        unread_only?: boolean;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NotificationPage"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  mark_read_api_notifications__notification_id__read_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        notification_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NotificationOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  mark_all_read_api_notifications_read_all_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  request_reservation_api_public_restaurants__slug__reservations_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ReservationIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicReservationOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  track_reservation_api_public_reservations__token__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicReservationOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  cancel_reservation_api_public_reservations__token__cancel_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicReservationOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_reservations_api_restaurants__restaurant_id__reservations_get: {
+    parameters: {
+      query?: {
+        status?: components["schemas"]["ReservationStatus"] | null;
+        /** @description Jour (heure locale du restaurant) */
+        day?: string | null;
+        upcoming?: boolean;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReservationOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_reservation_api_restaurants__restaurant_id__reservations_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["StaffReservationIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReservationOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  set_status_api_restaurants__restaurant_id__reservations__reservation_id__status_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        reservation_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["app__modules__reservations__StatusIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReservationOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  permission_catalog_api_restaurants__restaurant_id__permissions_catalog_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PermissionCatalog"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_members_api_restaurants__restaurant_id__members_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MemberOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  add_member_api_restaurants__restaurant_id__members_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MemberCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MemberOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  resend_invite_api_restaurants__restaurant_id__members__member_id__resend_invite_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        member_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MemberOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  remove_member_api_restaurants__restaurant_id__members__member_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        member_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_member_api_restaurants__restaurant_id__members__member_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        member_id: string;
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MemberUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MemberOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  restaurant_activity_api_restaurants__restaurant_id__activity_get: {
+    parameters: {
+      query?: {
+        action?: string | null;
+        page?: number;
+        page_size?: number;
+      };
+      header?: never;
+      path: {
+        restaurant_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ActivityPage"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  health_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
 }

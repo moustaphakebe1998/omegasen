@@ -10,13 +10,15 @@ async def test_create_restaurant_defaults_and_owner(owner, restaurant):
     assert me["memberships"][0]["role"] == "OWNER"
 
 
-async def test_slug_unique(admin, restaurant):
-    r = await admin.post("/api/restaurants", json={"name": "Chez Awa"})
+async def test_slug_unique(admin, owner, restaurant):
+    r = await admin.post("/api/admin/restaurants", json={"name": "Chez Awa", "owner_email": owner.user["email"]})
     assert r.json()["slug"] == "chez-awa-2"
 
 
-async def test_only_superadmin_creates_restaurants(owner, restaurant):
-    assert (await owner.post("/api/restaurants", json={"name": "Mon resto"})).status_code == 403
+async def test_only_superadmin_creates_restaurants(owner, admin, restaurant):
+    # L'ancienne route (le super admin devenait propriétaire) n'existe plus.
+    assert (await admin.post("/api/restaurants", json={"name": "Mon resto"})).status_code in (404, 405)
+    assert (await owner.post("/api/restaurants", json={"name": "Mon resto"})).status_code in (404, 405)
     r = await owner.post("/api/admin/restaurants", json={"name": "Mon resto", "owner_email": "x@example.com"})
     assert r.status_code == 403
 

@@ -13,6 +13,7 @@ import {
   UtensilsCrossed,
   Users,
   Wallet,
+  ScrollText,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
@@ -43,6 +44,7 @@ function manageNav(rid: string): ManageNavItem[] {
     { href: `/manage/${rid}/settings`, label: "Établissement", icon: Settings, perm: "restaurant.view" },
     { href: `/manage/${rid}/team`, label: "Équipe", icon: Users, perm: "team.view" },
     { href: `/manage/${rid}/stats`, label: "Statistiques", icon: BarChart3, perm: "stats.view" },
+    { href: `/manage/${rid}/activity`, label: "Activité", icon: ScrollText, perm: "activity.view" },
   ];
 }
 

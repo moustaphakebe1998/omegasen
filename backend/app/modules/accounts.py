@@ -18,10 +18,11 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.access import account_block
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.deps import CurrentUser, Session
-from app.core.errors import Conflict, NotFound
+from app.core.errors import Conflict, Forbidden, NotFound
 from app.core.mailer import build, send_email
 from app.core.ratelimit import client_ip, hit
 from app.core.schema import Schema
@@ -256,6 +257,12 @@ async def activate(body: SetPasswordIn, request: Request, response: Response, se
             body=user.email,
             link="/admin/users",
         )
+    block = await account_block(session, user)
+    if block:
+        # Mot de passe enregistré, mais pas de session tant que le restaurant n'est pas accessible.
+        await session.commit()
+        await publish_pending(session)
+        raise Forbidden(block.message, code=block.code, details=block.details())
     out = await issue_tokens(session, request, response, user)  # commit inclus
     await publish_pending(session)
     return out

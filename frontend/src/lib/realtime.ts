@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { getAccessToken, refreshSession } from "@/lib/api/client";
+import { getAccessToken, notifyAccessChanged, refreshSession } from "@/lib/api/client";
 
 export type RealtimeEvent = { event: string; data?: unknown };
 export type ConnectionState = "connecting" | "open" | "closed";
@@ -51,6 +51,8 @@ function useSocket(
       ws.onmessage = (msg) => {
         try {
           const parsed = JSON.parse(msg.data) as RealtimeEvent;
+          // Droits modifiés (statut du restaurant, rôle, permissions) : le profil est rechargé partout.
+          if (parsed.event === "access.changed" || parsed.event === "access.revoked") notifyAccessChanged();
           if (parsed.event !== "pong" && parsed.event !== "heartbeat") handlers.current.onEvent(parsed);
         } catch {
           /* message ignoré */
@@ -110,11 +112,7 @@ export function useOrderSocket(trackingToken: string | null, onEvent: (e: Realti
  * Canal personnel de l'utilisateur connecté (notifications). `userId` null = pas de connexion.
  * Événement poussé : `{"event": "notification.created", "data": NotificationOut}`.
  */
-export function useUserSocket(
-  userId: string | null,
-  onEvent: (e: RealtimeEvent) => void,
-  onReconnect?: () => void,
-) {
+export function useUserSocket(userId: string | null, onEvent: (e: RealtimeEvent) => void, onReconnect?: () => void) {
   const [builder, setBuilder] = useState<(() => Promise<string | null>) | null>(null);
   useEffect(() => {
     if (!userId) {

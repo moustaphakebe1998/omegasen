@@ -13,21 +13,38 @@ export type Catalog = Schemas["PermissionCatalog"];
 export type Station = Schemas["StationOut"];
 export type { Perm };
 
-export const ALL_ROLES: MemberRole[] = ["OWNER", "MANAGER", "CASHIER", "KITCHEN"];
+export const ALL_ROLES: MemberRole[] = ["OWNER", "ADMIN", "MANAGER", "CASHIER", "WAITER", "KITCHEN", "STAFF"];
+
+/** Rang de chaque rôle (miroir de ROLE_RANK, app/core/access.py) : on ne gère que les rangs inférieurs. */
+export const ROLE_RANK: Record<MemberRole, number> = {
+  OWNER: 100,
+  ADMIN: 80,
+  MANAGER: 60,
+  CASHIER: 20,
+  WAITER: 20,
+  KITCHEN: 20,
+  STAFF: 10,
+};
 
 /** Description courte de chaque rôle (sélecteurs de rôle). */
 export const ROLE_DESCRIPTION: Record<MemberRole, string> = {
-  OWNER: "Tous les droits, toujours, y compris la gestion des administrateurs.",
-  MANAGER: "Gère le restaurant au quotidien : menu, commandes, réservations, équipe.",
+  OWNER: "Tous les droits sur le restaurant, toujours, y compris nommer d'autres propriétaires.",
+  ADMIN: "Tous les droits par défaut (ajustables) ; gère l'équipe sauf les propriétaires et administrateurs.",
+  MANAGER: "Gestion quotidienne : commandes, menu, ruptures, réservations, statistiques et personnel.",
   CASHIER: "Prend les commandes au guichet, encaisse et suit les réservations.",
+  WAITER: "Prend les commandes par table, suit le service ; n'encaisse pas.",
   KITCHEN: "Prépare les commandes sur l'écran cuisine et signale les ruptures.",
+  STAFF: "Consultation uniquement ; les autres droits s'accordent individuellement.",
 };
 
 export const ROLE_TONE: Record<MemberRole, string> = {
   OWNER: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200",
+  ADMIN: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200",
   MANAGER: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200",
   CASHIER: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200",
+  WAITER: "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-200",
   KITCHEN: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+  STAFF: "bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200",
 };
 
 export type MemberStatus = "ACTIVE" | "DISABLED" | "PENDING" | "EXPIRED";
@@ -107,7 +124,9 @@ export function teamAccess(user: User | null, rid: string, role: MemberRole | nu
     canManage: can(user, rid, "team.manage"),
     /** Un propriétaire accorde tout ; les autres seulement ce qu'ils ont eux-mêmes. */
     canGrant: (p: Perm) => isOwner || myPerms.has(p),
-    grantableRoles: isOwner ? ALL_ROLES : ALL_ROLES.filter((r) => r !== "OWNER"),
+    /** Hiérarchie : un propriétaire gère tout le monde, les autres seulement les rangs inférieurs. */
+    canManageRole: (r: MemberRole) => isOwner || (!!role && ROLE_RANK[r] < ROLE_RANK[role]),
+    grantableRoles: isOwner ? ALL_ROLES : ALL_ROLES.filter((r) => !!role && ROLE_RANK[r] < ROLE_RANK[role]),
   };
 }
 

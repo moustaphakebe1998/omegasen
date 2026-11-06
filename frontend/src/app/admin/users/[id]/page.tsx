@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Ban,
+  KeyRound,
   Loader2,
   Mail,
   Pause,
@@ -12,12 +13,14 @@ import {
   Save,
   ShieldCheck,
   ShieldOff,
+  ScrollText,
   Store,
   Trash2,
   UserCheck,
+  UserX,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -46,7 +49,7 @@ import { cn } from "@/lib/utils";
 
 type AdminUser = Schemas["AdminUser"];
 type Membership = Schemas["AdminMembership"];
-type Confirm = "deactivate" | "activate" | "grant" | "revoke" | { remove: Membership } | null;
+type Confirm = "deactivate" | "activate" | "grant" | "revoke" | "reset" | { remove: Membership } | null;
 
 export default function AdminUserPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +58,10 @@ export default function AdminUserPage() {
   const key = ["admin", "users", "detail", id];
   const [activation, setActivation] = useState<AdminUser | null>(null);
   const [confirm, setConfirm] = useState<Confirm>(null);
+  const [resetLink, setResetLink] = useState<AdminUser | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState("");
+  const router = useRouter();
 
   const user = useQuery({
     queryKey: key,
@@ -89,6 +96,36 @@ export default function AdminUserPage() {
       apply(u);
       setActivation(u);
       toast.success(u.email_sent ? "Email d'activation renvoyé" : "Nouveau lien d'activation généré");
+    },
+    onError: (e) => toast.error(adminErrorMessage(e)),
+  });
+
+  const reset = useMutation({
+    mutationFn: () =>
+      unwrap(api.POST("/api/admin/users/{user_id}/password-reset", { params: { path: { user_id: id } } })),
+    onSuccess: (u) => {
+      apply(u);
+      setConfirm(null);
+      setResetLink(u);
+      toast.success(
+        u.email_sent ? "Lien de réinitialisation envoyé, sessions fermées" : "Lien de réinitialisation généré",
+      );
+    },
+    onError: (e) => toast.error(adminErrorMessage(e)),
+  });
+
+  const remove = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.DELETE("/api/admin/users/{user_id}", {
+          params: { path: { user_id: id } },
+          body: { confirm_email: deleteEmail.trim() },
+        }),
+      ),
+    onSuccess: () => {
+      toast.success("Compte supprimé");
+      void qc.invalidateQueries({ queryKey: ["admin"] });
+      router.push("/admin/users");
     },
     onError: (e) => toast.error(adminErrorMessage(e)),
   });
@@ -246,9 +283,51 @@ export default function AdminUserPage() {
               </Button>
             }
           />
+          {u.status !== "PENDING" && (
+            <AccessRow
+              icon={KeyRound}
+              tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+              title="Mot de passe"
+              text="Envoie un lien de réinitialisation (vous ne voyez ni ne choisissez jamais le mot de passe) et ferme ses sessions."
+              action={
+                <Button variant="outline" size="sm" disabled={reset.isPending} onClick={() => setConfirm("reset")}>
+                  Réinitialiser
+                </Button>
+              }
+            />
+          )}
+          {resetLink && (
+            <ActivationResult url={resetLink.activation_url} email={resetLink.email} emailSent={resetLink.email_sent} />
+          )}
+          <AccessRow
+            icon={UserX}
+            tone="bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+            title="Supprimer le compte"
+            text="Commandes, paiements et journal sont conservés (auteur anonymisé). Impossible pour le dernier propriétaire d'un restaurant."
+            action={
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive"
+                disabled={self}
+                onClick={() => {
+                  setDeleteEmail("");
+                  setDeleteOpen(true);
+                }}
+              >
+                <Trash2 aria-hidden /> Supprimer
+              </Button>
+            }
+          />
+          <Button asChild variant="link" className="h-auto px-0">
+            <Link href={`/admin/audit?actor_id=${u.id}`}>
+              <ScrollText aria-hidden /> Actions effectuées par ce compte
+            </Link>
+          </Button>
           {self && (
             <p className="text-xs text-muted-foreground">
-              Par sécurité, vous ne pouvez ni désactiver votre propre compte ni retirer vos propres droits.
+              Par sécurité, vous ne pouvez ni désactiver, ni supprimer votre propre compte, ni retirer vos propres
+              droits.
             </p>
           )}
         </section>
@@ -265,6 +344,38 @@ export default function AdminUserPage() {
         destructive
         pending={patch.isPending}
         onConfirm={() => patch.mutate({ is_active: false })}
+      />
+      <ConfirmDialog
+        open={confirm === "reset"}
+        onOpenChange={(o) => !o && setConfirm(null)}
+        title={`Réinitialiser le mot de passe de ${u.full_name} ?`}
+        description="Un lien à usage unique est envoyé à son adresse ; toutes ses sessions sont fermées immédiatement. Son mot de passe actuel reste valable tant qu'elle n'en a pas choisi un nouveau."
+        confirmLabel="Envoyer le lien"
+        pending={reset.isPending}
+        onConfirm={() => reset.mutate()}
+      />
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={`Supprimer le compte de ${u.full_name} ?`}
+        description={
+          <span className="block space-y-2">
+            <span className="block">
+              Action définitive. Saisissez <strong>{u.email}</strong> pour confirmer.
+            </span>
+            <Input
+              aria-label="Email de confirmation"
+              value={deleteEmail}
+              onChange={(e) => setDeleteEmail(e.target.value)}
+              autoComplete="off"
+            />
+          </span>
+        }
+        confirmLabel="Supprimer définitivement"
+        destructive
+        pending={remove.isPending}
+        confirmDisabled={deleteEmail.trim().toLowerCase() !== u.email}
+        onConfirm={() => remove.mutate()}
       />
       <ConfirmDialog
         open={confirm === "activate"}
@@ -471,12 +582,29 @@ function MembershipsCard({
                     Accès suspendu
                   </Badge>
                 )}
+                {m.restaurant_status && m.restaurant_status !== "ACTIVE" && (
+                  <Badge variant="outline" className="mt-1 ml-1">
+                    Restaurant{" "}
+                    {m.restaurant_status === "SUSPENDED"
+                      ? "suspendu"
+                      : m.restaurant_status === "CLOSED"
+                        ? "fermé"
+                        : "en attente"}
+                  </Badge>
+                )}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {m.permissions.length} permission(s)
+                  {Object.keys(m.permission_overrides ?? {}).length > 0 && " · ajustées"} ·{" "}
+                  <Link href={`/manage/${m.restaurant_id}/team`} className="underline-offset-4 hover:underline">
+                    Gérer les permissions
+                  </Link>
+                </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Select
                   value={m.role}
                   disabled={busyId === m.id}
-                  onValueChange={(v) => update.mutate({ m, body: { role: v as MemberRole } })}
+                  onValueChange={(v) => update.mutate({ m, body: { role: v as MemberRole, reset_permissions: false } })}
                 >
                   <SelectTrigger className="w-full min-[420px]:w-56" aria-label={`Rôle chez ${m.restaurant_name}`}>
                     <SelectValue />
@@ -493,7 +621,7 @@ function MembershipsCard({
                   variant="outline"
                   size="sm"
                   disabled={busyId === m.id}
-                  onClick={() => update.mutate({ m, body: { is_active: !m.is_active } })}
+                  onClick={() => update.mutate({ m, body: { is_active: !m.is_active, reset_permissions: false } })}
                 >
                   {busyId === m.id ? (
                     <Loader2 className="animate-spin" />
