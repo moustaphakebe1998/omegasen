@@ -3,17 +3,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, QrCode, Store } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
 import { EmptyState, Logo } from "@/components/shared/app-shell";
 import { Button } from "@/components/ui/button";
 import { ApiError, api, errorMessage, unwrap } from "@/lib/api/client";
+import { tableParam } from "@/lib/tables";
 
 /** Point d'entrée des QR Codes : /q/{code} → page du restaurant (canal QR). */
 export default function QrEntryPage() {
+  return (
+    <Suspense>
+      <QrEntry />
+    </Suspense>
+  );
+}
+
+function QrEntry() {
   const { code } = useParams<{ code: string }>();
   const router = useRouter();
+  // QR d'une table (`/q/{code}?table=T5`) : la table est transmise à la page du restaurant.
+  const table = tableParam(useSearchParams().get("table"));
 
   const query = useQuery({
     queryKey: ["qr", code],
@@ -23,8 +34,8 @@ export default function QrEntryPage() {
 
   const target = query.data?.active && query.data.restaurant_slug ? query.data.restaurant_slug : null;
   useEffect(() => {
-    if (target) router.replace(`/r/${target}?src=qr`);
-  }, [target, router]);
+    if (target) router.replace(`/r/${target}?src=qr${table ? `&table=${encodeURIComponent(table)}` : ""}`);
+  }, [target, table, router]);
 
   let content: React.ReactNode;
   if (query.isPending || target) {

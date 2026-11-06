@@ -55,10 +55,13 @@ export function RestaurantView({
   slug,
   initialData,
   channel,
+  table = null,
 }: {
   slug: string;
   initialData?: Restaurant;
   channel: PublicChannel;
+  /** Table issue du QR Code de table (`/q/{code}?table=T5`), préremplie dans la commande. */
+  table?: string | null;
 }) {
   const kiosk = channel === "KIOSK";
   const router = useRouter();
@@ -244,6 +247,7 @@ export function RestaurantView({
     step,
     onStepChange: setStep,
     kiosk,
+    table,
     canOrder,
     blockedReason,
     pending: order.isPending,

@@ -103,8 +103,10 @@ export function homeFor(user: User): string {
   if (user.is_superadmin && user.memberships.length === 0) return "/admin";
   if (user.memberships.length === 1) {
     const m = user.memberships[0];
-    if (m.role === "KITCHEN") return `/kitchen/${m.restaurant_id}`;
-    if (m.role === "CASHIER") return `/pos/${m.restaurant_id}`;
+    // Écran dédié seulement si les permissions effectives le permettent (un collaborateur restreint par le
+    // propriétaire, ex. cuisine sans « préparer les commandes », arrive sur la vue d'ensemble).
+    if (m.role === "KITCHEN" && m.permissions.includes("orders.prepare")) return `/kitchen/${m.restaurant_id}`;
+    if (m.role === "CASHIER" && m.permissions.includes("orders.create")) return `/pos/${m.restaurant_id}`;
     return `/manage/${m.restaurant_id}`;
   }
   return "/manage";

@@ -38,6 +38,10 @@ from app.modules.restaurants import unique_qr_code
 router = APIRouter(tags=["qrcodes"])
 
 HEX = r"^#[0-9A-Fa-f]{6}$"
+# Étiquette de table (ex. « T5 », « Terrasse-2 ») : le QR d'une table encode `/q/{code}?table=T5`
+# et la table est préremplie lors de la commande. Le code permanent du restaurant reste le même.
+TABLE = r"^[A-Za-z0-9_-]{1,20}$"
+TableParam = Query(default=None, pattern=TABLE, description="Étiquette de table encodée dans le QR (ex. T5)")
 
 
 class QrOut(Schema):
@@ -60,8 +64,9 @@ class QrUpdate(Schema):
     with_logo: bool | None = None
 
 
-def qr_url(code: str) -> str:
-    return f"{get_settings().public_app_url.rstrip('/')}/q/{code}"
+def qr_url(code: str, table: str | None = None) -> str:
+    url = f"{get_settings().public_app_url.rstrip('/')}/q/{code}"
+    return f"{url}?table={table}" if table else url
 
 
 def qr_out(q: QrCode) -> QrOut:
@@ -156,7 +161,16 @@ def render_svg(data: str, *, fg: str, bg: str, logo: bytes | None) -> bytes:
     return "".join(parts).encode()
 
 
-def render_pdf(data: str, *, name: str, fg: str, bg: str, logo: bytes | None, page: Literal["A4", "A6"]) -> bytes:
+def render_pdf(
+    data: str,
+    *,
+    name: str,
+    fg: str,
+    bg: str,
+    logo: bytes | None,
+    page: Literal["A4", "A6"],
+    table: str | None = None,
+) -> bytes:
     png = render_png(data, fg=fg, bg=bg, logo=logo, size=1200)
     size = A4 if page == "A4" else A6
     w, h = size
@@ -168,7 +182,8 @@ def render_pdf(data: str, *, name: str, fg: str, bg: str, logo: bytes | None, pa
     c.setFont("Helvetica-Bold", 30 * scale)
     c.drawCentredString(w / 2, h - 80 * scale, name[:40])
     c.setFont("Helvetica", 18 * scale)
-    c.drawCentredString(w / 2, h - 115 * scale, "Scannez pour consulter le menu et commander")
+    subtitle = "Scannez pour consulter le menu et commander"
+    c.drawCentredString(w / 2, h - 115 * scale, f"Table {table} · {subtitle}" if table else subtitle)
     c.drawImage(ImageReader(io.BytesIO(png)), (w - qr_side) / 2, (h - qr_side) / 2 - 20 * scale, qr_side, qr_side)
     c.setFont("Helvetica", 11 * scale)
     c.setFillColorRGB(0.4, 0.4, 0.4)
@@ -186,9 +201,10 @@ async def _logo_bytes(session, restaurant: Restaurant, q: QrCode) -> bytes | Non
     return await get_object(media.variants["medium"]) if media else None
 
 
-def _filename(restaurant: Restaurant, ext: str) -> str:
+def _filename(restaurant: Restaurant, ext: str, table: str | None = None) -> str:
     safe = re.sub(r"[^a-z0-9-]", "", restaurant.slug)
-    return f'attachment; filename="qrcode-{safe}.{ext}"'
+    suffix = f"-table-{re.sub(r'[^A-Za-z0-9-]', '', table)}" if table else ""
+    return f'attachment; filename="qrcode-{safe}{suffix}.{ext}"'
 
 
 # ── Routes restaurateur ─────────────────────────────────
@@ -221,39 +237,49 @@ async def update_qr(body: QrUpdate, ctx: Can(Perm.QR_MANAGE), session: Session):
 
 
 @router.get(PREFIX + "/image.png", response_class=Response, responses={200: {"content": {"image/png": {}}}})
-async def qr_png(ctx: AnyMember, session: Session, size: int = Query(1024, ge=128, le=4096), download: bool = False):
+async def qr_png(
+    ctx: AnyMember,
+    session: Session,
+    size: int = Query(1024, ge=128, le=4096),
+    download: bool = False,
+    table: str | None = TableParam,
+):
     q = await _get_qr(session, ctx.restaurant.id)
     logo = await _logo_bytes(session, ctx.restaurant, q)
     png = await run_in_threadpool(
-        render_png, qr_url(q.code), fg=q.foreground_color, bg=q.background_color, logo=logo, size=size
+        render_png, qr_url(q.code, table), fg=q.foreground_color, bg=q.background_color, logo=logo, size=size
     )
-    headers = {"Content-Disposition": _filename(ctx.restaurant, "png")} if download else {}
+    headers = {"Content-Disposition": _filename(ctx.restaurant, "png", table)} if download else {}
     return Response(png, media_type="image/png", headers=headers)
 
 
 @router.get(PREFIX + "/image.svg", response_class=Response, responses={200: {"content": {"image/svg+xml": {}}}})
-async def qr_svg(ctx: AnyMember, session: Session):
+async def qr_svg(ctx: AnyMember, session: Session, table: str | None = TableParam):
     q = await _get_qr(session, ctx.restaurant.id)
     logo = await _logo_bytes(session, ctx.restaurant, q)
-    svg = await run_in_threadpool(render_svg, qr_url(q.code), fg=q.foreground_color, bg=q.background_color, logo=logo)
-    return Response(svg, media_type="image/svg+xml", headers={"Content-Disposition": _filename(ctx.restaurant, "svg")})
+    svg = await run_in_threadpool(
+        render_svg, qr_url(q.code, table), fg=q.foreground_color, bg=q.background_color, logo=logo
+    )
+    headers = {"Content-Disposition": _filename(ctx.restaurant, "svg", table)}
+    return Response(svg, media_type="image/svg+xml", headers=headers)
 
 
 @router.get(PREFIX + "/print.pdf", response_class=Response, responses={200: {"content": {"application/pdf": {}}}})
-async def qr_pdf(ctx: AnyMember, session: Session, page: Literal["A4", "A6"] = "A4"):
+async def qr_pdf(ctx: AnyMember, session: Session, page: Literal["A4", "A6"] = "A4", table: str | None = TableParam):
     q = await _get_qr(session, ctx.restaurant.id)
     logo = await _logo_bytes(session, ctx.restaurant, q)
     pdf = await run_in_threadpool(
         render_pdf,
-        qr_url(q.code),
+        qr_url(q.code, table),
         name=ctx.restaurant.name,
         fg=q.foreground_color,
         bg=q.background_color,
         logo=logo,
         page=page,
+        table=table,
     )
     return Response(
-        pdf, media_type="application/pdf", headers={"Content-Disposition": _filename(ctx.restaurant, "pdf")}
+        pdf, media_type="application/pdf", headers={"Content-Disposition": _filename(ctx.restaurant, "pdf", table)}
     )
 
 

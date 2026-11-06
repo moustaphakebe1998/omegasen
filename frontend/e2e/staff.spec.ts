@@ -39,9 +39,18 @@ test("espace restaurateur : navigation et page QR Code", async ({ page }) => {
   await expect(page.getByText(qrCode).first()).toBeVisible();
 });
 
-test("isolation : un employé de cuisine n'accède pas à l'espace gérant", async ({ page }) => {
+test("isolation : un employé de cuisine ne voit que les rubriques permises par ses droits", async ({ page }) => {
   const { rid } = await demoRestaurant();
   await login(page, "cuisine@demo.example.com");
   await page.goto(`/manage/${rid}`);
-  await expect(page.getByText(/Accès refusé/)).toBeVisible();
+  // L'espace de gestion est filtré par permission (comme l'API) : ni commandes, ni équipe, ni statistiques.
+  const nav = page.getByRole("navigation", { name: "Navigation principale" });
+  await expect(nav.getByRole("link", { name: "Menu" })).toBeVisible();
+  for (const link of ["Commandes", "Réservations", "Équipe", "Statistiques"]) {
+    await expect(nav.getByRole("link", { name: link })).toHaveCount(0);
+  }
+  for (const section of ["orders", "team", "stats"]) {
+    await page.goto(`/manage/${rid}/${section}`);
+    await expect(page.getByText("Accès non autorisé").first()).toBeVisible();
+  }
 });

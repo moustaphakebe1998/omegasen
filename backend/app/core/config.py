@@ -75,3 +75,16 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def allow_test_email_domain() -> None:
+    """Hors production : accepte les adresses en `.test` (domaine réservé RFC 2606).
+
+    `email-validator` refuse par défaut les domaines à usage spécial ; les comptes de démonstration
+    (ex. owner@baobab.test, voir docs/BAOBAB_TEST_ENVIRONMENT.md) doivent pourtant pouvoir se connecter.
+    En production, la règle par défaut reste appliquée : ces adresses ne peuvent pas exister.
+    """
+    import email_validator
+
+    if not get_settings().is_production and "test" in email_validator.SPECIAL_USE_DOMAIN_NAMES:
+        email_validator.SPECIAL_USE_DOMAIN_NAMES.remove("test")

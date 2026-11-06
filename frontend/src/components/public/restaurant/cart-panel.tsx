@@ -19,6 +19,7 @@ export function CartPanel({
   step,
   onStepChange,
   kiosk,
+  table = null,
   canOrder,
   blockedReason,
   pending,
@@ -29,6 +30,7 @@ export function CartPanel({
   step: CartStep;
   onStepChange: (s: CartStep) => void;
   kiosk: boolean;
+  table?: string | null;
   canOrder: boolean;
   blockedReason: string | null;
   pending: boolean;
@@ -57,6 +59,7 @@ export function CartPanel({
           restaurant={restaurant}
           total={cart.total}
           kiosk={kiosk}
+          table={table}
           pending={pending}
           disabled={!canOrder}
           onSubmit={onSubmit}

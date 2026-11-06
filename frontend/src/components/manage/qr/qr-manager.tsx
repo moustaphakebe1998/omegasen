@@ -21,6 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { api, errorMessage, fetchBlob, type Schemas, unwrap } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/format";
 import { actionErrorMessage } from "@/lib/permissions";
+import { tableParam } from "@/lib/tables";
 import { cn } from "@/lib/utils";
 
 type Qr = Schemas["QrOut"];
@@ -267,6 +268,8 @@ export function QrManager({ rid }: { rid: string }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [table, setTable] = useState("");
+  const tableLabel = tableParam(table.trim());
   const [copied, setCopied] = useState(false);
   const previewRef = useRef<string | null>(null);
 
@@ -465,6 +468,65 @@ export function QrManager({ rid }: { rid: string }) {
                 <Button className="mt-1" disabled={!!busy} onClick={print}>
                   {spin("print", Printer)}
                   Imprimer l&apos;affiche
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>QR Code d&apos;une table</CardTitle>
+                <CardDescription>
+                  Même code permanent, avec la table en plus : le client qui le scanne commande sur place et sa table
+                  est déjà renseignée.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="qr-table">Table</Label>
+                  <Input
+                    id="qr-table"
+                    placeholder="ex. T5"
+                    maxLength={20}
+                    value={table}
+                    onChange={(e) => setTable(e.target.value)}
+                    aria-invalid={table.trim() !== "" && !tableLabel}
+                    aria-describedby="qr-table-help"
+                  />
+                  <p id="qr-table-help" className="text-xs text-muted-foreground">
+                    Lettres, chiffres, « - » ou « _ » (20 caractères maximum).
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!!busy || !tableLabel}
+                  onClick={() =>
+                    tableLabel &&
+                    download(
+                      "table-a6",
+                      `print.pdf?page=A6&table=${encodeURIComponent(tableLabel)}`,
+                      `chevalet-qr-${slug}-table-${tableLabel}.pdf`,
+                    )
+                  }
+                >
+                  {spin("table-a6", FileText)}
+                  Chevalet de table A6 (PDF)
+                </Button>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!!busy || !tableLabel}
+                  onClick={() =>
+                    tableLabel &&
+                    download(
+                      "table-png",
+                      `image.png?size=2048&download=true&table=${encodeURIComponent(tableLabel)}`,
+                      `qr-${slug}-table-${tableLabel}.png`,
+                    )
+                  }
+                >
+                  {spin("table-png", Download)}
+                  QR Code de la table (PNG)
                 </Button>
               </CardContent>
             </Card>

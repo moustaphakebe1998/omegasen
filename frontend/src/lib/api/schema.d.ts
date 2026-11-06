@@ -4357,6 +4357,8 @@ export interface operations {
             query?: {
                 size?: number;
                 download?: boolean;
+                /** @description Étiquette de table encodée dans le QR (ex. T5) */
+                table?: string | null;
             };
             header?: never;
             path: {
@@ -4388,7 +4390,10 @@ export interface operations {
     };
     qr_svg_api_restaurants__restaurant_id__qr_image_svg_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Étiquette de table encodée dans le QR (ex. T5) */
+                table?: string | null;
+            };
             header?: never;
             path: {
                 restaurant_id: string;
@@ -4421,6 +4426,8 @@ export interface operations {
         parameters: {
             query?: {
                 page?: "A4" | "A6";
+                /** @description Étiquette de table encodée dans le QR (ex. T5) */
+                table?: string | null;
             };
             header?: never;
             path: {

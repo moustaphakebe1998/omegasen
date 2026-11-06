@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import { type PublicChannel, RestaurantView } from "@/components/public/restaurant/restaurant-view";
 import type { Schemas } from "@/lib/api/client";
+import { tableParam } from "@/lib/tables";
 
 const BACKEND = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8100";
 
@@ -56,5 +57,8 @@ export default async function RestaurantPage({
 
   const channel: PublicChannel = first(sp.mode) === "kiosk" ? "KIOSK" : first(sp.src) === "qr" ? "QR" : "ONLINE";
 
-  return <RestaurantView key={slug} slug={slug} initialData={restaurant} channel={channel} />;
+  // QR d'une table : `?table=T5` préremplit la table (consommation sur place).
+  const table = channel === "KIOSK" ? null : tableParam(sp.table);
+
+  return <RestaurantView key={slug} slug={slug} initialData={restaurant} channel={channel} table={table} />;
 }

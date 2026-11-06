@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from starlette.concurrency import run_in_threadpool
 
-from app.core.config import get_settings
+from app.core.config import allow_test_email_domain, get_settings
 from app.core.db import engine
 from app.core.errors import register_error_handlers
 from app.core.logging import RequestLogMiddleware, configure_logging
@@ -56,6 +56,7 @@ async def lifespan(_: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    allow_test_email_domain()
     app = FastAPI(
         title="OmegaSen API",
         version="3.0.0",

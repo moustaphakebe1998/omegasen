@@ -37,6 +37,7 @@ export function CheckoutForm({
   restaurant: r,
   total,
   kiosk,
+  table = null,
   pending,
   disabled,
   onSubmit,
@@ -44,6 +45,8 @@ export function CheckoutForm({
   restaurant: Restaurant;
   total: number;
   kiosk: boolean;
+  /** Table du QR Code scanné : consommation sur place, table préremplie (modifiable). */
+  table?: string | null;
   pending: boolean;
   disabled: boolean;
   onSubmit: (values: CheckoutValues) => void;
@@ -55,10 +58,10 @@ export function CheckoutForm({
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      service_mode: modes[0],
+      service_mode: table && modes.includes("DINE_IN") ? "DINE_IN" : modes[0],
       customer_name: "",
       customer_phone: "",
-      table_label: "",
+      table_label: table ?? "",
       note: "",
     },
   });

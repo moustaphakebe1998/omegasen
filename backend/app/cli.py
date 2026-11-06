@@ -3,6 +3,12 @@
 python -m app.cli bootstrap   # crée le super admin défini par SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD
 python -m app.cli seed-demo   # restaurant de démonstration + menu + comptes employés
 python -m app.cli purge-e2e [--since ISO] [--emails MOTIF]   # nettoie les données des tests e2e (hors production)
+
+Environnement de test « Restaurant Baobab » (hors production, voir docs/BAOBAB_TEST_ENVIRONMENT.md) :
+python -m app.cli seed-baobab [--no-images]    # crée ou complète Baobab (idempotent)
+python -m app.cli reset-baobab [--no-images]   # supprime UNIQUEMENT Baobab puis le recrée
+python -m app.cli delete-baobab                # supprime UNIQUEMENT Baobab et ses comptes @baobab.test
+python -m app.cli baobab-accounts              # comptes de test, rôles et liens utiles
 """
 
 import asyncio
@@ -117,6 +123,7 @@ async def seed_demo() -> None:
             ),
             owner,
         )
+        r.is_demo = True
         for email, name, role in (
             ("manager@demo.example.com", "Moussa Ndiaye", MemberRole.MANAGER),
             ("caisse@demo.example.com", "Fatou Sow", MemberRole.CASHIER),
@@ -289,12 +296,22 @@ async def purge_e2e(since: str | None = None, emails: str = E2E_EMAILS) -> None:
                     )
                 )
             )
-        demo_id = await session.scalar(select(Restaurant.id).where(Restaurant.slug == DEMO_SLUG))
-        restaurant_ids.discard(demo_id)  # le restaurant de démo n'est jamais supprimé
+        from app.seeds.baobab import SLUG as BAOBAB_SLUG
+
+        # Restaurants de démo (démo historique + environnement de test Baobab) : jamais supprimés,
+        # seules les commandes passées pendant la série de tests sont retirées.
+        demo_ids = list(
+            await session.scalars(
+                select(Restaurant.id).where(
+                    (Restaurant.slug == DEMO_SLUG) | ((Restaurant.slug == BAOBAB_SLUG) & Restaurant.is_demo.is_(True))
+                )
+            )
+        )
+        restaurant_ids.difference_update(demo_ids)
 
         order_filter = [Order.restaurant_id.in_(restaurant_ids)] if restaurant_ids else []
-        if since and demo_id:
-            order_filter.append((Order.restaurant_id == demo_id) & (Order.created_at >= datetime.fromisoformat(since)))
+        if since and demo_ids:
+            order_filter.append(Order.restaurant_id.in_(demo_ids) & (Order.created_at >= datetime.fromisoformat(since)))
         n_orders = 0
         for cond in order_filter:
             order_ids = list(await session.scalars(select(Order.id).where(cond)))
@@ -303,10 +320,10 @@ async def purge_e2e(since: str | None = None, emails: str = E2E_EMAILS) -> None:
                 await session.execute(delete(Order).where(Order.id.in_(order_ids)))
                 n_orders += len(order_ids)
         n_res = 0
-        if since and demo_id:
+        if since and demo_ids:
             res = await session.execute(
                 delete(Reservation).where(
-                    Reservation.restaurant_id == demo_id, Reservation.created_at >= datetime.fromisoformat(since)
+                    Reservation.restaurant_id.in_(demo_ids), Reservation.created_at >= datetime.fromisoformat(since)
                 )
             )
             n_res = res.rowcount or 0
@@ -349,7 +366,33 @@ def backup_media(target: str) -> None:
     print(f"backup-media : {copied} copiés, {skipped} inchangés → {root}")
 
 
+async def baobab(command: str, images: bool = True) -> None:
+    from app.seeds import baobab as demo
+
+    try:
+        async with SessionLocal() as session:
+            if command == "delete-baobab":
+                print(f"Baobab supprimé : {await demo.delete_demo(session)}")
+                return
+            if command == "reset-baobab":
+                deleted, report = await demo.reset(session, images=images)
+                print(f"Baobab supprimé : {deleted}")
+            else:
+                report = await demo.seed(session, images=images)
+    except demo.DemoEnvironmentError as e:
+        raise SystemExit(f"Refusé : {e}") from None
+    state = "créé" if report.created_restaurant else "déjà présent, complété"
+    print(f"Restaurant Baobab {state} — {report.orders_created} commande(s) ajoutée(s).")
+    if report.image_error:
+        print(f"Photos non importées (stockage indisponible : {report.image_error}). Relancer seed-baobab plus tard.")
+    elif report.images is not None:
+        print(f"Photos en place ({report.images} plats).")
+    print()
+    print(demo.accounts_table())
+
+
 COMMANDS = {"bootstrap": bootstrap, "seed-demo": seed_demo}
+BAOBAB_COMMANDS = {"seed-baobab", "reset-baobab", "delete-baobab"}
 
 if __name__ == "__main__":
     if len(sys.argv) == 3 and sys.argv[1] == "backup-media":
@@ -358,6 +401,12 @@ if __name__ == "__main__":
         # python -m app.cli purge-e2e [--since ISO] [--emails MOTIF_LIKE]
         opts = dict(zip(sys.argv[2::2], sys.argv[3::2], strict=False))
         asyncio.run(purge_e2e(opts.get("--since"), opts.get("--emails", E2E_EMAILS)))
+    elif len(sys.argv) >= 2 and sys.argv[1] in BAOBAB_COMMANDS:
+        asyncio.run(baobab(sys.argv[1], images="--no-images" not in sys.argv[2:]))
+    elif len(sys.argv) == 2 and sys.argv[1] == "baobab-accounts":
+        from app.seeds.baobab import accounts_table
+
+        print(accounts_table())
     elif len(sys.argv) == 2 and sys.argv[1] in COMMANDS:
         asyncio.run(COMMANDS[sys.argv[1]]())
     else:

@@ -13,6 +13,7 @@ from sqlalchemy import (
     Text,
     Time,
 )
+from sqlalchemy import false as sql_false
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -63,6 +64,9 @@ class Restaurant(UUIDPk, Timestamps, Base):
         ForeignKey("media.id", ondelete="SET NULL", use_alter=True),
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Restaurant de démonstration / test (ex. Baobab, `python -m app.cli seed-baobab`) : seules les
+    # commandes de démo peuvent le réinitialiser ; un vrai restaurant n'est jamais marqué ainsi.
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sql_false())
 
     opening_hours: Mapped[list["OpeningHours"]] = relationship(
         cascade="all, delete-orphan", order_by="(OpeningHours.day_of_week, OpeningHours.opens_at)"

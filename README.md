@@ -6,7 +6,7 @@ Plateforme de gestion de restaurants : menus, **QR Code unique par restaurant**,
 |---|---|---|
 | Public (découverte, menu, commande, suivi) | `/`, `/r/{slug}`, `/q/{code}`, `/track/{jeton}` | Tout le monde |
 | Demande d'ouverture, activation de compte | `/demande`, `/activate/{jeton}` | Tout le monde |
-| Restaurateur | `/manage`, `/manage/{id}/…` | Propriétaire, gérant |
+| Restaurateur | `/manage`, `/manage/{id}/…` | Membres du restaurant, rubriques selon leurs permissions |
 | Cuisine (KDS) | `/kitchen/{id}` | Propriétaire, gérant, cuisine, caisse |
 | Caisse / guichet | `/pos/{id}` | Propriétaire, gérant, caissier |
 | Super Admin | `/admin` | Super administrateur |
@@ -123,8 +123,45 @@ Les comptes cuisine et caisse sont redirigés automatiquement vers leur écran a
 
 **Photos de démonstration** : `backend/app/demo_assets/` (restaurant de démo) et `frontend/public/landing/` (page d'accueil), photos Unsplash sous licence Unsplash, crédits dans les `CREDITS.md` de chaque dossier. `seed-demo` les importe et les restaure si le stockage local a été vidé.
 
-**Comptes de démonstration** (mot de passe `Demo!2026pass`) : `owner@demo.example.com`, `manager@demo.example.com`, `caisse@demo.example.com`, `cuisine@demo.example.com`. Restaurant : `/r/le-baobab-demo`.
-Super admin : définir `SUPERADMIN_EMAIL` et `SUPERADMIN_PASSWORD`, puis lancer `python -m app.cli bootstrap`.
+### Comptes de test
+
+> Comptes fictifs, **développement et test uniquement** (jamais en production). Connexion : http://localhost:3100/login
+
+**Restaurant Baobab** : environnement de test complet, menu `/r/baobab`. Mot de passe commun : **`BaobabTest2026!`**
+
+| Profil | Identifiant | Rôle OmegaSen | Arrive sur |
+|---|---|---|---|
+| Propriétaire | `owner@baobab.test` | `OWNER` | Espace de gestion |
+| Administrateur | `admin@baobab.test` | `MANAGER` (toutes les permissions) | Espace de gestion |
+| Responsable | `manager@baobab.test` | `MANAGER` (restreint) | Espace de gestion |
+| Caissier | `cashier@baobab.test` | `CASHIER` | Caisse |
+| Serveur | `waiter@baobab.test` | `CASHIER` (sans encaissement ni annulation) | Caisse (prise de commande) |
+| Cuisinier | `kitchen@baobab.test` | `KITCHEN` (poste Grill) | Écran cuisine |
+| Utilisateur standard | `user@baobab.test` | `KITCHEN` (lecture seule) | Espace de gestion (consultation) |
+| Clients | `client.aminata@baobab.test`, `client.moussa@baobab.test`, `client.khadija@baobab.test`, `client.pierre@baobab.test` | compte client | Mon compte (`/compte`) |
+| Invitation en attente | `invite@baobab.test` | `CASHIER` | ne peut pas se connecter (non activé) |
+
+QR Code du restaurant : `/q/baobab26`. QR d'une table : `/q/baobab26?table=T5` (tables `T1` à `T10`). Le jeu de données contient un menu complet, des commandes dans tous les états, 14 jours d'historique, des réservations et des notifications.
+
+```bash
+cd backend
+.venv/bin/python -m app.cli seed-baobab       # créer / compléter (idempotent) et débloquer les comptes
+.venv/bin/python -m app.cli reset-baobab      # réinitialiser uniquement Baobab
+.venv/bin/python -m app.cli baobab-accounts   # comptes et liens utiles
+```
+
+Détails, permissions de chaque profil, scénario de test et limites : [`docs/BAOBAB_TEST_ENVIRONMENT.md`](docs/BAOBAB_TEST_ENVIRONMENT.md).
+
+**Restaurant de démo historique** (`seed-demo`, utilisé par les tests e2e et la page `/demo`), menu `/r/le-baobab-demo`. Mot de passe commun : **`Demo!2026pass`**
+
+| Profil | Identifiant |
+|---|---|
+| Propriétaire | `owner@demo.example.com` |
+| Responsable | `manager@demo.example.com` |
+| Caisse | `caisse@demo.example.com` |
+| Cuisine | `cuisine@demo.example.com` |
+
+**Super admin** : identifiant `SUPERADMIN_EMAIL` et mot de passe `SUPERADMIN_PASSWORD` définis dans `.env`, créé par `python -m app.cli bootstrap` (lancé par `./dev.sh`). Ce mot de passe n'est pas écrit dans le README.
 
 ## Démo
 
